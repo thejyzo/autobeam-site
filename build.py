@@ -67,6 +67,24 @@ def contact_buttons(ctx, cls=""):
   <a class="btn btn-call" href="tel:{c['phone_intl']}" data-track="call" data-ctx="{ctx}"><svg><use href="#i-phone"/></svg>{c['phone_display']}</a>
 </div>'''
 
+TR = dict(zip("абвгґдеєжзиіїйклмнопрстуфхцчшщьюя", ["a","b","v","h","g","d","e","ie","zh","z","y","i","i","i","k","l","m","n","o","p","r","s","t","u","f","kh","ts","ch","sh","shch","","iu","ia"]))
+def slugify(t):
+    t = "".join(TR.get(ch, ch) for ch in t.lower())
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
+
+def load_orders():
+    out = []
+    for line in (ROOT / "data" / "order.txt").read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("#"): continue
+        f = [x.strip() for x in line.split("|")]
+        brand, mname, years, trim = f[:4]; kind = f[4] if len(f) > 4 else "Фара"
+        assert any(m[0] == mname for m in MODELS[brand]), (brand, mname)
+        name = f"{kind} {mname if mname.startswith(brand) else brand + ' ' + mname} {years} {trim}"
+        out.append(dict(order=1, id="o" + str(len(out)), name=name, brand=brand, mname=mname, model=mslug(brand, mname),
+                        kind=kind, side="Ліва / права" if kind != "ДХО" else "", light=trim, years=years, trim=trim,
+                        slug="pid-zamovlennia-" + slugify(f"{kind} {brand} {mname} {years} {trim}"), price=0, pn="", type="Оригінал"))
+    return out
+
 def page(tpl_name, **kw):
     tpl = (SRC / tpl_name).read_text(encoding="utf-8")
     shell = (SRC / "_shell.html").read_text(encoding="utf-8")
@@ -85,6 +103,7 @@ def main():
         if it["slug"] in seen: it["slug"] += f"-{it['id']}"
         seen.add(it["slug"])
 
+    orders = load_orders()
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT / "fary").mkdir(parents=True)
     shutil.copytree(SRC / "assets", OUT / "assets")
@@ -92,19 +111,20 @@ def main():
     # catalog for client-side filtering
     slim = [{k: it[k] for k in ("id", "name", "price", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug")}
             | {"img": img(it["photos"][0], "400x300")} for it in items]
+    slim += [{k: o[k] for k in ("order", "id", "name", "price", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug")} for o in orders]
     (OUT / "assets" / "config.js").write_text("window.AB_CONFIG=" + json.dumps(CFG, ensure_ascii=False) + ";", encoding="utf-8")
 
     # left sidebar: all brands/models ever handled (data/models.json) with in-stock counts
-    side = ['<button class="side-all active" data-brand="" data-model="">Усі фари <span>%d</span></button>' % len(items)]
+    side = ['<button class="side-all active" data-brand="" data-model="">Усі фари <span>%d</span></button>' % (len(items) + len(orders))]
     models_js = {}
     for b in sorted(MODELS):
         bc = sum(x["brand"] == b for x in items)
         lis = []
         for mname, rx, yrs in MODELS[b]:
-            sl = mslug(b, mname); c = sum(x["model"] == sl for x in items)
+            sl = mslug(b, mname); c = sum(x["model"] == sl for x in items); oc = sum(o["model"] == sl for o in orders)
             models_js[sl] = {"brand": b, "name": mname, "years": yrs}
             lis.append(f'<li><button class="side-model{"" if c else " none"}" data-brand="{esc(b)}" data-model="{sl}">'
-                       f'<b>{esc(mname)}</b><small>{yrs}</small><span>{c if c else "під замовлення"}</span></button></li>')
+                       f'<b>{esc(mname)}</b><small>{yrs}</small><span>{str(c) + " в наявн." if c else "під замовлення"}</span></button></li>')
         side.append(f'<details class="side-brand" data-brand="{esc(b)}"><summary><b>{esc(b)}</b><span>{bc or ""}</span></summary><ul>{"".join(lis)}</ul></details>')
     sidebar = "\n".join(side)
     (OUT / "assets" / "catalog.js").write_text("window.CATALOG=" + json.dumps(slim, ensure_ascii=False) + ";window.MODELS=" + json.dumps(models_js, ensure_ascii=False) + ";", encoding="utf-8")
@@ -119,6 +139,13 @@ def main():
   {f'<div class="card-pn">{esc(it["pn"])}</div>' if it['pn'] else ''}
   <div class="card-price">{it['price_txt']}</div></div></a>'''
 
+    def ocard(o, base=""):
+        return f'''<a class="card card-order" href="{base}fary/{o['slug']}.html">
+  <div class="card-img ph"><span class="ph-brand">{esc(o['brand'])}</span><span class="ph-model">{esc(o['mname'])}</span><span class="badge">Під замовлення</span></div>
+  <div class="card-body"><div class="card-brand">{esc(o['brand'])} · {esc(o['kind'])}</div>
+  <h3>{esc(o['name'])}</h3><div class="card-meta">{esc(" · ".join(x for x in (o['side'], o['years']) if x))}</div>
+  <div class="card-price card-price-order">Ціна за запитом</div></div></a>'''
+
     ld_org = json.dumps({"@context": "https://schema.org", "@type": "AutoPartsStore", "name": "AutoBeam",
         "url": CFG["site_url"], "telephone": CFG["phone_intl"], "areaServed": "UA",
         "sameAs": [CFG["telegram"], CFG["olx"]]}, ensure_ascii=False)
@@ -126,7 +153,7 @@ def main():
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХО зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
                canonical=CFG["site_url"] + "/", og_image=CFG["banner"], jsonld=ld_org,
-               count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join(card(i) for i in items),
+               count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join([card(i) for i in items] + [ocard(o) for o in orders]), order_count=len(orders), stock_count=len(items),
                cta_hero=contact_buttons("hero"), cta_request=contact_buttons("request", "center"), cta_contacts=contact_buttons("contacts"))
     (OUT / "index.html").write_text(idx, encoding="utf-8")
 
@@ -149,12 +176,25 @@ def main():
                  cta=contact_buttons("product"), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")
 
+    for o in orders:
+        rel = [x for x in items if x["model"] == o["model"]][:4] or [x for x in items if x["brand"] == o["brand"]][:4]
+        ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": o["name"], "brand": {"@type": "Brand", "name": o["brand"]},
+            "offers": {"@type": "Offer", "priceCurrency": "UAH", "availability": "https://schema.org/PreOrder", "url": f"{CFG['site_url']}/fary/{o['slug']}.html"}}, ensure_ascii=False)
+        p = page("product_order.html", base="../", title=f"{o['name']} — під замовлення зі США | AutoBeam",
+                 description=f"{o['name']} — оригінал зі США під замовлення. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.",
+                 canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["banner"], jsonld=ld,
+                 name=esc(o["name"]), brand=esc(o["brand"]), mname=esc(o["mname"]), kind=esc(o["kind"]), years=esc(o["years"]), trim=esc(o["trim"]),
+                 side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order"), pid=o["id"],
+                 related_title=("В наявності для " + esc(o["brand"] + " " + o["mname"])) if any(x["model"] == o["model"] for x in items) else ("В наявності для " + esc(o["brand"])),
+                 related="\n".join(card(r, "../") for r in rel) or '<p class="muted">Зараз немає — привеземо під замовлення.</p>')
+        (OUT / "fary" / f"{o['slug']}.html").write_text(p, encoding="utf-8")
+
     today = datetime.date.today().isoformat()
-    urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items]
+    urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items + orders]
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
         "\n".join(f"<url><loc>{u}</loc><lastmod>{today}</lastmod></url>" for u in urls) + "\n</urlset>\n", encoding="utf-8")
     (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {CFG['site_url']}/sitemap.xml\n", encoding="utf-8")
-    print(f"Built {len(items)} products -> {OUT}")
+    print(f"Built {len(items)} in stock + {len(orders)} on order -> {OUT}")
 
 if __name__ == "__main__":
     main()

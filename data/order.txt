@@ -1,0 +1,133 @@
+# Позиції ПІД ЗАМОВЛЕННЯ (з історії закупівель, таблиця Headlights).
+# Формат: Марка | Модель (як у models.json) | Роки | Комплектація/тип світла | Тип (необов'язково: Фара / Ліхтар / ДХО / Повторювач)
+Acura | MDX | 2022–2026 | LED
+Audi | A3 | 2025–2026 | Full LED (8Y)
+Audi | A4 | 2013–2016 | Xenon + LED DRL (B8.5)
+Audi | A4 | 2016–2019 | Xenon + LED (B9)
+Audi | A4 | 2020–2025 | LED (B9.5)
+Audi | e-tron | 2019–2023 | LED
+Chevrolet | Bolt EV / EUV | 2022–2023 | LED
+Dodge | Dart | 2013–2016 | Галоген
+Ford | EcoSport | 2018–2022 | Галоген + DRL
+Ford | Edge | 2015–2018 | Галоген
+Ford | Edge | 2019–2024 | LED
+Ford | Edge | 2019–2024 | Bi-LED Titanium
+Ford | Escape / Kuga | 2020–2022 | Галоген
+Ford | Escape / Kuga | 2020–2022 | Галоген + DRL
+Ford | Escape / Kuga | 2020–2022 | Titanium Full LED
+Ford | Escape / Kuga | 2023–2026 | LED
+Ford | Escape / Kuga | 2023–2026 | Full LED
+Ford | Escape / Kuga | 2023–2026 | LED | Ліхтар
+Ford | Fusion | 2017–2020 | Xenon
+Ford | Fusion | 2017–2020 | LED
+Ford | Fusion | 2017–2020 | Full LED
+Ford | Mustang | 2023–2026 | LED
+Ford | Mustang | 2024–2025 | LED | Повторювач
+Ford | Mustang Mach-E | 2020–2023 | LED
+Ford | Mustang Mach-E | 2024–2026 | LED
+Honda | Accord | 2018–2022 | LED
+Honda | Accord | 2018–2022 | Full LED
+Honda | Accord | 2023–2025 | LED
+Honda | Civic | 2022–2025 | LED
+Honda | CR-V | 2017–2022 | LED
+Honda | CR-V | 2023–2025 | LED + DRL
+Honda | Pilot | 2023–2026 | LED
+Hyundai | Elantra | 2017–2020 | Галоген
+Hyundai | Elantra | 2021–2023 | Галоген
+Hyundai | Elantra | 2024–2026 | Full LED
+Hyundai | Ioniq 5 | 2022–2024 | LED
+Hyundai | Kona | 2023–2025 | Full LED
+Hyundai | Palisade | 2020–2022 | LED
+Hyundai | Santa Fe | 2021–2023 | LED
+Hyundai | Santa Fe | 2024–2026 | LED
+Hyundai | Sonata | 2024–2025 | LED
+Infiniti | QX50 / QX55 | 2018–2026 | LED
+Infiniti | QX60 | 2022–2025 | LED
+Infiniti | QX60 | 2022–2025 | LED AFS
+Jeep | Cherokee | 2019–2023 | LED (KL)
+Jeep | Cherokee | 2026+ | LED
+Jeep | Compass | 2017–2021 | Xenon
+Jeep | Compass | 2022–2026 | LED
+Jeep | Grand Cherokee | 2017–2021 | Xenon + LED (WK2)
+Jeep | Grand Cherokee | 2021–2025 | Base (WL)
+Jeep | Grand Cherokee | 2021–2025 | Premium / Summit (WL)
+Jeep | Grand Wagoneer | 2022–2024 | LED
+Kia | Niro | 2017–2019 | Галоген
+Kia | Niro | 2023–2025 | Галоген
+Kia | Sorento | 2014–2015 | SX галоген + LED DRL
+Kia | Sorento | 2016–2018 | Галоген
+Kia | Sorento | 2016–2020 | LED + DRL
+Kia | Sorento | 2019–2020 | SX / Limited LED
+Kia | Sorento | 2022–2025 | LED
+Land Rover | Defender | 2023–2025 | LED
+Land Rover | Discovery 5 | 2017–2020 | Full LED (L462)
+Land Rover | Discovery Sport | 2019–2025 | LED
+Land Rover | Range Rover | 2018–2021 | LED (L405)
+Land Rover | Range Rover Evoque | 2020–2023 | LED
+Lexus | NX | 2022–2025 | LED
+Lexus | RX | 2020–2022 | LED
+Lexus | RX | 2023–2025 | Full LED
+Mazda | Mazda 3 | 2016–2019 | Галоген (BM)
+Mazda | Mazda 3 | 2019–2023 | LED (BP)
+Mazda | Mazda 6 | 2018–2021 | LED без AFS
+Mazda | CX-30 | 2020–2022 | LED
+Mazda | CX-30 | 2023–2026 | LED
+Mazda | CX-5 | 2017–2021 | LED
+Mazda | CX-5 | 2017–2021 | LED AFS
+Mazda | CX-5 | 2022–2025 | LED
+Mazda | CX-5 | 2022–2025 | LED AFS
+Mazda | CX-5 | 2026+ | LED
+Mazda | CX-50 | 2022–2024 | LED
+Mazda | CX-50 | 2022–2024 | LED AFS
+Mazda | CX-70 / CX-90 | 2024–2026 | LED
+Mazda | CX-9 | 2016–2022 | LED AFS
+Mercedes | C-Class | 2022–2026 | LED (W206)
+Mercedes | CLA | 2019–2021 | LED (W257)
+Nissan | Ariya | 2023–2024 | LED
+Nissan | Ariya | 2023–2025 | LED | ДХО
+Nissan | Kicks | 2021–2023 | Галоген
+Nissan | Kicks | 2025–2026 | LED
+Nissan | Murano | 2019–2023 | Full LED
+Nissan | Murano | 2023–2026 | LED
+Nissan | Pathfinder | 2023–2025 | LED
+Nissan | Rogue | 2017–2019 | LED
+Nissan | Rogue | 2021–2023 | LED, верх + низ
+Nissan | Rogue Sport | 2017–2019 | Галоген
+Nissan | Rogue Sport | 2020–2022 | Галоген
+Nissan | Sentra | 2020–2022 | LED
+Subaru | Forester | 2022–2024 | LED
+Subaru | Forester | 2025+ | LED
+Subaru | Outback / Legacy | 2020–2022 | LED AFS
+Subaru | Outback / Legacy | 2023–2025 | LED
+Subaru | Outback / Legacy | 2026+ | LED
+Subaru | Outback / Legacy | 2020–2022 | LED | Ліхтар
+Tesla | Model Y | 2025–2026 | LED (Juniper)
+Toyota | bZ4X | 2023–2025 | LED
+Toyota | Camry | 2018–2024 | LED (70)
+Toyota | Camry | 2018–2024 | Full LED XLE / XSE (70)
+Toyota | Camry | 2025–2026 | LED (80)
+Toyota | Corolla | 2017–2019 | LED
+Toyota | Grand Highlander | 2024+ | LED
+Toyota | Highlander | 2020–2023 | LED
+Toyota | Prius | 2023–2025 | LED
+Toyota | Prius Prime | 2017–2022 | LED
+Toyota | Prius Prime | 2017–2022 | LED | Повторювач
+Toyota | RAV4 | 2016–2018 | Галоген + LED DRL
+Toyota | RAV4 | 2019–2021 | LED
+Toyota | RAV4 | 2022–2025 | Full LED
+Toyota | RAV4 | 2026+ | LED
+Toyota | Venza | 2021–2023 | LED
+Toyota | Yaris | 2016–2018 | Галоген
+Volkswagen | Atlas | 2018–2020 | LED
+Volkswagen | Atlas | 2024 | LED
+Volkswagen | Atlas Cross Sport | 2021–2023 | LED
+Volkswagen | Atlas Cross Sport | 2024–2026 | LED
+Volkswagen | Atlas Cross Sport | 2024–2026 | LED центральний | ДХО
+Volkswagen | Jetta | 2019–2024 | LED
+Volkswagen | Passat | 2016–2019 | Галоген (B8)
+Volkswagen | Passat | 2016–2019 | Full LED (B8)
+Volkswagen | Passat | 2020–2023 | Full LED (NMS2)
+Volkswagen | Taos | 2022–2024 | LED
+Volkswagen | Tiguan | 2018–2021 | LED
+Volkswagen | Tiguan | 2022–2024 | LED
+Volkswagen | Tiguan | 2025–2026 | LED

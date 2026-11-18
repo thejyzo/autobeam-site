@@ -116,6 +116,20 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
   .side-backdrop.open{display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55}
 }
 
+/* on-order placeholder */
+.ph{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;padding:18px;background:radial-gradient(120% 90% at 85% 15%,rgba(255,194,26,.22),transparent 55%),linear-gradient(160deg,#1f1f25,#121215);color:var(--text)}
+.ph::after{content:"";position:absolute;right:14px;bottom:14px;width:64px;height:32px;opacity:.35;background:url("favicon.svg") no-repeat center/contain}
+.ph-brand{font:700 .78rem var(--body);color:var(--amber);text-transform:uppercase;letter-spacing:.08em}
+.ph-model{font:700 1.35rem/1.15 var(--head)}
+.ph-years{color:var(--muted);font-weight:600}
+.ph .badge{position:absolute;left:14px;top:14px;background:rgba(255,194,26,.14);border:1px solid rgba(255,194,26,.4);color:var(--amber);font:700 .72rem var(--body);padding:4px 8px;border-radius:999px}
+.ph-lg .ph-model{font-size:2.2rem}
+.g-main.ph{background-color:#151518}
+.card-order{border-style:dashed}
+.card-price-order{font:700 1rem var(--body);color:var(--amber)}
+.p-price-order{font-size:1.6rem}
+.chip span{color:var(--muted)}
+
 /* bands */
 .band{background:var(--bg2);border-block:1px solid var(--line)}
 .steps{list-style:none;padding:0;margin:24px 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}

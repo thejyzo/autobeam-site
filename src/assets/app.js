@@ -51,7 +51,7 @@
   /* ---------- Catalog ---------- */
   var data = window.CATALOG, grid = document.getElementById('grid');
   if (!data || !grid) return;
-  var st = { q: '', brand: '', model: '', side: '', sort: 'new' };
+  var st = { q: '', brand: '', model: '', side: '', av: '', sort: 'new' };
   var MODELS = window.MODELS || {};
   var params = new URLSearchParams(location.search);
   st.q = params.get('q') || ''; st.brand = params.get('brand') || ''; st.model = params.get('model') || '';
@@ -65,26 +65,31 @@
   function render() {
     var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);
     var list = data.filter(function (d) {
-      return (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) &&
-        (!st.side || d.side === st.side || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
+      return (!st.av || (st.av === 'order') === !!d.order) && (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) &&
+        (!st.side || d.order || d.side === st.side || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
         words.every(function (w) { return d._s.indexOf(w) > -1; });
     });
-    if (st.sort === 'cheap') list.sort(function (a, b) { return a.price - b.price; });
-    else if (st.sort === 'exp') list.sort(function (a, b) { return b.price - a.price; });
+    var ob = function (a, b) { return (a.order ? 1 : 0) - (b.order ? 1 : 0); };
+    if (st.sort === 'cheap') list.sort(function (a, b) { return ob(a, b) || a.price - b.price; });
+    else if (st.sort === 'exp') list.sort(function (a, b) { return ob(a, b) || b.price - a.price; });
     else list.sort(function (a, b) { return a._i - b._i; });
     grid.innerHTML = list.map(function (d) {
+      if (d.order) return '<a class="card card-order" href="fary/' + d.slug + '.html"><div class="card-img ph"><span class="ph-brand">' + esc(d.brand) + '</span><span class="ph-model">' + esc((MODELS[d.model] || {}).name || '') + '</span><span class="badge">Під замовлення</span></div>' +
+        '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3><div class="card-meta">' + esc([d.side, d.years].filter(Boolean).join(' · ')) + '</div><div class="card-price card-price-order">Ціна за запитом</div></div></a>';
       var meta = [d.side, d.light, d.years].filter(Boolean).join(' · ');
       return '<a class="card" href="fary/' + d.slug + '.html"><div class="card-img"><img loading="lazy" src="' + d.img + '" alt="' + esc(d.name) + '"></div>' +
         '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3>' +
         '<div class="card-meta">' + esc(meta) + '</div>' + (d.pn ? '<div class="card-pn">' + esc(d.pn) + '</div>' : '') +
         '<div class="card-price">' + fmt(d.price) + '</div></div></a>';
     }).join('');
-    var filtered = st.q || st.brand || st.side || st.model;
+    var filtered = st.q || st.brand || st.side || st.model || st.av;
     document.getElementById('count').textContent = filtered ? 'знайдено ' + list.length : '';
     var m = MODELS[st.model], label = m ? m.brand + ' ' + m.name : st.brand;
     document.getElementById('cat-title').firstChild.nodeValue = label ? 'Фари ' + label + ' ' : 'Каталог ';
     document.getElementById('empty-title').textContent = label ? 'Фар для ' + label + ' зараз немає в наявності' : 'Такої фари зараз немає в наявності';
     document.getElementById('empty').hidden = list.length > 0;
+    var inStock = list.filter(function (d) { return !d.order; }).length;
+    if (label && !st.av && list.length && !inStock) document.getElementById('count').textContent = 'зараз немає в наявності — під замовлення ' + list.length;
     document.querySelectorAll('#side button[data-brand]').forEach(function (b) {
       b.classList.toggle('active', b.dataset.model === st.model && (b.dataset.model ? true : b.dataset.brand === st.brand && !st.brand));
     });
@@ -92,6 +97,7 @@
       var on = d.dataset.brand === st.brand; d.classList.toggle('active-brand', on); if (on) d.open = true;
     });
     document.querySelectorAll('#sides .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.side === st.side); });
+    document.querySelectorAll('#avail .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.av === st.av); });
     var act = document.querySelector('#side .side-model.active');
     if (act) { var sb = document.getElementById('side'); sb.scrollTop = act.offsetTop - sb.clientHeight / 2; }
     try {
@@ -117,7 +123,12 @@
       return;
     }
     var sm = e.target.closest('summary');
-    if (sm) { var d = sm.parentElement; if (!d.open || st.brand !== d.dataset.brand) { st.brand = d.dataset.brand; st.model = ''; render(); } }
+    if (sm) {
+      e.preventDefault();
+      var d = sm.parentElement;
+      if (d.open && st.brand === d.dataset.brand && !st.model) { d.open = false; return; }
+      st.brand = d.dataset.brand; st.model = ''; render(); d.open = true;
+    }
   });
 
   var q2 = document.getElementById('q2'), q = document.getElementById('q');
@@ -125,6 +136,7 @@
   var timer;
   q2.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { st.q = q2.value; render(); }, 120); });
   document.getElementById('sort').addEventListener('change', function (e) { st.sort = e.target.value; render(); });
+  document.getElementById('avail').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) { st.av = b.dataset.av; render(); } });
   document.getElementById('sides').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) { st.side = b.dataset.side; render(); } });
   function go() {
     st.q = q2.value = q.value; render();
