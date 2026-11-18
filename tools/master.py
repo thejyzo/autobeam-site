@@ -16,7 +16,7 @@ def nk(s):
 
 def npn(s): return re.sub(r"[^0-9A-Z]", "", str(s).upper())
 
-def split_pns(s):
+def _old_split_pns(s):
     if not s: return []
     parts = re.split(r"[,;/|]+|\s{1,}(?=[A-Z0-9]{2,}[-A-Z0-9]*\d)", str(s).strip())
     return [p.strip(" .") for p in parts if len(npn(p)) >= 6]
@@ -42,6 +42,18 @@ def pn_side(pn):
 def pns_side(pns):
     sides = {pn_side(x) for x in pns} - {""}
     return sides.pop() if len(sides) == 1 else ("Пара (ліва + права)" if len(sides) == 2 else "")
+
+def split_pns(s):
+    s = (s or "").upper().replace("\n", " ")
+    s = re.sub(r"\b([A-Z0-9]{4})\s+(\d{2})\s+(\d{3}[A-Z]?)\b", r"\1-\2-\3", s)            # Mazda: KL2L 51 030
+    s = re.sub(r"\b([A-Z0-9]{4})\s+(\d{2}[A-Z]\d{3}|\d{5})\s+([A-Z]{1,2})\b", r"\1-\2-\3", s)  # Ford/JLR: KT4B 13W029 BF
+    parts = re.split(r"[,;/|]+|\s+", s)
+    out = []
+    for p in parts:
+        p = p.strip(" .")
+        if len(re.sub(r"[^0-9A-Z]", "", p)) >= 6 and re.search(r"\d", p) and p not in out: out.append(p)
+    return out
+
 
 OLX_CAT = {"2544": "Фари передні", "2545": "Ліхтарі задні", "2550": "Корпуси / скло фар"}
 
