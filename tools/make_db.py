@@ -62,12 +62,15 @@ def hints(text):
                 xen=bool(re.search("ксенон|xenon", t)), bi=("bi-led" in t), sx=bool(re.search(r"\bsx|limited", t)))
 
 def main():
-    acc = [l.strip() for l in (ROOT / "data/accounting_names.txt").read_text(encoding="utf-8").splitlines() if l.strip()]
+    def normkey(k):
+        for a, b in (("_", " "), ("Chervrolet", "Chevrolet"), ("Atlass", "Atlas")): k = k.replace(a, b)
+        return re.sub(r"\s+", " ", k).strip()
+    acc = list(dict.fromkeys(normkey(l) for l in (ROOT / "data/accounting_names.txt").read_text(encoding="utf-8").splitlines() if l.strip()))
     rows = []
     for a in acc:
         p = parse_acc(a); p["key"] = a; p["model"] = build.mslug(p["brand"], p["mname"]); p["olx"] = []
         rows.append(p)
-    stock = {l.strip() for l in (ROOT / "data/stock_keys.txt").read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")}
+    stock = {normkey(l) for l in (ROOT / "data/stock_keys.txt").read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")}
     olx = [build.parse(r) for r in json.loads((ROOT / "data/olx_raw.json").read_text(encoding="utf-8"))]
     unmatched = []
     for it in olx:
@@ -75,23 +78,32 @@ def main():
         kind = {"Ліхтар": "Ліхтар", "ДХО": "ДХО"}.get(it["kind"], "Фара")
         if it["kind"] in ("Скло фари", "Корпус фари"): unmatched.append(it); continue
         h = hints(it["title"])
-        best, bs, tie = None, -99, False
-        for r in rows:
-            if r["model"] != it["model"] or r["kind"] != kind: continue
-            if not overlap(r["years"], it["years"]): continue
-            sc = 3 if r["key"] in stock else 0
-            if side == "Пара (ліва + права)" and r["side"] == side and r["key"] not in stock: sc -= 2
-            if side and r["side"] == side: sc += 4
-            elif side == "Пара (ліва + права)" and r["side"] in ("Ліва", "Права"): sc += 2
-            elif side and r["side"] and r["side"] != side: sc -= 4
-            rh = hints(r["trim"] + " " + r["key"])
-            for k in ("afs", "full", "hal", "xen", "bi", "sx"):
-                if h[k] and rh[k]: sc += 2
-                elif h[k] != rh[k] and k in ("afs", "hal", "xen", "bi", "sx"): sc -= 2
-            ra, rb = yr_range(r["years"]), yr_range(it["years"])
-            if ra and rb: sc += 2 if ra[0] == rb[0] else (1 if abs(ra[0] - rb[0]) <= 1 else 0)
-            if sc > bs: best, bs, tie = r, sc, False
-            elif sc == bs: tie = True
+        def pick(strict_years):
+            best, bs, tie = None, -99, False
+            for r in rows:
+                if r["model"] != it["model"] or r["kind"] != kind: continue
+                if side in ("Ліва", "Права") and r["side"] in ("Ліва", "Права") and r["side"] != side: continue   # never the opposite side
+                yr_ok = overlap(r["years"], it["years"])
+                if strict_years and not yr_ok: continue
+                if not strict_years and (r["key"] not in stock or (side and r["side"] != side)): continue
+                sc = 3 if r["key"] in stock else 0
+                if side == "Пара (ліва + права)" and r["side"] == side and r["key"] not in stock: sc -= 2
+                if side and r["side"] == side: sc += 4
+                elif side == "Пара (ліва + права)" and r["side"] in ("Ліва", "Права"): sc += 2
+                rh = hints(r["trim"] + " " + r["key"])
+                for k in ("afs", "full", "hal", "xen", "bi", "sx"):
+                    if h[k] and rh[k]: sc += 2
+                    elif h[k] != rh[k] and k in ("afs", "hal", "xen", "bi", "sx"): sc -= 2
+                ra, rb = yr_range(r["years"]), yr_range(it["years"])
+                if ra and rb: sc += 2 if ra[0] == rb[0] else (1 if abs(ra[0] - rb[0]) <= 1 else 0)
+                if not strict_years: sc -= 1
+                if sc > bs: best, bs, tie = r, sc, False
+                elif sc == bs: tie = True
+            return best, bs, tie
+        best, bs, tie = pick(True)
+        if best is None or (side in ("Ліва", "Права") and best["key"] not in stock):
+            b2, s2, t2 = pick(False)
+            if b2 is not None: best, bs, tie = b2, s2, True   # matched despite different years -> flag for review
         if best is None: unmatched.append(it); continue
         best["olx"].append((it, bs, tie))
     out = []

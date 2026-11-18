@@ -52,7 +52,7 @@
   var RATE = C.rate_fallback || 46;
   var sp = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
   function priceHtml(u) {
-    var h = '<b class="uah">' + sp(Math.round(u * RATE / 10) * 10) + ' грн</b>';
+    var h = '<b class="uah">' + sp(Math.ceil(u * RATE / 100) * 100) + ' грн</b>';
     if (C.show_usd) h += ' <small class="usd">$' + sp(u) + '</small>';
     return h;
   }

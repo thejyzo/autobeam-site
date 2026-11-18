@@ -25,7 +25,7 @@ def img(pid, size="800x600"):
 
 def usd(p): return round(p / CFG["olx_rate"])          # OLX shows USD prices converted at this rate
 def sp(n): return f"{n:,}".replace(",", " ")
-def uah(u): return int(round(u * CFG["rate_fallback"] / 10.0) * 10)
+def uah(u): return int(-(-u * CFG["rate_fallback"] // 100) * 100)   # always round UP to 100 UAH
 def price_html(u):
     """Price block; UAH is the legal price (refreshed in the browser from /rate.json), USD optional."""
     s = f'<b class="uah">{sp(uah(u))} грн</b>'

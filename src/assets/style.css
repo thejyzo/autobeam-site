@@ -15,6 +15,9 @@ h2{font-size:clamp(1.4rem,3vw,2rem)}
 .muted{color:var(--muted)} .small{font-size:.875rem}
 .eyebrow{color:var(--amber);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin:0 0 .8em}
 section{padding:56px 0;scroll-margin-top:64px}
+section.wrap{padding-top:64px;padding-bottom:64px}
+section.wrap + section.wrap{padding-top:16px}
+.why h2,.faq h2,.contacts-sec h2,.related h2{margin-bottom:20px}
 
 /* header */
 .top{position:sticky;top:0;z-index:20;background:rgba(11,11,13,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
@@ -222,6 +225,7 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
 }
 @media (max-width:560px){
   section{padding:40px 0}
+  section.wrap{padding-top:40px;padding-bottom:40px}
   .hero{padding:44px 0}
   .top-phone span{display:none}
   .hero-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:.78rem}
