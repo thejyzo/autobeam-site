@@ -85,8 +85,7 @@ def main():
         hsides = {heur_side(p.get("brand"), x)[0] for x in pns if not find(idx, x)} - {None, ""}
         allsides = sides | hsides
         pair = len(allsides) == 2 or "LH + RH" in (p.get("key") or "")
-        if len(allsides) == 2 and "LH + RH" not in (p.get("key") or ""):
-            out.append((p["id"], "перевірити", " / ".join(pns), p.get("key"), "у картці на один бік є номери ЛІВОЇ і ПРАВОЇ фари — це пара чи помилка в полі парт-номера?"))
+        # paired OLX listings (left + right in one ad) are intentional — not an error
         for pn in pns:
             r = find(idx, pn)
             if not r:
