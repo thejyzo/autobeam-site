@@ -135,7 +135,7 @@ def load_db():
     import sqlite3, os
     dbf = Path(os.environ.get("AB_DB", Path.home() / "autobeam_data/products.sqlite"))
     if dbf.exists():
-        con = sqlite3.connect(dbf)
+        con = sqlite3.connect(str(dbf))
         rows = [json.loads(r[0]) for r in con.execute("SELECT data FROM products ORDER BY id")]
     else:
         rows = json.loads((ROOT / "data" / "products.json").read_text(encoding="utf-8"))
@@ -217,8 +217,8 @@ def main():
 
     # catalog for client-side filtering
     keys = ("id", "name", "price", "uah", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug", "st")
-    slim = [{k: it[k] for k in keys} | {"img": pimg(it["photos"][0], "400x300")} for it in items]
-    slim += [{k: o[k] for k in keys} | {"order": 1} for o in orders]
+    slim = [dict({k: it[k] for k in keys}, img=pimg(it["photos"][0], "400x300")) for it in items]
+    slim += [dict({k: o[k] for k in keys}, order=1) for o in orders]
     (OUT / "assets" / "config.js").write_text("window.AB_CONFIG=" + json.dumps(CFG, ensure_ascii=False) + ";", encoding="utf-8")
 
     # left sidebar: all brands/models ever handled (data/models.json) with in-stock counts
