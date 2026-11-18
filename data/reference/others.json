@@ -127,6 +127,152 @@
     "newparts 561941774A 'Front Passenger Side (LED)', 561941773A Front Left W/LED"
    ],
    "note": "Ваша картка AB-0226 'Passat 16-19 FULL LED LH' має 561941035C — за правилом VW ліва, але серія 035 у каталозі не знайдена для 16-19 Full LED; перевірити етикетку."
+  },
+  {
+   "model": "Kia Sorento",
+   "years": "2019-2020",
+   "variant": "галоген (рестайлінг UM)",
+   "left": [
+    "92101-C6500 (з адаптивом)",
+    "92101-C6510 (без адаптиву)"
+   ],
+   "right": [
+    "92102-C6500 (з адаптивом)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "autopartsprime 92101C6500 Driver Side, 2019-2020 Sorento",
+    "go-parts 92102 C6500: 2019-2020 Right, Halogen, with Adaptive",
+    "headlightsdepot 92101C6510 2019-2020 halogen without adaptive"
+   ],
+   "note": "92101/92102-C6000 — це 2016-2018 (дорестайлінг). Ваша картка AB-0074 з C6500 стоїть у позиції 16-18 — це 19-20."
+  },
+  {
+   "model": "Nissan Rogue Sport",
+   "years": "2020-2022",
+   "variant": "галоген",
+   "right": [
+    "26010-6MR0A"
+   ],
+   "left": [
+    "26060-6MR0A"
+   ],
+   "confidence": "high",
+   "sources": [
+    "nissanpartsdeal 2020/2022 Rogue Sport: 26010-6MR0A Rh, 26060-6MR0A Lh",
+    "nissanusa 26010-6MR0A 'Rogue Sport. Right. Without led headlamps. Halogen.'"
+   ],
+   "note": "2017-2019 галоген = 26010/26060-6MA0A, LED = 6MA5A."
+  },
+  {
+   "model": "Nissan Rogue",
+   "years": "2018-2020",
+   "variant": "LED",
+   "left": [
+    "26060-6FL7A"
+   ],
+   "right": [],
+   "confidence": "high",
+   "sources": [
+    "nissanpartsdeal 26060-6FL7A Driver Side 2018-2020",
+    "nissanusa 26060-6FL7A 2019-2020 Rogue"
+   ]
+  },
+  {
+   "model": "Mazda 3 BP",
+   "years": "2019-2023",
+   "variant": "LED без адаптиву, Mexico built",
+   "right": [
+    "BCJH-51-030M"
+   ],
+   "left": [
+    "BCJH-51-040M"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts BCJH-51-040M: 'Mazda3. Left. Without adaptive headlamp... mexico built.'",
+    "mazdapartsnow BCJH-51-030M Right replaces BDTW-51-030"
+   ]
+  },
+  {
+   "model": "Honda CR-V",
+   "years": "2017-2022",
+   "variant": "галоген (LX, EX, EX-L)",
+   "right": [
+    "33100-TLA-A01 (A21)"
+   ],
+   "left": [
+    "33150-TLA-A01"
+   ],
+   "confidence": "high",
+   "sources": [
+    "hondapartsconnection 33100-TLA-A01: 'CR-V. Right. All. Halogen headlamps.'",
+    "go-parts HO2503180: Halogen, LX/EX/EX-L, OEM 33100-TLA-A01"
+   ]
+  },
+  {
+   "model": "Honda Civic",
+   "years": "2022-2025",
+   "variant": "LX/EX (A52) та Sport/Touring/Si (A22)",
+   "right": [
+    "33100-T20-A52 (LX, EX)",
+    "33100-T20-A22 (Sport, Touring, Si)"
+   ],
+   "left": [
+    "33150-T20-A52 (LX, EX)",
+    "33150-T20-A22 (Sport, Touring, Si)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "hondapartsnow 2022 Civic: 33100-T20-A22 Sport/Touring/Si, 33100-T20-A52 LX/EX"
+   ]
+  },
+  {
+   "model": "Audi A4 B9",
+   "years": "2016-2019",
+   "variant": "Bi-Xenon + LED DRL",
+   "left": [
+    "8W0941043 (A, B)"
+   ],
+   "right": [
+    "8W0941044"
+   ],
+   "confidence": "high",
+   "sources": [
+    "diederichs: 8W0941043 Left, Bi-Xenon, with LED DRL",
+    "eBay 8W0941044 Right BI-XENON A4 B9"
+   ]
+  },
+  {
+   "model": "VW Passat (USA)",
+   "years": "2020-2022",
+   "variant": "LED (код фари 8IY, без cornering)",
+   "left": [
+    "561941035B"
+   ],
+   "right": [
+    "561941036B"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts 561941035B: 'Fits Passat w/o Cornering Light, Headlamp Code: 8IY' Left, Passat 2020-2022",
+    "eBay 2020 Passat Left Driver Full LED 561941035B"
+   ],
+   "note": "Серія 561941035/036 — це Passat 2020-22, а не 2016-19 (там LED = 773/774). Ваша AB-0225 (561941035C) стоїть у позиції 16-19 FULL LED."
+  },
+  {
+   "model": "Chevrolet/Ford Edge 19-24 (довідка)",
+   "years": "2019-2024",
+   "variant": "Edge SE/SEL — галоген",
+   "right": [
+    "KT4Z-13008-AU (SE)",
+    "KT4Z-13008-AW (SEL галоген / Titanium без адаптиву)"
+   ],
+   "left": [],
+   "confidence": "high",
+   "sources": [
+    "go-parts: KT4Z 13008 AU — 2019-2024 Edge SE Halogen (Right); KT4Z 13008 AW — SEL Halogen w/o Sport App., Titanium w/o Adaptive"
+   ]
   }
  ]
 }

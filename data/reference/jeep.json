@@ -301,6 +301,22 @@
    "sources": [
     "store.mopar.com 68538458AC Headlamp, Right 2024-2026 Jeep"
    ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2",
+   "years": "2014-2015",
+   "variant": "ксенон",
+   "right": [
+    "68111000AM (AC…AL)"
+   ],
+   "left": [
+    "68111001AM"
+   ],
+   "confidence": "high",
+   "sources": [
+    "jeeppartsdeal 68111000AM 'Headlamp Assembly, Front Passenger Side' 2014-2015"
+   ]
   }
  ],
  "brands": [
