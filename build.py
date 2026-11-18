@@ -189,7 +189,7 @@ def write_feeds(all_items):
     if not tok: return
     (OUT / "feeds").mkdir(exist_ok=True)
     buf = io.StringIO(); w = csv.writer(buf, delimiter=";")
-    w.writerow(["Производитель", "Код", "Цена", "Количество", "Описание", "Б/У", "Фото"])
+    w.writerow(["Производитель", "Код", "Цена", "Количество", "Описание", "Б/У", "Реставрация", "Фото"])   # same column order as the current avto.pro mapping (Фото = 8/H)
     seen = set()
     for it in all_items:
         code = it.get("avto_code") or it["pn"]
@@ -202,7 +202,7 @@ def write_feeds(all_items):
         if it["st"] == "soon" and "уточнюйте" not in desc: desc += " В дорозі. Термін постачання уточнюйте."
         photos = ",".join((u if u.startswith("http") else CFG["site_url"] + u) for u in it["photos"][:5])
         w.writerow([it.get("avto_maker") or MAKER.get(it["brand"], it["brand"].upper()), code, price,
-                    max(1, it.get("qty") or 1), desc, "+" if it["state"] != "Нове" else "", photos])
+                    max(1, it.get("qty") or 1), desc, "+" if it["state"] != "Нове" else "", "", photos])
     (OUT / "feeds" / f"avtopro-{tok}.csv").write_text("\ufeff" + buf.getvalue(), encoding="utf-8")
     (OUT / "feeds" / "index.html").write_text("", encoding="utf-8")
 
