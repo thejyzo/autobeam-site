@@ -77,16 +77,29 @@ def slugify(t):
     return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
 
 def load_orders():
-    out = []
-    for line in (ROOT / "data" / "order.txt").read_text(encoding="utf-8").splitlines():
-        if not line.strip() or line.startswith("#"): continue
-        f = [x.strip() for x in line.split("|")]
-        brand, mname, years, trim = f[:4]; kind = f[4] if len(f) > 4 else "Фара"
-        assert any(m[0] == mname for m in MODELS[brand]), (brand, mname)
-        name = f"{kind} {mname if mname.startswith(brand) else brand + ' ' + mname} {years} {trim}"
-        out.append(dict(order=1, id="o" + str(len(out)), name=name, brand=brand, mname=mname, model=mslug(brand, mname),
-                        kind=kind, side="Ліва / права" if kind != "ДХО" else "", light=trim, years=years, trim=trim,
-                        slug="pid-zamovlennia-" + slugify(f"{kind} {brand} {mname} {years} {trim}"), price=0, pn="", type="Оригінал"))
+    """On-order variants = rows of the stock DB (all ever-bought variants, exact side) that are not on sale now.
+    A variant is skipped if the same model/years/trim is in stock for the same side (or as a pair)."""
+    rows = json.loads((ROOT / "data" / "db_initial.json").read_text(encoding="utf-8"))
+    rows = [r for r in rows if r["key"] and r["brand"] in MODELS and r["mname"]]
+    norm = lambda r: (r["brand"], r["mname"], r["kind"], r["years"], re.sub(r"[^a-z0-9а-яії]+", "", r["trim"].lower()))
+    stock = {}
+    for r in rows:
+        if r["olx"]: stock.setdefault(norm(r), set()).add(r["side"])
+    PAIR = "Пара (ліва + права)"
+    out, seen = [], set()
+    for r in rows:
+        if r["olx"]: continue
+        have = stock.get(norm(r), set())
+        if r["side"] in have or PAIR in have or (r["side"] == PAIR and {"Ліва", "Права"} <= have): continue
+        k = norm(r) + (r["side"],)
+        if k in seen: continue
+        seen.add(k)
+        side_txt = {"Ліва": "ліва", "Права": "права", PAIR: "ліва + права", "Центральна": "центральна"}.get(r["side"], "")
+        model_txt = r["mname"] if r["mname"].startswith(r["brand"]) else r["brand"] + " " + r["mname"]
+        name = re.sub(r"\s+", " ", f'{r["kind"]} {side_txt} {model_txt} {r["body"]} {r["years"]} {r["trim"]}').strip()
+        out.append(dict(order=1, id="o" + str(len(out)), name=name, brand=r["brand"], mname=r["mname"], model=mslug(r["brand"], r["mname"]),
+                        kind=r["kind"], side=r["side"], light=r["trim"], years=r["years"], trim=r["trim"] or "—",
+                        slug="pid-zamovlennia-" + slugify(name), price=0, pn="", type="Оригінал"))
     return out
 
 def page(tpl_name, **kw):

@@ -102,7 +102,7 @@
     var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);
     var list = data.filter(function (d) {
       return (!st.av || (st.av === 'order') === !!d.order) && (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) &&
-        (!st.side || d.order || d.side === st.side || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
+        (!st.side || d.side === st.side || (d.side || '').indexOf('Пара') === 0 && st.side === 'Ліва + права' || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
         words.every(function (w) { return d._s.indexOf(w) > -1; });
     });
     var ob = function (a, b) { return (a.order ? 1 : 0) - (b.order ? 1 : 0); };
