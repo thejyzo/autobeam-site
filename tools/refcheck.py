@@ -17,10 +17,10 @@ def load_ref():
             for side, lst in (("Права", it.get("right", [])), ("Ліва", it.get("left", []))):
                 for pn in lst + [x for x in it.get("label", []) if ("прав" in x and side == "Права") or ("лів" in x and side == "Ліва")]:
                     k = npn(pn.split(" ")[0])
-                    if len(k) >= 6: idx[k] = dict(it, side=side, brand=ref["brand"], pn=pn)
+                    if len(k) >= 6: idx[k] = dict(it, side=side, brands=ref.get("brands") or [ref["brand"]], pn=pn)
                 for pn in it.get("superseded", []):
                     k = npn(pn.split("*")[0])
-                    if len(k) >= 8: idx.setdefault(k, dict(it, side="", brand=ref["brand"], pn=pn))
+                    if len(k) >= 8: idx.setdefault(k, dict(it, side="", brands=ref.get("brands") or [ref["brand"]], pn=pn))
     return idx
 
 def find(idx, pn):
@@ -43,7 +43,7 @@ def main():
     else:
         P = json.loads((ROOT / "data/products.json").read_text(encoding="utf-8"))
     idx = load_ref()
-    brands = {v["brand"] for v in idx.values()}
+    brands = {b for v in idx.values() for b in v["brands"]}
     out = []
     for p in P:
         if p.get("archived") or p.get("brand") not in brands: continue
@@ -58,12 +58,16 @@ def main():
             afs_key = "AFS" in (p.get("key") or "") and "N-AFS" not in (p.get("key") or "")
             if p.get("key") and r.get("keys") and p["key"] not in r["keys"] and afs_ref != afs_key:
                 probs.append("AFS: довідник=%s, позиція=%s" % ("так" if afs_ref else "ні", "так" if afs_key else "ні"))
-            if p.get("key") and r.get("keys") and p["key"] not in r["keys"] and not probs:
-                probs.append("позиція не з цього рядка довідника (%s)" % ", ".join(r["keys"][:2]))
-            out.append((p["id"], "ПОМИЛКА" if probs else "ок", pn, p.get("key"), "; ".join(probs) + " | " + r["model"] + " " + r["years"] + " " + r["variant"]))
-    bad = [o for o in out if o[1] != "ок"]
-    print("перевірено номерів:", len(out), "| ок:", len(out) - len(bad), "| розбіжностей:", len(bad))
-    for o in sorted(bad): print("%s | %s | %s | %s | %s" % o)
+            note = ""
+            if p.get("key") and r.get("keys") and p["key"].strip() not in [k.strip() for k in r["keys"]] and not probs:
+                note = "позиція не з цього рядка довідника (%s)" % ", ".join(r["keys"][:2])
+            out.append((p["id"], "ПОМИЛКА" if probs else ("перевірити" if note else "ок"), pn, p.get("key"), "; ".join(probs or [note]) + " | " + r["model"] + " " + r["years"] + " " + r["variant"]))
+    out = sorted(set(out))
+    cnt = {}
+    for o in out: cnt[o[1]] = cnt.get(o[1], 0) + 1
+    print("перевірено номерів:", len(out), cnt)
+    order = {"ПОМИЛКА": 0, "перевірити": 1, "НЕМАЄ В ДОВІДНИКУ": 2}
+    for o in sorted([o for o in out if o[1] != "ок"], key=lambda o: (order[o[1]], o[0])): print("%s | %s | %s | %s | %s" % o)
 
 if __name__ == "__main__":
     main()

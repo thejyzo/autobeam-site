@@ -1,0 +1,558 @@
+{
+ "brand": "Ford",
+ "updated": "2026-11-18",
+ "rules": [
+  "Ford має два типи номерів: заводський/інженерний (на етикетці фари, напр. LJ6B-13E014-AF, KT4B-13W029-BF) і сервісний (у каталозі, напр. LJ6Z-13008-T). Літера Z у префіксі = сервісний номер.",
+  "Сервісний 13008 використовується для ОБОХ боків — бік тільки за каталогом/суфіксом. Інженерний: 13W029 / 13E014 = права, 13W030 / 13E015 = ліва.",
+  "Суфікс після 13W029/13W030 (AG, BF, CH, DG…) позначає конкретне виконання; літери ревізії міняються при оновленні — правильність перевіряти за каталогом."
+ ],
+ "items": [
+  {
+   "model": "Escape",
+   "gen": "MK4",
+   "years": "2020-2022",
+   "variant": "галоген без проектора (S)",
+   "left": [
+    "LJ6Z-13008-B"
+   ],
+   "right": [],
+   "keys": [
+    "Ford Escape 20-22 Halogen LH",
+    "Ford Escape 20-22 Halogen RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts LJ6Z-13008-B: 'Escape. Left. Halogen, 2020-22, without projector lamp.'",
+    "fordoempartsdirect 2021 Escape headlamp components"
+   ]
+  },
+  {
+   "model": "Escape",
+   "gen": "MK4",
+   "years": "2020-2022",
+   "variant": "галоген з проектором + LED DRL (SE, SEL)",
+   "left": [
+    "LJ6Z-13008-D",
+    "LJ6B-13W030-AH"
+   ],
+   "right": [
+    "LJ6Z-13008-C",
+    "LJ6B-13W029-AH"
+   ],
+   "keys": [
+    "Ford Escape 20-22 Halogen + DRL LH",
+    "Ford Escape 20-22 Halogen + DRL RH",
+    "Ford Escape 20-22 Halogen LH",
+    "Ford Escape 20-22 Halogen RH"
+   ],
+   "confidence": "high (сервісні), medium (LJ6B-13W029-AH права — за парою та вашим оголошенням)",
+   "sources": [
+    "fordoempartsdirect: 'Escape. Left/Right. Halogen, 2020-22, with projector lamp.'",
+    "aletoparts 'halogen headlight with LED DRL' LJ6Z13008D (L) / LJ6Z13008C (R)",
+    "eBay: right SE/SEL with DRL OE LJ6Z13008C",
+    "partrequest: LJ6B-13W030-AH left halogen w/DRL SE/SEL"
+   ]
+  },
+  {
+   "model": "Escape",
+   "gen": "MK4",
+   "years": "2020-2022",
+   "variant": "LED (Level 3 LED, Titanium)",
+   "left": [
+    "LJ6Z-13008-H",
+    "LJ6Z-13008-F"
+   ],
+   "right": [
+    "LJ6Z-13008-T",
+    "LJ6Z-13008-G",
+    "LJ6Z-13008-E",
+    "LJ6B-13E014-AF"
+   ],
+   "keys": [
+    "Ford Escape 20-22 Titanium Full LED LH",
+    "Ford Escape 20-22 Titanium Full LED RH",
+    "Ford Escape 20-22 Titanium Full LED LH + RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts LJ6B-13E014-AF → catalog LJ6Z-13008-T: 'Escape. Level 3 led. Right. Led, 2021-22.' crosses LJ6Z13008G/E",
+    "aletoparts LJ6Z13008H: 'Escape. Level 3 led. Left. Led, 2021-22.' crosses LJ6Z13008F"
+   ]
+  },
+  {
+   "model": "Escape",
+   "gen": "MK4 рестайлінг",
+   "years": "2023-2025",
+   "variant": "LED без світлової смуги (without ST-Line)",
+   "left": [
+    "PJ6Z-13008-D",
+    "PJ6B-13E015-BC"
+   ],
+   "right": [
+    "PJ6Z-13008-C",
+    "PJ6B-13E014-BC"
+   ],
+   "keys": [
+    "Ford Escape 23+ LED LH",
+    "Ford Escape 23+ LED RH",
+    "Ford Escape 23+ LED LH + RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts PJ6Z13008C: 'Led without light bar, 2023-25. Escape. Level 3 led. Right. Without st-line.' PJ6B13E014BC",
+    "aletoparts PJ6Z-13008-D Side: Left",
+    "fordoempartsdirect 2023 Escape (Left/Right, without st-line)"
+   ]
+  },
+  {
+   "model": "Escape",
+   "gen": "MK4 рестайлінг",
+   "years": "2023-2025 (з 24.10.2023)",
+   "variant": "LED зі світловою смугою (light bar, ST-Line)",
+   "left": [
+    "PJ6Z-13008-G",
+    "PJ6B-13E015-CC"
+   ],
+   "right": [
+    "PJ6Z-13008-H"
+   ],
+   "keys": [
+    "Ford Escape 23+ Full LED LH",
+    "Ford Escape 23+ Full LED RH"
+   ],
+   "confidence": "high (номери), medium (відповідність вашій позиції 'Full LED')",
+   "sources": [
+    "aletoparts PJ6Z-13008-G: 'Led with light bar, 2023-25, from 10/24/2023. Escape. Level 3 led. Left. With st-line.' PJ6B13E015CC",
+    "aletoparts PJ6Z-13008-H Right"
+   ],
+   "note": "PJ6B-13E014-CD / 13E015-CD (є у ваших оголошеннях) — варіант CD поки не підтверджено каталогом; за логікою суфікса C* = з light bar. Перевірити."
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539 рестайлінг",
+   "years": "2019-2024",
+   "variant": "Bi-LED SE/SEL (fixed DSS)",
+   "left": [
+    "KT4Z-13008-AV",
+    "KT4B-13W030-AG"
+   ],
+   "right": [],
+   "superseded": [
+    "KT4Z-13008-AH",
+    "KT4Z-13008-B"
+   ],
+   "confidence": "high",
+   "sources": [
+    "sneedparts KT4Z-13008-AV: 'Edge. Left. Bi-led headlamps. Se, sel...' replaces AH, B",
+    "aletoparts KT4B13W030AG same text"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539 рестайлінг",
+   "years": "2019-2024",
+   "variant": "Bi-LED SE/SEL 'type 2' темне обрамлення",
+   "left": [
+    "KT4Z-13008-AX",
+    "KT4B-13W030-CH"
+   ],
+   "right": [
+    "KT4Z-13008-AW"
+   ],
+   "confidence": "high (ліва), medium (права)",
+   "sources": [
+    "aletoparts KT4Z-13008-AX: 'Edge. Left. Bi-led headlamps. Se, sel.' KT4B13W030CH",
+    "aletoparts BI-LED Type 2 Right → KT4Z-13008-AW"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539 рестайлінг",
+   "years": "2019-2024",
+   "variant": "Bi-LED Titanium",
+   "left": [
+    "KT4Z-13008-H",
+    "KT4Z-13008-AK",
+    "KT4B-13W030-DG"
+   ],
+   "right": [],
+   "confidence": "medium-high",
+   "sources": [
+    "aletoparts KT4Z13008H: 'Edge. Left. Bi-led headlamps. Titanium.' KT4B13W030DG"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539 рестайлінг",
+   "years": "2019-2024",
+   "variant": "LED adaptive (AFS), Titanium / ST",
+   "left": [
+    "KT4Z-13008-BB"
+   ],
+   "right": [
+    "KT4Z-13008-BA"
+   ],
+   "superseded": [
+    "KT4Z-13008-H",
+    "KT4Z-13008-AF"
+   ],
+   "confidence": "medium-high",
+   "sources": [
+    "fordpartsdeal KT4Z-13008-BB Driver Side, replaces KT4Z-13008-H, AF",
+    "eBay 'Titanium Left Driver LED AFS Headlight KT4Z-13008-BB'",
+    "aletoparts KT4Z13008BA right"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539 рестайлінг",
+   "years": "2019-2024",
+   "variant": "LED, номери з ваших оголошень/продавців (виконання уточнити)",
+   "left": [
+    "KT4B-13W030-BF",
+    "KT4B-13W030-BH",
+    "KT4B-13W030-DL (MID LED non-AFS)"
+   ],
+   "right": [
+    "KT4B-13W029-BF",
+    "KT4B-13W029-BH",
+    "KT4B-13W029-CH"
+   ],
+   "keys": [
+    "Ford Edge 19-24 LH SILVER",
+    "Ford Edge 19-24 LH BLACK",
+    "Ford Edge 19-24 RH SILVER",
+    "Ford Edge 19-24 RH BLACK",
+    "Ford Edge 19-24 Bi-LED LH",
+    "Ford Edge 19-24 Bi-LED RH"
+   ],
+   "confidence": "low-medium — сторона певна (W029=права, W030=ліва), відповідність кольору обрамлення SILVER/BLACK ще не підтверджена каталогом"
+  },
+  {
+   "model": "Fusion",
+   "gen": "CD4 рестайлінг",
+   "years": "2017-2020",
+   "variant": "галоген без signature (без LED DRL)",
+   "left": [
+    "HS7Z-13008-E"
+   ],
+   "right": [
+    "HS7Z-13008-D (за парою; варіант не підтверджено описом)"
+   ],
+   "keys": [
+    "Ford Fusion 17-20 Xenon LH",
+    "Ford Fusion 17-20 Xenon RH"
+   ],
+   "confidence": "high (ліва), medium (права)",
+   "sources": [
+    "aletoparts HS7Z13008E: 'Fusion. Left. Halogen. Without signature lamps.'",
+    "paintedautoparts HS7Z13008E LEFT HALOGEN WO/SIGNATURE"
+   ],
+   "note": "У США Fusion 2017-20 не мав ксенону — фари 'Xenon' у DATA, ймовірно, галоген без signature або LED; уточнити за етикеткою."
+  },
+  {
+   "model": "Fusion",
+   "gen": "CD4 рестайлінг",
+   "years": "2017-2020",
+   "variant": "галоген з signature (LED DRL)",
+   "left": [
+    "HS7Z-13008-H",
+    "HS73-13W030-CF"
+   ],
+   "right": [
+    "HS7Z-13008-G",
+    "HS73-13W029-CK"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts HS7Z-13008-G: 'Fusion. Right. Halogen. With signature lamps.' HS7313W029CK",
+    "fordpartsgiant HS7Z-13008-H Driver Side = ID HS73-13W030-CF",
+    "paintedautoparts HS7Z13008G RIGHT HALOGEN W/SIGNATURE"
+   ]
+  },
+  {
+   "model": "Fusion",
+   "gen": "CD4 рестайлінг",
+   "years": "2017-2020",
+   "variant": "LED (з LED DRL)",
+   "left": [
+    "HS7Z-13008-AA"
+   ],
+   "right": [
+    "HS7Z-13008-AB"
+   ],
+   "superseded": [
+    "HS7Z-13008-Z",
+    "HS7Z-13008-C",
+    "HS7Z-13008-Y",
+    "HS7Z-13008-F"
+   ],
+   "keys": [
+    "Ford Fusion 17-20 LED LH",
+    "Ford Fusion 17-20 LED RH",
+    "Ford Fusion 17-20 Full LED LH",
+    "Ford Fusion 17-20 Full LED RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "fordpartsdeal HS7Z-13008-AA Front Driver Side, replaces Z, C",
+    "fordpartsdeal HS7Z-13008-AB Passenger, replaces Y, F",
+    "aletoparts Fusion LED HS7Z13008F → catalog HS7Z-13008-AB Right"
+   ],
+   "note": "Номер HS7Z-13008-AF (у вашому оголошенні) у каталогах не знайдено — перевірити етикетку."
+  },
+  {
+   "model": "Mustang Mach-E",
+   "gen": "CX727",
+   "years": "2021-2023",
+   "variant": "LED без проекторного модуля",
+   "left": [
+    "LJ8Z-13008-Z"
+   ],
+   "right": [
+    "LJ8Z-13008-W"
+   ],
+   "superseded": [
+    "LJ8Z-13008-B"
+   ],
+   "keys": [
+    "Ford Mustang Mach-E 20-23 LED LH",
+    "Ford Mustang Mach-E 20-23 LED RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "parkwayford LJ8Z-13008-Z: 'Mustang Mach-E. Left. Without projector led.' replaces B",
+    "fordpartsgiant 2022 Mach-E: LJ8Z-13008-W W/O Projector LED, Passenger"
+   ]
+  },
+  {
+   "model": "Mustang Mach-E",
+   "gen": "CX727",
+   "years": "2021-2023",
+   "variant": "LED з проекторним модулем і коректором",
+   "left": [
+    "LJ8Z-13008-AH",
+    "LJ8Z-13008-AG"
+   ],
+   "right": [
+    "LJ8Z-13008-AF",
+    "LJ8B-13E014-AE",
+    "LJ8B-13E014-DG"
+   ],
+   "superseded": [
+    "LJ8Z-13008-J",
+    "LJ8Z-13008-AE",
+    "LJ8Z-13008-AC",
+    "LJ8Z-13008-H"
+   ],
+   "keys": [
+    "Ford Mustang Mach-E 20-23 LED LH",
+    "Ford Mustang Mach-E 20-23 LED RH"
+   ],
+   "confidence": "high (сервісні), medium (інженерні)",
+   "sources": [
+    "quirkparts LJ8Z-13008-AF: 'Mustang Mach-E. With headlamp levelling. Right. With projector led, with leveling.'",
+    "fordpartsdeal LJ8Z-13008-J Passenger → replaced by AF",
+    "fordpartsdeal 2021: AH, AG Front Driver Side",
+    "eBay LJ8B-13E014-AE right; macheforum GT right LJ8B-13E014-DG"
+   ]
+  },
+  {
+   "model": "Mustang Mach-E",
+   "gen": "CX727",
+   "years": "2024+",
+   "variant": "LED з проектором, без коректора (префікс RJ8 = 2024 модельний рік)",
+   "right": [
+    "RJ8Z-13008-G"
+   ],
+   "left": [
+    "RJ8Z-13008-K (бік не вказано явно)"
+   ],
+   "keys": [
+    "Ford Mustang Mach-E 24-26 LED LH",
+    "Ford Mustang Mach-E 24-26 LED RH"
+   ],
+   "confidence": "high (G права), medium (K)",
+   "sources": [
+    "fordpartsgiant 2024 Mach-E: RJ8Z-13008-G W/Projector LED, W/O Leveling, Passenger Side",
+    "quirkparts RJ8Z-13008-G/K 'With projector led, without leveling.'"
+   ],
+   "note": "Ваше оголошення з номером RJ8B-13E014-AC (права) — за префіксом RJ8 це фара 2024+ модельного року, а не 2020-23."
+  },
+  {
+   "model": "EcoSport",
+   "gen": "B515",
+   "years": "2018-2022",
+   "variant": "галоген без LED обведення (S)",
+   "right": [
+    "GN1Z-13008-AD"
+   ],
+   "left": [],
+   "keys": [
+    "Ford EcoSport 18-22 Halogen RH",
+    "Ford EcoSport 18-22 Halogen LH"
+   ],
+   "confidence": "high (права)",
+   "sources": [
+    "aletoparts GN1Z-13008-AD: 'Without led surround. EcoSport. Right. S models.'",
+    "go-parts GN1Z 13008 AD w/o DRL"
+   ]
+  },
+  {
+   "model": "EcoSport",
+   "gen": "B515",
+   "years": "2018-2022",
+   "variant": "галоген + LED DRL, хромоване обрамлення (SE, SES, Titanium)",
+   "left": [
+    "GN1Z-13008-CY"
+   ],
+   "right": [
+    "GN1Z-13008-CW"
+   ],
+   "superseded": [
+    "GN1Z-13008-AN"
+   ],
+   "keys": [
+    "Ford EcoSport 18-22 Halogen + DRL LH",
+    "Ford EcoSport 18-22 Halogen + DRL RH",
+    "Ford EcoSport 18-22 Halogen + DRL Silver LH + RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts GN1Z-13008-CW: 'With led surround, chrome trim. EcoSport. Right. Se, ses, titanium models. Chrome headlamp bezel.'",
+    "fordpartsgiant GN1Z-13008-CY Driver Side replaces AN",
+    "go-parts CY/CW w/DRL Chrome Bezel"
+   ]
+  },
+  {
+   "model": "EcoSport",
+   "gen": "B515",
+   "years": "2018-2022",
+   "variant": "галоген + LED DRL, чорне обрамлення",
+   "left": [
+    "GN1Z-13008-CZ",
+    "GN1Z-13008-BM"
+   ],
+   "right": [
+    "GN1Z-13008-CX",
+    "GN1Z-13008-BL"
+   ],
+   "keys": [
+    "Ford EcoSport 18-22 Halogen + DRL Black LH",
+    "Ford EcoSport 18-22 Halogen + DRL Black RH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts GN1Z13008BM → catalog GN1Z-13008-CZ: 'With led surround. black trim. EcoSport. Left... Black headlamp bezel.'",
+    "aletoparts GN1Z13008BL → catalog GN1Z-13008-CX Right",
+    "eBay GN1Z13008CX/BL right black bezel, до 09.09.2020"
+   ],
+   "note": "Інженерні номери на етикетці: GN15-13W029-xx (права), GN15-13W030-xx (ліва), напр. GN15-13W030-SG."
+  },
+  {
+   "model": "Mustang",
+   "gen": "S650",
+   "years": "2024-2026",
+   "variant": "LED (каталог Ford називає 'hid headlamps, level 1/5/6'; зміна 22.01.2024)",
+   "right": [
+    "PR3Z-13008-S (level 5, з 22.01.2024; замінив C)",
+    "PR3Z-13008-G (level 6, до 22.01.2024)",
+    "PR3Z-13008-R (замінив F)",
+    "PR3Z-13008-P (замінив D)"
+   ],
+   "left": [
+    "PR3Z-13008-U (level 1, з 22.01.2024; замінив B)",
+    "PR3Z-13008-Z (level 6, з 22.01.2024)",
+    "PR3Z-13008-X (замінив K)",
+    "PR3Z-13008-A",
+    "PR3Z-13008-L",
+    "PR3Z-13008-M"
+   ],
+   "keys": [
+    "Ford Mustang 23-26 LED LH",
+    "Ford Mustang 23-26 LED RH"
+   ],
+   "confidence": "high (сервісні номери і бік), medium (рівні комплектацій)",
+   "sources": [
+    "lascoautoparts: PR3Z-13008-Z 'Mustang. Left. Hid headlamps, level 6, from 01/22/2024', PR3Z-13008-G Right level 6 to 01/22/2024, PR3Z-13008-U Left level 1 replaces B",
+    "haciendaford PR3Z-13008-S 'Mustang. Right. Hid headlamps, level 5, from 01/22/2024' replaces C",
+    "fordpartsgiant 2025 Mustang: X replaces K (driver), R replaces F, S replaces C, P replaces D (passenger)"
+   ],
+   "note": "Інженерні номери на етикетці (PR3B-13005/13006-xx у вашому оголошенні, PR3B-13008/13035-EH на форумі) поки не розшифровані за боком — визначати бік за фото/каталогом. Level 1 = базова EcoBoost, вищі рівні — GT/Premium/Dark Horse (уточнювати)."
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539",
+   "years": "2015-2018",
+   "variant": "галоген без 'series 55' (SE/SEL, до 24.10.2016)",
+   "right": [
+    "FT4Z-13008-A"
+   ],
+   "left": [
+    "FT4Z-13008-F"
+   ],
+   "keys": [
+    "Ford Edge 15-18 Halogen RH",
+    "Ford Edge 15-18 Halogen LH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts FT4Z-13008-A: 'Edge. Right. Halogen headlamps. Without series 55. To 10/24/16.'",
+    "aletoparts FT4Z13008F left (TYC/DEPO crosses)",
+    "fordpartsgiant 2018 Edge FT4Z-13008-A / F"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539",
+   "years": "2015-2018",
+   "variant": "галоген 'series 55' (Titanium, Sport)",
+   "right": [
+    "FT4Z-13008-D"
+   ],
+   "left": [],
+   "confidence": "high (права)",
+   "sources": [
+    "aletoparts FT4Z-13008-D: 'Edge. Right. Halogen headlamps. With series 55. Halogen, titanium, sport.'"
+   ]
+  },
+  {
+   "model": "Edge",
+   "gen": "CD539",
+   "years": "2015-2018",
+   "variant": "ксенон HID 'series 60' (Titanium)",
+   "left": [
+    "FT4Z-13008-N"
+   ],
+   "right": [
+    "FT4Z-13008-L"
+   ],
+   "confidence": "high (ліва), medium (права)",
+   "sources": [
+    "aletoparts FT4Z-13008-N: 'Edge. Left. Hid headlamps. Series 60. Hid, titanium.'",
+    "fordpartsdeal FT4Z-13008-L Front Passenger Side 2015-2018"
+   ]
+  },
+  {
+   "model": "Escape (ліхтар)",
+   "gen": "MK4 рестайлінг",
+   "years": "2023-2026",
+   "variant": "задній зовнішній LED ліхтар (у крило)",
+   "left": [
+    "PJ6Z-13405-A"
+   ],
+   "right": [
+    "PJ6Z-13404-A"
+   ],
+   "keys": [
+    "Ford Escape 23+ ФОНАРЬ LH",
+    "Ford Escape 23+ ФОНАРЬ RH"
+   ],
+   "confidence": "medium-high",
+   "sources": [
+    "ваше оголошення OLX (PJ6Z-13405-A ліва, PJ6Z-13404-A права)",
+    "правило Ford: 13404 = права, 13405 = ліва (eBay: KT4Z-13404-G Right Passenger Outer Tail Light Edge)"
+   ]
+  }
+ ]
+}

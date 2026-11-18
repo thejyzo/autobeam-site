@@ -1,0 +1,257 @@
+{
+ "brand": "Jeep/Dodge/Chrysler (Mopar)",
+ "updated": "2026-11-18",
+ "rules": [
+  "Mopar: фари йдуть парами сусідніх номерів; у всіх перевірених парах ПАРНИЙ номер = права (passenger), НЕПАРНИЙ = ліва (driver). Підтверджено: 68275944 R / 68275945 L (Cherokee KL), 68441586 R / 68441587 L і 68441580 R / 68441581 L (Compass), 68426874 R / 68426875 L, 68266654 R / 68266655 L (WK2), 68606228/68606232/68606234 R, 68606229/68606235 L (WL), 68584652 R (WL), 68590085 L, 68590079 L (Wagoneer). Це евристика: лише прапорець для перевірки, не автозаміна.",
+  "Префікс 'P' (P68584652AC) — це Mopar-позначка на етикетці, той самий номер без P.",
+  "Дві останні літери (AA, AB, ... AK) — ревізія; новіша замінює старішу, сумісні."
+ ],
+ "items": [
+  {
+   "model": "Grand Cherokee",
+   "gen": "WL",
+   "years": "2021-2025",
+   "variant": "LED без анімації, без коректора (Laredo/Altitude)",
+   "right": [
+    "68606228AB",
+    "68606228AA"
+   ],
+   "left": [
+    "68606229AB",
+    "68606229AA"
+   ],
+   "confidence": "high",
+   "sources": [
+    "go-parts CH2503348: GC L w/o Animation; w/o Headlamp Leveling OEM 68606228AB (Right)",
+    "aletoparts 68606229AA left, catalog 'Headlamp, Left - Mopar (68606229AB) Housing Only'"
+   ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WL",
+   "years": "2021-2025",
+   "variant": "LED без анімації, з коректором",
+   "right": [
+    "68606232AB"
+   ],
+   "left": [
+    "68606233AB (за парою)"
+   ],
+   "confidence": "high (права), medium (ліва)",
+   "sources": [
+    "go-parts CH2503349: w/o Animation; w/Headlamp Leveling OEM 68606232AB (Right)"
+   ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WL",
+   "years": "2021-2025",
+   "variant": "LED з анімацією (Summit/Overland), без коректора",
+   "right": [
+    "68606234AB",
+    "68606234AA"
+   ],
+   "left": [
+    "68606235AB",
+    "68606235AA",
+    "68376987AB…AG (замінені на 68606235AB)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "go-parts CH2503351: w/Animation; w/o Headlamp Leveling OEM 68606234AB",
+    "aletoparts 68606235AB 'front left headlight assembly with animation'",
+    "mymoparparts 68606235AB Headlamp, Left replaces 68376987AB…AG"
+   ],
+   "note": "Ваше оголошення 940438775 (ліва Summit, 68376987AG) — збігається. Оголошення 924151160 (P68606234AA, бік не вказаний у назві) = ПРАВА."
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WL",
+   "years": "2021-2025",
+   "variant": "серія 68584652/57/58/59 (на етикетці з 'P')",
+   "right": [
+    "68584652AC",
+    "68584658AD (за правилом парності)"
+   ],
+   "left": [
+    "68584657AC (за правилом парності)",
+    "68584659AC (за правилом парності)"
+   ],
+   "confidence": "high (652 права), medium (решта)",
+   "sources": [
+    "eBay OEM Passenger Side LED Headlight 2021-2025 GC 68584652AC"
+   ],
+   "note": "Це, ймовірно, внутрішні номери постачальника на етикетці (не сервісні). Для 657/658/659 опис комплектації не знайдено — перевірити за фото."
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2 рестайлінг",
+   "years": "2017-2021",
+   "variant": "галоген, чорне обрамлення",
+   "right": [
+    "68289234AF (AB…AE)"
+   ],
+   "left": [
+    "68289235AF (AB…AE)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "jeeppartsdeal 68289235AF 'Headlamp Assembly, Black Bezel, Front Driver Side'",
+    "spyder interchange 68289234AF/68289235AF halogen model"
+   ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2 рестайлінг",
+   "years": "2017-2021",
+   "variant": "галоген, хром",
+   "right": [
+    "68266646AF"
+   ],
+   "left": [
+    "68266647AF"
+   ],
+   "confidence": "medium-high",
+   "sources": [
+    "spyder interchange halogen: 68266647AF, 68266646AF",
+    "jeeppartsgiant 68266646AF Black Bezel Passenger (2022 list)"
+   ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2 рестайлінг",
+   "years": "2017-2021",
+   "variant": "ксенон HID + LED DRL (Limited/Overland/Summit), з AFS або без",
+   "right": [
+    "68266654AJ",
+    "68266648AF (за парою)",
+    "68266660AI"
+   ],
+   "left": [
+    "68266655AJ",
+    "68266649AF (за парою)",
+    "68266661AI"
+   ],
+   "confidence": "high (654/655, 660/661), medium (648/649)",
+   "sources": [
+    "jeeppartsdeal 68266655AJ Front Driver Side, 68266654AJ Front Passenger Side",
+    "jeeppartsdeal 2017: 68266661AI Driver, 68266660AI Passenger",
+    "jeeppartsgiant 2017 Summit: 68266649AD/68266648AD"
+   ],
+   "note": "Ваше оголошення 915791597 '68266649AF 68266648AF' = пара Summit (ліва 649, права 648)."
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2 рестайлінг",
+   "years": "2019-2021",
+   "variant": "ксенон (SRT/Trackhawk та ін.)",
+   "right": [
+    "68426874AD",
+    "68426872AD"
+   ],
+   "left": [
+    "68426875AD",
+    "68426873AD",
+    "68426879AD"
+   ],
+   "confidence": "high",
+   "sources": [
+    "store.mopar.com 68426874AD Headlamp, Right; 68426879AD Headlamp, Left",
+    "jeeppartsdeal 68426875AD Front Driver Side; jeeppartsgiant 68426872AD Passenger, 68426873AD Driver"
+   ]
+  },
+  {
+   "model": "Grand Cherokee",
+   "gen": "WK2 дорестайлінг",
+   "years": "2014-2016",
+   "variant": "ксенон",
+   "right": [
+    "68111000AC (за парністю)"
+   ],
+   "left": [
+    "68111037 (eBay UK: 'Xenon Front Left Passenger' — суперечливо)"
+   ],
+   "confidence": "low",
+   "note": "Ваше оголошення 918597121 'права, 68111000AC' — парний номер узгоджується з правою. Окремого каталожного підтвердження не знайдено."
+  },
+  {
+   "model": "Cherokee",
+   "gen": "KL рестайлінг",
+   "years": "2019-2023",
+   "variant": "LED (Latitude Lux, Limited, Trailhawk тощо)",
+   "right": [
+    "68275944AK (AC…AJ)"
+   ],
+   "left": [
+    "68275945AK (AC…AJ)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "jeeppartsgiant 68275944AK Front Passenger Side replaces AC…AJ",
+    "jeeppartsdeal 68275945AK Front Driver Side replaces AC…AJ"
+   ]
+  },
+  {
+   "model": "Compass",
+   "gen": "MP рестайлінг",
+   "years": "2022-2026",
+   "variant": "LED рефлектор (код LPX)",
+   "right": [
+    "68441580AG"
+   ],
+   "left": [
+    "68441581AG",
+    "68441581AF"
+   ],
+   "confidence": "high",
+   "sources": [
+    "go-parts 68441580AG Right Passenger, LED Reflector Type; Code [LPX]",
+    "store.mopar.com 68441581AG Headlamp, Left 2022-2026"
+   ]
+  },
+  {
+   "model": "Compass",
+   "gen": "MP рестайлінг",
+   "years": "2022-2026",
+   "variant": "LED проектор",
+   "right": [
+    "68441586AG"
+   ],
+   "left": [
+    "68441587AG",
+    "68441587AF",
+    "68441587AD"
+   ],
+   "confidence": "high",
+   "sources": [
+    "moparpartsgiant 68441586AG Passenger Side",
+    "partrequest 2023 Compass Driver Left LED 68441587AD"
+   ],
+   "note": "Збігається з виправленням AB-0049 (68441586AG = права)."
+  },
+  {
+   "model": "Grand Wagoneer / Wagoneer",
+   "gen": "WS",
+   "years": "2022-2025",
+   "variant": "LED (dual projector)",
+   "left": [
+    "68590085AD (AB, AC) → сервісний 68598991AA",
+    "68590079AD (Wagoneer L)"
+   ],
+   "right": [],
+   "confidence": "high (ліві)",
+   "sources": [
+    "eBay 2022-2024 Grand Wagoneer Left Headlight Dual LED 68590085AD",
+    "moparpartsgiant 68598991AA replaces 68590085AD/AB/AC",
+    "partrequest 2025 Wagoneer Left 68590079AD"
+   ],
+   "note": "Сервісні номери 68598982…991AA розрізняються за 'Bi-Function LED / Black Accents' і боком; детальна мапа — у moparpartsgiant."
+  }
+ ],
+ "brands": [
+  "Jeep",
+  "Dodge",
+  "Chrysler",
+  "RAM"
+ ]
+}
