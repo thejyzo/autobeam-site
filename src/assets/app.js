@@ -48,6 +48,40 @@
     }
   });
 
+  /* ---------- "Any part from USA" request ---------- */
+  var modal = document.getElementById('req-modal'), form = document.getElementById('req-form'), msg = document.getElementById('req-msg');
+  function openReq(ctx, part) {
+    modal.hidden = false; msg.hidden = true;
+    if (part && !form.part.value) form.part.value = part;
+    setTimeout(function () { (form.part.value ? form.phone : form.part).focus(); }, 50);
+    gtag('event', 'request_open', { placement: ctx || '' });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-req]');
+    if (t) { e.preventDefault(); openReq(t.dataset.req, t.dataset.part); }
+    if (e.target.closest('[data-req-close]')) modal.hidden = true;
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.hidden = true; });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+    data.page = location.href;
+    if (!data.part.trim() || data.phone.replace(/\D/g, '').length < 9) {
+      msg.hidden = false; msg.className = 'req-msg err'; msg.textContent = 'Вкажіть, що потрібно знайти, і телефон.'; return;
+    }
+    var btn = form.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Надсилаємо…';
+    fetch(C.request_endpoint || '/api/request.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.error || 'err');
+        msg.hidden = false; msg.className = 'req-msg ok'; msg.textContent = 'Дякуємо! Запит отримали — звʼяжемося з вами найближчим часом.';
+        form.reset(); track('request', 'form');
+        var conv = (C.ads_conversion || {}).request; if (conv) gtag('event', 'conversion', { send_to: conv });
+      })
+      .catch(function () { msg.hidden = false; msg.className = 'req-msg err'; msg.textContent = 'Не вдалося надіслати. Напишіть нам у Telegram або Viber.'; })
+      .finally(function () { btn.disabled = false; btn.textContent = 'Надіслати запит'; });
+  });
+
   /* ---------- Catalog ---------- */
   var data = window.CATALOG, grid = document.getElementById('grid');
   if (!data || !grid) return;
@@ -60,7 +94,9 @@
   var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–.\/()]/g, ''); };
   data.forEach(function (d, i) { d._i = i; d._s = norm(d.name + d.pn + d.brand + d.years + d.light + d.side + d.kind); });
   var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var fmt = function (p) { return p.toLocaleString('uk-UA').replace(/,/g, ' ') + ' грн'; };
+  var rate = C.uah_per_usd || 45;
+  var sp = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+  var fmt = function (p) { return '$' + sp(Math.round(p / rate)) + ' <small>≈ ' + sp(Math.round(p)) + ' грн</small>'; };
 
   function render() {
     var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);

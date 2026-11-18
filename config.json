@@ -12,6 +12,9 @@
   "ads_conversion": {
     "call": "",
     "telegram": "",
-    "viber": ""
-  }
+    "viber": "",
+    "request": ""
+  },
+  "uah_per_usd": 45.3183,
+  "request_endpoint": "/api/request.php"
 }
