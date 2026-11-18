@@ -74,7 +74,7 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
 .card h3{font:600 .98rem/1.35 var(--body);margin:0}
 .card-meta{font-size:.82rem;color:var(--muted)}
 .card-pn{font:500 .78rem ui-monospace,Menlo,monospace;color:#bdbdc4;word-break:break-all}
-.card-price small{font:500 .78rem var(--body);color:var(--muted);margin-left:4px}
+.card-price b{font-weight:700}.card-price small{font:500 .78rem var(--body);color:var(--muted);margin-left:4px}
 .p-price small{font:500 1rem var(--body);color:var(--muted);margin-left:8px}
 .card-price{margin-top:auto;padding-top:8px;font-family:var(--head);font-size:1.15rem}
 .empty{text-align:center;padding:40px 0}

@@ -23,11 +23,14 @@ def esc(s): return html.escape(str(s), quote=True)
 def img(pid, size="800x600"):
     return f"https://ireland.apollo.olxcdn.com/v1/files/{pid}/image;s={size};q=80"
 
-def usd(p): return round(p / CFG["uah_per_usd"])
-def price_fmt(p):
-    return f"${usd(p):,}".replace(",", " ")
-def uah_fmt(p):
-    return "≈ " + f"{round(p):,}".replace(",", " ") + " грн"
+def usd(p): return round(p / CFG["olx_rate"])          # OLX shows USD prices converted at this rate
+def sp(n): return f"{n:,}".replace(",", " ")
+def uah(u): return int(round(u * CFG["rate_fallback"] / 10.0) * 10)
+def price_html(u):
+    """Price block; UAH is the legal price (refreshed in the browser from /rate.json), USD optional."""
+    s = f'<b class="uah">{sp(uah(u))} грн</b>'
+    if CFG.get("show_usd"): s += f' <small class="usd">${sp(u)}</small>'
+    return s
 
 def parse(row):
     oid, title, price, pn, state, ptype, olx_slug, photos = row
@@ -57,7 +60,7 @@ def parse(row):
     for mname, rx, _ in MODELS.get(brand, []):
         if re.search(rx, title, re.I):
             model = mslug(brand, mname); break
-    return dict(model=model, id=oid, title=title, name=clean, price=round(price), price_txt=price_fmt(price),
+    return dict(model=model, id=oid, title=title, name=clean, price=usd(price), price_txt="",
                 pn=pn, state=state, type=ptype or "Оригінал", brand=brand, kind=kind, side=side,
                 light=light, years=yrs, slug=slug, olx=f"https://www.olx.ua/d/uk/obyavlenie/{olx_slug}",
                 photos=photos.split(","))
@@ -122,6 +125,19 @@ def main():
         if it["slug"] in seen: it["slug"] += f"-{it['id']}"
         seen.add(it["slug"])
 
+    # true side & clean names from the accounting variant matched to each OLX listing (tools/make_db.py)
+    omap = json.loads((ROOT / "data" / "olx_map.json").read_text(encoding="utf-8")) if (ROOT / "data" / "olx_map.json").exists() else {}
+    SIDE_TXT = {"Ліва": "ліва", "Права": "права", "Пара (ліва + права)": "ліва + права", "Центральна": "центральна"}
+    for it in items:
+        v = omap.get(str(it["id"]))
+        if not v: continue
+        if it["side"] in ("", "Ліва + права"):          # title has no side or both (SEO) -> trust accounting
+            it["side"] = {"Пара (ліва + права)": "Ліва + права"}.get(v["side"], v["side"])
+        model_txt = v["mname"] if v["mname"].startswith(v["brand"]) else v["brand"] + " " + v["mname"]
+        side = {"Ліва + права": "ліва + права"}.get(it["side"], it["side"].lower())
+        it["name"] = re.sub(r"\s+", " ", f'{v["kind"]} {side} {model_txt} {v["body"]} {v["years"]} {v["trim"]}').strip()
+        it["years"] = v["years"] or it["years"]
+        it["light"] = v["trim"] or it["light"]
     orders = load_orders()
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT / "fary").mkdir(parents=True)
@@ -157,7 +173,7 @@ def main():
   <div class="card-body"><div class="card-brand">{esc(it['brand'])} · {esc(it['kind'])}</div>
   <h3>{esc(it['name'])}</h3><div class="card-meta">{esc(meta)}</div>
   {f'<div class="card-pn">{esc(it["pn"])}</div>' if it['pn'] else ''}
-  <div class="card-price">{it['price_txt']} <small>{uah_fmt(it['price'])}</small></div></div></a>'''
+  <div class="card-price" data-usd="{it['price']}">{price_html(it['price'])}</div></div></a>'''
 
     def ocard(o, base=""):
         return f'''<a class="card card-order" href="{base}fary/{o['slug']}.html">
@@ -185,13 +201,13 @@ def main():
         spec_html = "".join(f"<tr><th>{k}</th><td>{esc(v)}</td></tr>" for k, v in specs if v)
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": it["name"], "sku": it["pn"] or str(it["id"]),
             "mpn": it["pn"] or None, "brand": {"@type": "Brand", "name": it["brand"]}, "image": [img(p, "1200x900") for p in it["photos"]],
-            "offers": {"@type": "Offer", "priceCurrency": "USD", "price": usd(it["price"]), "availability": "https://schema.org/InStock",
+            "offers": {"@type": "Offer", "priceCurrency": "UAH", "price": uah(it["price"]), "availability": "https://schema.org/InStock",
                        "itemCondition": "https://schema.org/UsedCondition" if it["state"] == "Вживане" else "https://schema.org/NewCondition",
                        "url": f"{CFG['site_url']}/fary/{it['slug']}.html"}}, ensure_ascii=False)
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
-                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}Ціна {it['price_txt']}. Оригінал зі США, гарантія 14 днів. Доставка по Україні.",
+                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}Ціна {sp(uah(it['price']))} грн. Оригінал зі США, гарантія 14 днів. Доставка по Україні.",
                  canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=img(it["photos"][0], "1200x900"), jsonld=ld,
-                 name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_txt=it["price_txt"], price_uah=uah_fmt(it["price"]), model=it["model"],
+                 name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_usd=it["price"], price_html=price_html(it["price"]), model=it["model"],
                  model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=img(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
                  cta=contact_buttons("product"), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])

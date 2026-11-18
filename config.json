@@ -15,6 +15,9 @@
     "viber": "",
     "request": ""
   },
-  "uah_per_usd": 45.3183,
-  "request_endpoint": "/api/request.php"
+  "request_endpoint": "/api/request.php",
+  "olx_rate": 45.3183,
+  "rate_fallback": 46.4,
+  "rate_url": "/rate.json",
+  "show_usd": false
 }

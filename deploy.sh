@@ -7,6 +7,6 @@ cd "$REPO"
 git fetch -q origin main
 if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ] || [ "$1" = "force" ]; then
   git reset -q --hard origin/main
-  rsync -a --delete --exclude '.htaccess' --exclude '.well-known' "$REPO/site/" "$WWW/"
+  rsync -a --delete --exclude '.htaccess' --exclude '.well-known' --exclude 'rate.json' "$REPO/site/" "$WWW/"
   echo "$(date '+%F %T') deployed $(git rev-parse --short HEAD)" >> "$HOME/deploy.log"
 fi

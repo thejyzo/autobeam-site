@@ -1,0 +1,106 @@
+# Назви з обліку, що зараз фізично є (склад або ремонт), станом на 18.11.2026 (з аркуша «Облік»).
+Acura MDX 22-26 LED RH
+Audi A3 8Y 25-26 Full LED RH
+Audi A4 B9.5 20-25 LH + RH
+For Ford Mustang 2024 2025 Turn Signal Light Driver and Passenger Side Pair LED
+Ford Edge 15-18 Halogen RH
+Ford Edge 19-24 Bi-LED RH
+Ford Edge 19-24 RH BLACK
+Ford Escape 20-22 Halogen LH
+Ford Escape 20-22 Titanium Full LED LH
+Ford Escape 20-22 Titanium Full LED LH + RH
+Ford Escape 20-22 Titanium Full LED RH
+Ford Escape 23+ ФОНАРЬ LH
+Ford Escape 23+ ФОНАРЬ RH
+Ford Escape 23+ Full LED LH
+Ford Escape 23+ Full LED RH
+Ford Escape 23+ LED LH
+Ford Escape 23+ LED RH
+Ford Fusion 17-20 LED RH
+Ford Mustang Mach-E 20-23 LED RH
+Honda Accord 18-22 FULL + LED LH
+Honda Accord 18-22 LED LH
+Honda Accord 23-25 LED LH
+Honda Civic 22-25 LED LH
+Honda Civic 22-25 LED RH
+Honda CR-V 17-22 LED RH
+Honda CR-V 23-25 LED + DRL LH
+Honda CR-V 23-25 LED + DRL RH
+Hyundai Kona 23-25 FULL LED LH
+Hyundai Kona 23-25 FULL LED RH
+Hyundai Palisade 20-22 LED RH
+Hyundai Santa Fe 21-23 LED RH
+Hyundai Sonata 24-25 LED RH
+Infiniti QX50 18-26 LED RH
+Infiniti QX60 22-25 LED AFS LH
+Infiniti QX60 22-25 LED AFS RH
+Infiniti QX60 22-25 LED LH
+Jeep Cherokee 26+ LED LH
+Jeep Cherokee KL 19-23 LED LH
+Jeep Cherokee KL 19-23 LED RH
+Jeep Compass 17-21 Xenon LH
+Jeep Compass 22-26 LED LH
+Jeep Compass 22-26 LED RH
+Jeep Grand Cherokee WK2 17-21 Xenon + LED LH
+Jeep Grand Cherokee WL 21-25 BASE LH
+Jeep Grand Cherokee WL 21-25 BASE RH
+Jeep Grand Cherokee WL 21-25 PREMIUM LH
+Jeep Grand Cherokee WL 21-25 PREMIUM RH
+Jeep Grand Wagoneer 22-24 LED LH
+Kia Sorento 16-20 LED + DRL LH
+Kia Sorento 16-20 LED + DRL RH
+Kia Sorento 22-25 LED RH
+Kia Sorento SX/Limited 19-20 LED LH
+Kia Sorento SX/Limited 19-20 LED RH
+Lexus RX 23-25 Full LED LH
+Lexus RX 23-25 Full LED RH
+Mazda 3 BP 19-23 LED RH
+Mazda 6 18-21 LED N-AFS LH
+Mazda CX-30 23-26 LED LH
+Mazda CX-5 17-21 LED AFS LH
+Mazda CX-5 17-21 LED LH
+Mazda CX-5 17-21 LED RH
+Mazda CX-5 22-25 LED AFS LH
+Mazda CX-5 22-25 LED AFS LH + RH
+Mazda CX-5 22-25 LED AFS RH
+Mazda CX-5 22-25 LED LH
+Mazda CX-5 22-25 LED RH
+Mazda CX-5 26+ LH
+Mazda CX-50 22-24 LED LH
+Mazda CX-70 / CX-90 24-26 LED LH
+Mazda CX-70 / CX-90 24-26 LED RH
+Mercedes C300 22-26 RH
+Nissan Ariya 23-24 LED RH
+Nissan Kicks 21-23 halogen LH
+Nissan Kicks 25-26 LED RH
+Nissan Murano 23-26 LED LH
+Nissan Murano 23-26 LED RH
+Nissan Rogue 17-19 LED LH
+Nissan Rogue 21-23 LED LH upper + lower
+Nissan Sentra 20-22 LH
+Subaru Forester 25+ LED RH
+Subaru Outback / Legacy 23-25 LED LH
+Subaru Outback / Legacy 23-25 LED RH
+Subaru Outback / Legacy 26+ LED LH
+Subaru Outback 20-22 ФОНАРЬ ВНЕШНИЙ RH
+Toyota Camry 25-26 LED RH
+Toyota Camry 70 18-24 LED LH
+Toyota Camry 70 18-24 LED RH
+Toyota Corolla 17-19 LED RH
+Toyota Grand Highlander 24+ LED RH
+Toyota Grand_Highlander 24+ LED LH
+Toyota Highlander 2020-2023 LED LH
+Toyota Highlander 2020-2023 LED RH
+Toyota Prius 23-25 LED RH
+Toyota Prius Prime 17-22 LED RH
+Toyota RAV4 19-21 LED RH
+Toyota RAV4 22-25 Full LED LH
+Toyota RAV4 22-25 Full LED RH
+Toyota RAV4 26+ LED RH
+Volkswagen Atlas 18-20 RH
+Volkswagen Atlas Cross Sport 24-26 LED center
+Volkswagen Passat 16-19 FULL LED LH
+Volkswagen Passat 16-19 FULL LED RH
+Volkswagen Tiguan 22-24 LED LH
+Volkswagen Tiguan 22-24 LED RH
+Volkswagen Tiguan 25-26 LED LH

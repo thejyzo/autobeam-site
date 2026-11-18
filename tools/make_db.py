@@ -67,6 +67,7 @@ def main():
     for a in acc:
         p = parse_acc(a); p["key"] = a; p["model"] = build.mslug(p["brand"], p["mname"]); p["olx"] = []
         rows.append(p)
+    stock = {l.strip() for l in (ROOT / "data/stock_keys.txt").read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")}
     olx = [build.parse(r) for r in json.loads((ROOT / "data/olx_raw.json").read_text(encoding="utf-8"))]
     unmatched = []
     for it in olx:
@@ -78,9 +79,10 @@ def main():
         for r in rows:
             if r["model"] != it["model"] or r["kind"] != kind: continue
             if not overlap(r["years"], it["years"]): continue
-            sc = 0
+            sc = 3 if r["key"] in stock else 0
+            if side == "Пара (ліва + права)" and r["side"] == side and r["key"] not in stock: sc -= 2
             if side and r["side"] == side: sc += 4
-            elif side == "Пара (ліва + права)" and r["side"] in ("Ліва", "Права"): sc += 1
+            elif side == "Пара (ліва + права)" and r["side"] in ("Ліва", "Права"): sc += 2
             elif side and r["side"] and r["side"] != side: sc -= 4
             rh = hints(r["trim"] + " " + r["key"])
             for k in ("afs", "full", "hal", "xen", "bi", "sx"):
@@ -112,6 +114,13 @@ def main():
                         state=it["state"], orig=it["type"], price=it["price"], photos=",".join(build.img(p, "1200x900") for p in it["photos"]),
                         olx=it["olx"], note="є на OLX, не знайдено в обліку — додати назву з Headlights або приховати"))
     json.dump(out, open(ROOT / "data/db_initial.json", "w"), ensure_ascii=False, indent=0)
+    # OLX listing -> accounting variant (true side & clean title; OLX titles often say "ліва права" for SEO)
+    omap = {}
+    for r in rows:
+        for it, sc, tie in r["olx"]:
+            omap[str(it["id"])] = dict(key=r["key"], side=r["side"], kind=r["kind"], brand=r["brand"], mname=r["mname"],
+                                       body=r["body"], years=r["years"], trim=r["trim"], sure=(sc >= 6 and not tie), in_stock=r["key"] in stock)
+    json.dump(omap, open(ROOT / "data/olx_map.json", "w"), ensure_ascii=False, indent=0)
     print(len(rows), "accounting rows;", sum(1 for r in rows if r["olx"]), "with OLX;", len(unmatched), "OLX unmatched")
     for r in rows[:400]:
         print(f'{r["key"]:<55} | {r["kind"]:<10} {r["brand"]} {r["mname"]} | {r["body"]} | {r["years"]} | {r["side"]} | {r["trim"]} | olx={len(r["olx"])}')

@@ -48,6 +48,19 @@
     }
   });
 
+  /* ---------- Prices: USD in data, UAH shown at today's rate (/rate.json = bank sell rate + 1 UAH) ---------- */
+  var RATE = C.rate_fallback || 46;
+  var sp = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+  function priceHtml(u) {
+    var h = '<b class="uah">' + sp(Math.round(u * RATE / 10) * 10) + ' грн</b>';
+    if (C.show_usd) h += ' <small class="usd">$' + sp(u) + '</small>';
+    return h;
+  }
+  window.ABPrice = priceHtml;
+  function refreshPrices() { document.querySelectorAll('[data-usd]').forEach(function (el) { el.innerHTML = priceHtml(+el.dataset.usd); }); }
+  fetch(C.rate_url || '/rate.json', { cache: 'no-cache' }).then(function (r) { return r.json(); })
+    .then(function (r) { if (r && r.rate > 20 && r.rate < 200) { RATE = r.rate; refreshPrices(); } }).catch(function () {});
+
   /* ---------- "Any part from USA" request ---------- */
   var modal = document.getElementById('req-modal'), form = document.getElementById('req-form'), msg = document.getElementById('req-msg');
   function openReq(ctx, part) {
@@ -94,9 +107,7 @@
   var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–.\/()]/g, ''); };
   data.forEach(function (d, i) { d._i = i; d._s = norm(d.name + d.pn + d.brand + d.years + d.light + d.side + d.kind); });
   var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var rate = C.uah_per_usd || 45;
-  var sp = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
-  var fmt = function (p) { return '$' + sp(Math.round(p / rate)) + ' <small>≈ ' + sp(Math.round(p)) + ' грн</small>'; };
+  var fmt = function (u) { return priceHtml(u); };
 
   function render() {
     var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);
@@ -116,7 +127,7 @@
       return '<a class="card" href="fary/' + d.slug + '.html"><div class="card-img"><img loading="lazy" src="' + d.img + '" alt="' + esc(d.name) + '"></div>' +
         '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3>' +
         '<div class="card-meta">' + esc(meta) + '</div>' + (d.pn ? '<div class="card-pn">' + esc(d.pn) + '</div>' : '') +
-        '<div class="card-price">' + fmt(d.price) + '</div></div></a>';
+        '<div class="card-price" data-usd="' + d.price + '">' + fmt(d.price) + '</div></div></a>';
     }).join('');
     var filtered = st.q || st.brand || st.side || st.model || st.av;
     document.getElementById('count').textContent = filtered ? 'знайдено ' + list.length : '';
