@@ -188,7 +188,7 @@ def main():
 
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХО зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
-               canonical=CFG["site_url"] + "/", og_image=CFG["banner"], jsonld=ld_org,
+               canonical=CFG["site_url"] + "/", og_image=CFG["site_url"] + "/assets/og.png?v=1", jsonld=ld_org,
                count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join([card(i) for i in items] + [ocard(o) for o in orders]), order_count=len(orders), stock_count=len(items),
                cta_hero=contact_buttons("hero"), cta_request=contact_buttons("request", "center"), cta_contacts=contact_buttons("contacts"))
     (OUT / "index.html").write_text(idx, encoding="utf-8")
@@ -219,7 +219,7 @@ def main():
             "offers": {"@type": "Offer", "priceCurrency": "UAH", "availability": "https://schema.org/PreOrder", "url": f"{CFG['site_url']}/fary/{o['slug']}.html"}}, ensure_ascii=False)
         p = page("product_order.html", base="../", title=f"{o['name']} — під замовлення зі США | AutoBeam",
                  description=f"{o['name']} — оригінал зі США під замовлення. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.",
-                 canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["banner"], jsonld=ld,
+                 canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["site_url"] + "/assets/og.png?v=1", jsonld=ld,
                  name=esc(o["name"]), brand=esc(o["brand"]), mname=esc(o["mname"]), kind=esc(o["kind"]), years=esc(o["years"]), trim=esc(o["trim"]),
                  side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order"), pid=o["id"],
                  related_title=("В наявності для " + esc(o["brand"] + " " + o["mname"])) if any(x["model"] == o["model"] for x in items) else ("В наявності для " + esc(o["brand"])),
