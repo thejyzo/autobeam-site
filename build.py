@@ -67,6 +67,7 @@ def contact_buttons(ctx, cls=""):
   <a class="btn btn-call" href="tel:{c['phone_intl']}" data-track="call" data-ctx="{ctx}"><svg><use href="#i-phone"/></svg>{c['phone_display']}</a>
 </div>'''
 
+VER = datetime.datetime.now().strftime("%y%m%d%H%M")
 TR = dict(zip("абвгґдеєжзиіїйклмнопрстуфхцчшщьюя", ["a","b","v","h","g","d","e","ie","zh","z","y","i","i","i","k","l","m","n","o","p","r","s","t","u","f","kh","ts","ch","sh","shch","","iu","ia"]))
 def slugify(t):
     t = "".join(TR.get(ch, ch) for ch in t.lower())
@@ -92,6 +93,8 @@ def page(tpl_name, **kw):
     for k, v in kw.items():
         body = body.replace("{{" + k + "}}", str(v))
     out = shell.replace("{{body}}", body)
+    for a in ("style.css", "app.js", "config.js", "catalog.js"):
+        out = out.replace(f"assets/{a}\"", f"assets/{a}?v={VER}\"")
     for k, v in {**CFG, **kw}.items():
         out = out.replace("{{" + k + "}}", str(v))
     return out
