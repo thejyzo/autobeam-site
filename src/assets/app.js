@@ -5,6 +5,31 @@
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
   window.gtag = window.gtag || gtag;
+  /* Consent Mode v2: для ЄЕЗ/UK/CH — заборонено до згоди, для інших — дозволено.
+     Вибір відвідувача з банера зберігається в localStorage і має пріоритет. */
+  var EEA = ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH'];
+  var DENY = { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' };
+  var GRANT = { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' };
+  var saved = null; try { saved = localStorage.getItem('ab_consent'); } catch (e) {}
+  gtag('consent', 'default', Object.assign({ region: EEA, wait_for_update: 500 }, DENY));
+  gtag('consent', 'default', GRANT);
+  if (saved === 'granted') gtag('consent', 'update', GRANT);
+  if (saved === 'denied') gtag('consent', 'update', DENY);
+  if (C.gtag_id && !saved) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var b = document.createElement('div'); b.className = 'cookie-bar';
+      b.innerHTML = '<span>Ми використовуємо cookies Google Analytics і Google Ads, щоб покращувати сайт і рекламу.</span>'
+        + '<span class="cookie-btns"><button type="button" data-c="denied" class="btn-ghost">Відхилити</button>'
+        + '<button type="button" data-c="granted" class="btn-ok">Прийняти</button></span>';
+      b.addEventListener('click', function (e) {
+        var v = e.target.getAttribute('data-c'); if (!v) return;
+        try { localStorage.setItem('ab_consent', v); } catch (e2) {}
+        gtag('consent', 'update', v === 'granted' ? GRANT : DENY);
+        b.remove();
+      });
+      document.body.appendChild(b);
+    });
+  }
   if (C.gtag_id) {
     var s = document.createElement('script');
     s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + C.gtag_id;
