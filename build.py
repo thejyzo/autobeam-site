@@ -11,7 +11,11 @@ SRC = ROOT / "src"
 OUT = ROOT / "site"
 CFG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 
-BRANDS = ["Land Rover", "Mercedes", "Volkswagen", "Chevrolet", "Infiniti", "Hyundai", "Toyota", "Nissan",
+MODELS = {k: v for k, v in json.loads((ROOT / "data" / "models.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
+def mslug(brand, name):
+    n = name[len(brand):] if name.lower().startswith(brand.lower()) else name
+    return re.sub(r"[^a-z0-9]+", "-", (brand + " " + n).lower()).strip("-")
+BRANDS = sorted(MODELS, key=len, reverse=True) + ["Land Rover", "Mercedes", "Volkswagen", "Chevrolet", "Infiniti", "Hyundai", "Toyota", "Nissan",
           "Subaru", "Lexus", "Mazda", "Honda", "Acura", "Audi", "Jeep", "Ford", "Kia"]
 
 def esc(s): return html.escape(str(s), quote=True)
@@ -46,7 +50,11 @@ def parse(row):
     slug = re.sub(r"-ID[0-9A-Za-z]+\.html$", "", olx_slug)
     clean = re.sub(r"\s+", " ", title.replace("ОРИГІНАЛ", "").replace("оригінал", "")).strip(" ,")
     pns = [x for x in re.split(r"[,\s]+(?=[A-Z0-9P])", pn.strip()) if x] if pn else []
-    return dict(id=oid, title=title, name=clean, price=round(price), price_txt=price_fmt(price),
+    model = ""
+    for mname, rx, _ in MODELS.get(brand, []):
+        if re.search(rx, title, re.I):
+            model = mslug(brand, mname); break
+    return dict(model=model, id=oid, title=title, name=clean, price=round(price), price_txt=price_fmt(price),
                 pn=pn, state=state, type=ptype or "Оригінал", brand=brand, kind=kind, side=side,
                 light=light, years=yrs, slug=slug, olx=f"https://www.olx.ua/d/uk/obyavlenie/{olx_slug}",
                 photos=photos.split(","))
@@ -82,13 +90,24 @@ def main():
     shutil.copytree(SRC / "assets", OUT / "assets")
 
     # catalog for client-side filtering
-    slim = [{k: it[k] for k in ("id", "name", "price", "pn", "brand", "kind", "side", "light", "years", "type", "slug")}
+    slim = [{k: it[k] for k in ("id", "name", "price", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug")}
             | {"img": img(it["photos"][0], "400x300")} for it in items]
-    (OUT / "assets" / "catalog.js").write_text("window.CATALOG=" + json.dumps(slim, ensure_ascii=False) + ";", encoding="utf-8")
     (OUT / "assets" / "config.js").write_text("window.AB_CONFIG=" + json.dumps(CFG, ensure_ascii=False) + ";", encoding="utf-8")
 
-    brands = sorted({i["brand"] for i in items}, key=lambda b: (b == "Інше", -sum(x["brand"] == b for x in items)))
-    brand_chips = "".join(f'<button class="chip" data-brand="{esc(b)}">{esc(b)} <span>{sum(x["brand"]==b for x in items)}</span></button>' for b in brands)
+    # left sidebar: all brands/models ever handled (data/models.json) with in-stock counts
+    side = ['<button class="side-all active" data-brand="" data-model="">Усі фари <span>%d</span></button>' % len(items)]
+    models_js = {}
+    for b in sorted(MODELS):
+        bc = sum(x["brand"] == b for x in items)
+        lis = []
+        for mname, rx, yrs in MODELS[b]:
+            sl = mslug(b, mname); c = sum(x["model"] == sl for x in items)
+            models_js[sl] = {"brand": b, "name": mname, "years": yrs}
+            lis.append(f'<li><button class="side-model{"" if c else " none"}" data-brand="{esc(b)}" data-model="{sl}">'
+                       f'<b>{esc(mname)}</b><small>{yrs}</small><span>{c if c else "під замовлення"}</span></button></li>')
+        side.append(f'<details class="side-brand" data-brand="{esc(b)}"><summary><b>{esc(b)}</b><span>{bc or ""}</span></summary><ul>{"".join(lis)}</ul></details>')
+    sidebar = "\n".join(side)
+    (OUT / "assets" / "catalog.js").write_text("window.CATALOG=" + json.dumps(slim, ensure_ascii=False) + ";window.MODELS=" + json.dumps(models_js, ensure_ascii=False) + ";", encoding="utf-8")
 
     # SSR cards (SEO + no-JS), JS re-renders on filter
     def card(it, base=""):
@@ -107,7 +126,7 @@ def main():
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХО зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
                canonical=CFG["site_url"] + "/", og_image=CFG["banner"], jsonld=ld_org,
-               count=len(items), brand_chips=brand_chips, cards="\n".join(card(i) for i in items),
+               count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join(card(i) for i in items),
                cta_hero=contact_buttons("hero"), cta_request=contact_buttons("request", "center"), cta_contacts=contact_buttons("contacts"))
     (OUT / "index.html").write_text(idx, encoding="utf-8")
 

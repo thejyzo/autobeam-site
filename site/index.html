@@ -71,25 +71,51 @@
 </section>
 
 <section class="wrap" id="catalog">
-  <div class="sec-head">
-    <h2>Каталог <span class="muted small" id="count"></span></h2>
-    <div class="tools">
-      <input id="q2" type="search" placeholder="Пошук: модель, рік, парт-номер" autocomplete="off">
-      <select id="sort" aria-label="Сортування">
-        <option value="new">Спершу нові</option>
-        <option value="cheap">Спершу дешевші</option>
-        <option value="exp">Спершу дорожчі</option>
-      </select>
-    </div>
-  </div>
-  <div class="chips" id="brands"><button class="chip active" data-brand="">Усі марки</button><button class="chip" data-brand="Toyota">Toyota <span>23</span></button><button class="chip" data-brand="Ford">Ford <span>18</span></button><button class="chip" data-brand="Mazda">Mazda <span>17</span></button><button class="chip" data-brand="Volkswagen">Volkswagen <span>13</span></button><button class="chip" data-brand="Jeep">Jeep <span>12</span></button><button class="chip" data-brand="Nissan">Nissan <span>11</span></button><button class="chip" data-brand="Kia">Kia <span>8</span></button><button class="chip" data-brand="Hyundai">Hyundai <span>7</span></button><button class="chip" data-brand="Honda">Honda <span>6</span></button><button class="chip" data-brand="Subaru">Subaru <span>6</span></button><button class="chip" data-brand="Infiniti">Infiniti <span>5</span></button><button class="chip" data-brand="Lexus">Lexus <span>3</span></button><button class="chip" data-brand="Audi">Audi <span>2</span></button><button class="chip" data-brand="Acura">Acura <span>1</span></button><button class="chip" data-brand="Land Rover">Land Rover <span>1</span></button><button class="chip" data-brand="Chevrolet">Chevrolet <span>1</span></button><button class="chip" data-brand="Mercedes">Mercedes <span>1</span></button></div>
-  <div class="chips chips-sm" id="sides">
-    <button class="chip active" data-side="">Будь-яка сторона</button>
-    <button class="chip" data-side="Ліва">Ліва</button>
-    <button class="chip" data-side="Права">Права</button>
-    <button class="chip" data-side="Ліва + права">Пара / обидві</button>
-  </div>
-  <div class="grid" id="grid">
+  <div class="cat">
+    <aside class="side" id="side" aria-label="Марки та моделі">
+      <div class="side-head"><h2>Марки та моделі</h2><button class="side-close" type="button" aria-label="Закрити">✕</button></div>
+      <p class="side-note muted small">19 марок, 72 моделей, з якими ми працюємо</p>
+      <button class="side-all active" data-brand="" data-model="">Усі фари <span>135</span></button>
+<details class="side-brand" data-brand="Acura"><summary><b>Acura</b><span>1</span></summary><ul><li><button class="side-model" data-brand="Acura" data-model="acura-mdx"><b>MDX</b><small>2022–2026</small><span>1</span></button></li></ul></details>
+<details class="side-brand" data-brand="Audi"><summary><b>Audi</b><span>2</span></summary><ul><li><button class="side-model" data-brand="Audi" data-model="audi-a3"><b>A3</b><small>2025–2026</small><span>1</span></button></li><li><button class="side-model" data-brand="Audi" data-model="audi-a4"><b>A4</b><small>2013–2025</small><span>1</span></button></li><li><button class="side-model none" data-brand="Audi" data-model="audi-e-tron"><b>e-tron</b><small>2019–2023</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Chevrolet"><summary><b>Chevrolet</b><span>1</span></summary><ul><li><button class="side-model" data-brand="Chevrolet" data-model="chevrolet-bolt-ev-euv"><b>Bolt EV / EUV</b><small>2022–2023</small><span>1</span></button></li></ul></details>
+<details class="side-brand" data-brand="Dodge"><summary><b>Dodge</b><span></span></summary><ul><li><button class="side-model none" data-brand="Dodge" data-model="dodge-dart"><b>Dart</b><small>2013–2016</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Ford"><summary><b>Ford</b><span>18</span></summary><ul><li><button class="side-model none" data-brand="Ford" data-model="ford-ecosport"><b>EcoSport</b><small>2018–2022</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Ford" data-model="ford-edge"><b>Edge</b><small>2015–2024</small><span>6</span></button></li><li><button class="side-model" data-brand="Ford" data-model="ford-escape-kuga"><b>Escape / Kuga</b><small>2020–2026</small><span>7</span></button></li><li><button class="side-model" data-brand="Ford" data-model="ford-fusion"><b>Fusion</b><small>2017–2020</small><span>2</span></button></li><li><button class="side-model none" data-brand="Ford" data-model="ford-mustang"><b>Mustang</b><small>2023–2026</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Ford" data-model="ford-mustang-mach-e"><b>Mustang Mach-E</b><small>2020–2026</small><span>3</span></button></li></ul></details>
+<details class="side-brand" data-brand="Honda"><summary><b>Honda</b><span>6</span></summary><ul><li><button class="side-model" data-brand="Honda" data-model="honda-accord"><b>Accord</b><small>2018–2025</small><span>2</span></button></li><li><button class="side-model" data-brand="Honda" data-model="honda-civic"><b>Civic</b><small>2022–2025</small><span>2</span></button></li><li><button class="side-model" data-brand="Honda" data-model="honda-cr-v"><b>CR-V</b><small>2017–2026</small><span>2</span></button></li><li><button class="side-model none" data-brand="Honda" data-model="honda-pilot"><b>Pilot</b><small>2023–2026</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Hyundai"><summary><b>Hyundai</b><span>7</span></summary><ul><li><button class="side-model" data-brand="Hyundai" data-model="hyundai-elantra"><b>Elantra</b><small>2017–2026</small><span>2</span></button></li><li><button class="side-model" data-brand="Hyundai" data-model="hyundai-ioniq-5"><b>Ioniq 5</b><small>2022–2026</small><span>1</span></button></li><li><button class="side-model" data-brand="Hyundai" data-model="hyundai-kona"><b>Kona</b><small>2023–2026</small><span>1</span></button></li><li><button class="side-model none" data-brand="Hyundai" data-model="hyundai-palisade"><b>Palisade</b><small>2020–2022</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Hyundai" data-model="hyundai-santa-fe"><b>Santa Fe</b><small>2021–2026</small><span>3</span></button></li><li><button class="side-model none" data-brand="Hyundai" data-model="hyundai-sonata"><b>Sonata</b><small>2024–2025</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Infiniti"><summary><b>Infiniti</b><span>5</span></summary><ul><li><button class="side-model" data-brand="Infiniti" data-model="infiniti-qx50-qx55"><b>QX50 / QX55</b><small>2018–2026</small><span>1</span></button></li><li><button class="side-model" data-brand="Infiniti" data-model="infiniti-qx60"><b>QX60</b><small>2022–2026</small><span>4</span></button></li></ul></details>
+<details class="side-brand" data-brand="Jeep"><summary><b>Jeep</b><span>12</span></summary><ul><li><button class="side-model" data-brand="Jeep" data-model="jeep-cherokee"><b>Cherokee</b><small>2019–2026</small><span>3</span></button></li><li><button class="side-model" data-brand="Jeep" data-model="jeep-compass"><b>Compass</b><small>2017–2026</small><span>4</span></button></li><li><button class="side-model" data-brand="Jeep" data-model="jeep-grand-cherokee"><b>Grand Cherokee</b><small>2017–2025</small><span>4</span></button></li><li><button class="side-model" data-brand="Jeep" data-model="jeep-grand-wagoneer"><b>Grand Wagoneer</b><small>2022–2024</small><span>1</span></button></li></ul></details>
+<details class="side-brand" data-brand="Kia"><summary><b>Kia</b><span>8</span></summary><ul><li><button class="side-model" data-brand="Kia" data-model="kia-niro"><b>Niro</b><small>2017–2026</small><span>1</span></button></li><li><button class="side-model" data-brand="Kia" data-model="kia-sorento"><b>Sorento</b><small>2014–2025</small><span>7</span></button></li></ul></details>
+<details class="side-brand" data-brand="Land Rover"><summary><b>Land Rover</b><span>1</span></summary><ul><li><button class="side-model none" data-brand="Land Rover" data-model="land-rover-defender"><b>Defender</b><small>2023–2025</small><span>під замовлення</span></button></li><li><button class="side-model none" data-brand="Land Rover" data-model="land-rover-discovery-5"><b>Discovery 5</b><small>2017–2020</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Land Rover" data-model="land-rover-discovery-sport"><b>Discovery Sport</b><small>2019–2025</small><span>1</span></button></li><li><button class="side-model none" data-brand="Land Rover" data-model="land-rover-range-rover"><b>Range Rover</b><small>2018–2021</small><span>під замовлення</span></button></li><li><button class="side-model none" data-brand="Land Rover" data-model="land-rover-range-rover-evoque"><b>Range Rover Evoque</b><small>2020–2023</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Lexus"><summary><b>Lexus</b><span>3</span></summary><ul><li><button class="side-model" data-brand="Lexus" data-model="lexus-nx"><b>NX</b><small>2022–2025</small><span>1</span></button></li><li><button class="side-model" data-brand="Lexus" data-model="lexus-rx"><b>RX</b><small>2020–2025</small><span>2</span></button></li></ul></details>
+<details class="side-brand" data-brand="Mazda"><summary><b>Mazda</b><span>17</span></summary><ul><li><button class="side-model" data-brand="Mazda" data-model="mazda-3"><b>Mazda 3</b><small>2016–2023</small><span>1</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-6"><b>Mazda 6</b><small>2018–2021</small><span>1</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-cx-30"><b>CX-30</b><small>2020–2026</small><span>1</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-cx-5"><b>CX-5</b><small>2017–2026</small><span>6</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-cx-50"><b>CX-50</b><small>2022–2026</small><span>3</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-cx-70-cx-90"><b>CX-70 / CX-90</b><small>2024–2026</small><span>4</span></button></li><li><button class="side-model" data-brand="Mazda" data-model="mazda-cx-9"><b>CX-9</b><small>2016–2022</small><span>1</span></button></li></ul></details>
+<details class="side-brand" data-brand="Mercedes"><summary><b>Mercedes</b><span>1</span></summary><ul><li><button class="side-model" data-brand="Mercedes" data-model="mercedes-c-class"><b>C-Class</b><small>2022–2026</small><span>1</span></button></li><li><button class="side-model none" data-brand="Mercedes" data-model="mercedes-cla"><b>CLA</b><small>2019–2021</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Nissan"><summary><b>Nissan</b><span>11</span></summary><ul><li><button class="side-model" data-brand="Nissan" data-model="nissan-ariya"><b>Ariya</b><small>2023–2026</small><span>2</span></button></li><li><button class="side-model" data-brand="Nissan" data-model="nissan-kicks"><b>Kicks</b><small>2021–2026</small><span>2</span></button></li><li><button class="side-model" data-brand="Nissan" data-model="nissan-murano"><b>Murano</b><small>2019–2026</small><span>3</span></button></li><li><button class="side-model" data-brand="Nissan" data-model="nissan-pathfinder"><b>Pathfinder</b><small>2023–2025</small><span>1</span></button></li><li><button class="side-model" data-brand="Nissan" data-model="nissan-rogue"><b>Rogue</b><small>2017–2026</small><span>2</span></button></li><li><button class="side-model none" data-brand="Nissan" data-model="nissan-rogue-sport"><b>Rogue Sport</b><small>2017–2022</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Nissan" data-model="nissan-sentra"><b>Sentra</b><small>2020–2025</small><span>1</span></button></li></ul></details>
+<details class="side-brand" data-brand="Subaru"><summary><b>Subaru</b><span>6</span></summary><ul><li><button class="side-model" data-brand="Subaru" data-model="subaru-forester"><b>Forester</b><small>2022–2026</small><span>3</span></button></li><li><button class="side-model" data-brand="Subaru" data-model="subaru-outback-legacy"><b>Outback / Legacy</b><small>2020–2026</small><span>3</span></button></li></ul></details>
+<details class="side-brand" data-brand="Tesla"><summary><b>Tesla</b><span></span></summary><ul><li><button class="side-model none" data-brand="Tesla" data-model="tesla-model-y"><b>Model Y</b><small>2025–2026</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Toyota"><summary><b>Toyota</b><span>23</span></summary><ul><li><button class="side-model" data-brand="Toyota" data-model="toyota-bz4x"><b>bZ4X</b><small>2023–2025</small><span>1</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-camry"><b>Camry</b><small>2018–2026</small><span>5</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-corolla"><b>Corolla</b><small>2017–2019</small><span>1</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-grand-highlander"><b>Grand Highlander</b><small>2024–2026</small><span>2</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-highlander"><b>Highlander</b><small>2020–2026</small><span>5</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-prius"><b>Prius</b><small>2023–2025</small><span>1</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-prius-prime"><b>Prius Prime</b><small>2017–2022</small><span>1</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-rav4"><b>RAV4</b><small>2016–2026</small><span>5</span></button></li><li><button class="side-model" data-brand="Toyota" data-model="toyota-venza"><b>Venza</b><small>2021–2024</small><span>2</span></button></li><li><button class="side-model none" data-brand="Toyota" data-model="toyota-yaris"><b>Yaris</b><small>2016–2018</small><span>під замовлення</span></button></li></ul></details>
+<details class="side-brand" data-brand="Volkswagen"><summary><b>Volkswagen</b><span>13</span></summary><ul><li><button class="side-model none" data-brand="Volkswagen" data-model="volkswagen-atlas"><b>Atlas</b><small>2018–2024</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Volkswagen" data-model="volkswagen-atlas-cross-sport"><b>Atlas Cross Sport</b><small>2021–2026</small><span>2</span></button></li><li><button class="side-model none" data-brand="Volkswagen" data-model="volkswagen-jetta"><b>Jetta</b><small>2019–2024</small><span>під замовлення</span></button></li><li><button class="side-model" data-brand="Volkswagen" data-model="volkswagen-passat"><b>Passat</b><small>2016–2023</small><span>4</span></button></li><li><button class="side-model" data-brand="Volkswagen" data-model="volkswagen-taos"><b>Taos</b><small>2022–2024</small><span>2</span></button></li><li><button class="side-model" data-brand="Volkswagen" data-model="volkswagen-tiguan"><b>Tiguan</b><small>2018–2026</small><span>5</span></button></li></ul></details>
+    </aside>
+    <div class="cat-main">
+      <div class="sec-head">
+        <h2 id="cat-title">Каталог <span class="muted small" id="count"></span></h2>
+        <div class="tools">
+          <button class="btn btn-call side-open" type="button">☰ Марки та моделі</button>
+          <input id="q2" type="search" placeholder="Пошук: модель, рік, парт-номер" autocomplete="off">
+          <select id="sort" aria-label="Сортування">
+            <option value="new">Спершу нові</option>
+            <option value="cheap">Спершу дешевші</option>
+            <option value="exp">Спершу дорожчі</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips chips-sm" id="sides">
+        <button class="chip active" data-side="">Будь-яка сторона</button>
+        <button class="chip" data-side="Ліва">Ліва</button>
+        <button class="chip" data-side="Права">Права</button>
+        <button class="chip" data-side="Ліва + права">Пара / обидві</button>
+      </div>
+      <div class="grid" id="grid">
 <a class="card" href="fary/fara-lva-kia-sorento-2019-2020-sx-limited-led-ssha-orignal.html">
   <div class="card-img"><img loading="lazy" src="https://ireland.apollo.olxcdn.com/v1/files/y68jxj4k6em51-UA/image;s=400x300;q=80" alt="Фара ліва Kia Sorento 2019-2020 SX Limited LED США"></div>
   <div class="card-body"><div class="card-brand">Kia · Фара</div>
@@ -900,16 +926,19 @@
   <h3>Фара права Ford Edge 2015–2018 галоген USA</h3><div class="card-meta">Права · Галоген · 2015–2018</div>
   <div class="card-pn">PC10932-RH-B</div>
   <div class="card-price">9 064 грн</div></div></a>
-  </div>
-  <div class="empty" id="empty" hidden>
-    <h3>Такої фари зараз немає в наявності</h3>
-    <p class="muted">Напишіть нам модель і рік або VIN — підберемо та привеземо зі США під замовлення.</p>
-    <div class="cta-row center">
+      </div>
+      <div class="empty" id="empty" hidden>
+        <h3 id="empty-title">Такої фари зараз немає в наявності</h3>
+        <p class="muted">Ми працюємо з цією моделлю — підберемо за VIN чи парт-номером і привеземо зі США під замовлення.</p>
+        <div class="cta-row center">
   <a class="btn btn-tg" href="https://t.me/autobeam_ua" target="_blank" rel="noopener" data-track="telegram" data-ctx="request"><svg><use href="#i-tg"/></svg>Telegram</a>
   <a class="btn btn-viber" href="viber://chat?number=%2B380507332188" data-track="viber" data-ctx="request"><svg><use href="#i-viber"/></svg>Viber</a>
   <a class="btn btn-call" href="tel:+380507332188" data-track="call" data-ctx="request"><svg><use href="#i-phone"/></svg>050 733 21 88</a>
 </div>
+      </div>
+    </div>
   </div>
+  <div class="side-backdrop" id="side-backdrop"></div>
 </section>
 
 <section class="band" id="how">

@@ -51,9 +51,11 @@
   /* ---------- Catalog ---------- */
   var data = window.CATALOG, grid = document.getElementById('grid');
   if (!data || !grid) return;
-  var st = { q: '', brand: '', side: '', sort: 'new' };
+  var st = { q: '', brand: '', model: '', side: '', sort: 'new' };
+  var MODELS = window.MODELS || {};
   var params = new URLSearchParams(location.search);
-  st.q = params.get('q') || ''; st.brand = params.get('brand') || '';
+  st.q = params.get('q') || ''; st.brand = params.get('brand') || ''; st.model = params.get('model') || '';
+  if (st.model && MODELS[st.model]) st.brand = MODELS[st.model].brand;
 
   var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–.\/()]/g, ''); };
   data.forEach(function (d, i) { d._i = i; d._s = norm(d.name + d.pn + d.brand + d.years + d.light + d.side + d.kind); });
@@ -63,7 +65,7 @@
   function render() {
     var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);
     var list = data.filter(function (d) {
-      return (!st.brand || d.brand === st.brand) &&
+      return (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) &&
         (!st.side || d.side === st.side || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
         words.every(function (w) { return d._s.indexOf(w) > -1; });
     });
@@ -77,19 +79,52 @@
         '<div class="card-meta">' + esc(meta) + '</div>' + (d.pn ? '<div class="card-pn">' + esc(d.pn) + '</div>' : '') +
         '<div class="card-price">' + fmt(d.price) + '</div></div></a>';
     }).join('');
-    var filtered = st.q || st.brand || st.side;
+    var filtered = st.q || st.brand || st.side || st.model;
     document.getElementById('count').textContent = filtered ? 'знайдено ' + list.length : '';
+    var m = MODELS[st.model], label = m ? m.brand + ' ' + m.name : st.brand;
+    document.getElementById('cat-title').firstChild.nodeValue = label ? 'Фари ' + label + ' ' : 'Каталог ';
+    document.getElementById('empty-title').textContent = label ? 'Фар для ' + label + ' зараз немає в наявності' : 'Такої фари зараз немає в наявності';
     document.getElementById('empty').hidden = list.length > 0;
-    document.querySelectorAll('#brands .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.brand === st.brand); });
+    document.querySelectorAll('#side button[data-brand]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.model === st.model && (b.dataset.model ? true : b.dataset.brand === st.brand && !st.brand));
+    });
+    document.querySelectorAll('.side-brand').forEach(function (d) {
+      var on = d.dataset.brand === st.brand; d.classList.toggle('active-brand', on); if (on) d.open = true;
+    });
     document.querySelectorAll('#sides .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.side === st.side); });
+    var act = document.querySelector('#side .side-model.active');
+    if (act) { var sb = document.getElementById('side'); sb.scrollTop = act.offsetTop - sb.clientHeight / 2; }
+    try {
+      var u = new URL(location.href); ['q', 'brand', 'model'].forEach(function (k) { u.searchParams.delete(k); });
+      if (st.model) u.searchParams.set('model', st.model); else if (st.brand) u.searchParams.set('brand', st.brand);
+      if (st.q) u.searchParams.set('q', st.q);
+      history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch (e) {}
   }
+
+  var side = document.getElementById('side'), backdrop = document.getElementById('side-backdrop');
+  function sideOpen(on) { side.classList.toggle('open', on); backdrop.classList.toggle('open', on); }
+  document.querySelector('.side-open').addEventListener('click', function () { sideOpen(true); });
+  document.querySelector('.side-close').addEventListener('click', function () { sideOpen(false); });
+  backdrop.addEventListener('click', function () { sideOpen(false); });
+  side.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-brand]');
+    if (b) {
+      st.brand = b.dataset.brand; st.model = b.dataset.model;
+      gtag('event', 'select_model', { brand: st.brand, model: st.model });
+      render(); sideOpen(false);
+      if (window.innerWidth < 900) document.getElementById('catalog').scrollIntoView();
+      return;
+    }
+    var sm = e.target.closest('summary');
+    if (sm) { var d = sm.parentElement; if (!d.open || st.brand !== d.dataset.brand) { st.brand = d.dataset.brand; st.model = ''; render(); } }
+  });
 
   var q2 = document.getElementById('q2'), q = document.getElementById('q');
   q2.value = st.q;
   var timer;
   q2.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { st.q = q2.value; render(); }, 120); });
   document.getElementById('sort').addEventListener('change', function (e) { st.sort = e.target.value; render(); });
-  document.getElementById('brands').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) { st.brand = b.dataset.brand; render(); } });
   document.getElementById('sides').addEventListener('click', function (e) { var b = e.target.closest('.chip'); if (b) { st.side = b.dataset.side; render(); } });
   function go() {
     st.q = q2.value = q.value; render();
@@ -98,5 +133,5 @@
   }
   document.getElementById('finder-go').addEventListener('click', go);
   q.addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
-  if (st.q || st.brand) { render(); document.getElementById('catalog').scrollIntoView(); }
+  if (st.q || st.brand || st.model) { render(); document.getElementById('catalog').scrollIntoView(); }
 })();

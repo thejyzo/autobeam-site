@@ -1,0 +1,105 @@
+{
+  "_comment": "Марки/моделі з таблиці Headlights (усі коли-небудь куплені позиції) + OLX. Формат: [назва, regex для назви товару, роки]. Regex — без урахування регістру.",
+  "Acura": [["MDX", "\\bmdx\\b", "2022–2026"]],
+  "Audi": [
+    ["A3", "\\ba3\\b", "2025–2026"],
+    ["A4", "\\ba4\\b", "2013–2025"],
+    ["e-tron", "e-?tron", "2019–2023"]
+  ],
+  "Chevrolet": [["Bolt EV / EUV", "\\bbolt\\b", "2022–2023"]],
+  "Dodge": [["Dart", "\\bdart\\b", "2013–2016"]],
+  "Ford": [
+    ["EcoSport", "ecosport", "2018–2022"],
+    ["Edge", "\\bedge\\b", "2015–2024"],
+    ["Escape / Kuga", "\\bescape\\b|\\bkuga\\b", "2020–2026"],
+    ["Fusion", "\\bfusion\\b", "2017–2020"],
+    ["Mustang", "\\bmustang\\b(?!\\s*mach)", "2023–2026"],
+    ["Mustang Mach-E", "mach-?e", "2020–2026"]
+  ],
+  "Honda": [
+    ["Accord", "\\baccord\\b", "2018–2025"],
+    ["Civic", "\\bcivic\\b", "2022–2025"],
+    ["CR-V", "\\bcr-?v\\b", "2017–2026"],
+    ["Pilot", "\\bpilot\\b", "2023–2026"]
+  ],
+  "Hyundai": [
+    ["Elantra", "\\belantra\\b", "2017–2026"],
+    ["Ioniq 5", "ioniq\\s*5", "2022–2026"],
+    ["Kona", "\\bkona\\b", "2023–2026"],
+    ["Palisade", "\\bpalisade\\b", "2020–2022"],
+    ["Santa Fe", "santa\\s*fe", "2021–2026"],
+    ["Sonata", "\\bsonata\\b", "2024–2025"]
+  ],
+  "Infiniti": [
+    ["QX50 / QX55", "qx5[05]", "2018–2026"],
+    ["QX60", "qx60", "2022–2026"]
+  ],
+  "Jeep": [
+    ["Cherokee", "(?<!grand )\\bcherokee\\b", "2019–2026"],
+    ["Compass", "\\bcompass\\b", "2017–2026"],
+    ["Grand Cherokee", "grand\\s+cherokee", "2017–2025"],
+    ["Grand Wagoneer", "wagoneer", "2022–2024"]
+  ],
+  "Kia": [
+    ["Niro", "\\bniro\\b", "2017–2026"],
+    ["Sorento", "\\bsorento\\b", "2014–2025"]
+  ],
+  "Land Rover": [
+    ["Defender", "\\bdefender\\b", "2023–2025"],
+    ["Discovery 5", "discovery(?!\\s*sport)", "2017–2020"],
+    ["Discovery Sport", "discovery\\s*sport", "2019–2025"],
+    ["Range Rover", "range\\s*rover(?!\\s*evoque)", "2018–2021"],
+    ["Range Rover Evoque", "evoque", "2020–2023"]
+  ],
+  "Lexus": [
+    ["NX", "\\bnx\\b", "2022–2025"],
+    ["RX", "\\brx\\b", "2020–2025"]
+  ],
+  "Mazda": [
+    ["Mazda 3", "mazda\\s*3\\b", "2016–2023"],
+    ["Mazda 6", "mazda\\s*6\\b", "2018–2021"],
+    ["CX-30", "cx-?30", "2020–2026"],
+    ["CX-5", "cx-?5(?!\\d)", "2017–2026"],
+    ["CX-50", "cx-?50", "2022–2026"],
+    ["CX-70 / CX-90", "cx-?[79]0", "2024–2026"],
+    ["CX-9", "cx-?9(?!\\d)", "2016–2022"]
+  ],
+  "Mercedes": [
+    ["C-Class", "c-?class|\\bc300\\b|w206", "2022–2026"],
+    ["CLA", "\\bcla", "2019–2021"]
+  ],
+  "Nissan": [
+    ["Ariya", "\\bariya\\b", "2023–2026"],
+    ["Kicks", "\\bkicks\\b", "2021–2026"],
+    ["Murano", "\\bmurano\\b", "2019–2026"],
+    ["Pathfinder", "\\bpathfinder\\b", "2023–2025"],
+    ["Rogue", "\\brogue\\b(?!\\s*sport)", "2017–2026"],
+    ["Rogue Sport", "rogue\\s*sport", "2017–2022"],
+    ["Sentra", "\\bsentra\\b", "2020–2025"]
+  ],
+  "Subaru": [
+    ["Forester", "\\bforester\\b", "2022–2026"],
+    ["Outback / Legacy", "\\boutback\\b|\\blegacy\\b", "2020–2026"]
+  ],
+  "Tesla": [["Model Y", "model\\s*y", "2025–2026"]],
+  "Toyota": [
+    ["bZ4X", "bz4x", "2023–2025"],
+    ["Camry", "\\bcamry\\b", "2018–2026"],
+    ["Corolla", "\\bcorolla\\b", "2017–2019"],
+    ["Grand Highlander", "grand[\\s_]+highlander", "2024–2026"],
+    ["Highlander", "(?<!grand )(?<!grand_)\\bhighlander\\b", "2020–2026"],
+    ["Prius", "\\bprius\\b(?!\\s*prime)", "2023–2025"],
+    ["Prius Prime", "prius\\s*prime", "2017–2022"],
+    ["RAV4", "rav\\s*4", "2016–2026"],
+    ["Venza", "\\bvenza\\b", "2021–2024"],
+    ["Yaris", "\\byaris\\b", "2016–2018"]
+  ],
+  "Volkswagen": [
+    ["Atlas", "\\batlas\\b(?!\\s*cross)(?!.*3cn941653)", "2018–2024"],
+    ["Atlas Cross Sport", "atlas\\s*cross|3cn941653", "2021–2026"],
+    ["Jetta", "\\bjetta\\b", "2019–2024"],
+    ["Passat", "\\bpassat\\b", "2016–2023"],
+    ["Taos", "\\btaos\\b", "2022–2024"],
+    ["Tiguan", "\\btiguan\\b", "2018–2026"]
+  ]
+}

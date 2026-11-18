@@ -23,32 +23,42 @@
 </section>
 
 <section class="wrap" id="catalog">
-  <div class="sec-head">
-    <h2>Каталог <span class="muted small" id="count"></span></h2>
-    <div class="tools">
-      <input id="q2" type="search" placeholder="Пошук: модель, рік, парт-номер" autocomplete="off">
-      <select id="sort" aria-label="Сортування">
-        <option value="new">Спершу нові</option>
-        <option value="cheap">Спершу дешевші</option>
-        <option value="exp">Спершу дорожчі</option>
-      </select>
+  <div class="cat">
+    <aside class="side" id="side" aria-label="Марки та моделі">
+      <div class="side-head"><h2>Марки та моделі</h2><button class="side-close" type="button" aria-label="Закрити">✕</button></div>
+      <p class="side-note muted small">{{brand_count}} марок, {{model_count}} моделей, з якими ми працюємо</p>
+      {{sidebar}}
+    </aside>
+    <div class="cat-main">
+      <div class="sec-head">
+        <h2 id="cat-title">Каталог <span class="muted small" id="count"></span></h2>
+        <div class="tools">
+          <button class="btn btn-call side-open" type="button">☰ Марки та моделі</button>
+          <input id="q2" type="search" placeholder="Пошук: модель, рік, парт-номер" autocomplete="off">
+          <select id="sort" aria-label="Сортування">
+            <option value="new">Спершу нові</option>
+            <option value="cheap">Спершу дешевші</option>
+            <option value="exp">Спершу дорожчі</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips chips-sm" id="sides">
+        <button class="chip active" data-side="">Будь-яка сторона</button>
+        <button class="chip" data-side="Ліва">Ліва</button>
+        <button class="chip" data-side="Права">Права</button>
+        <button class="chip" data-side="Ліва + права">Пара / обидві</button>
+      </div>
+      <div class="grid" id="grid">
+{{cards}}
+      </div>
+      <div class="empty" id="empty" hidden>
+        <h3 id="empty-title">Такої фари зараз немає в наявності</h3>
+        <p class="muted">Ми працюємо з цією моделлю — підберемо за VIN чи парт-номером і привеземо зі США під замовлення.</p>
+        {{cta_request}}
+      </div>
     </div>
   </div>
-  <div class="chips" id="brands"><button class="chip active" data-brand="">Усі марки</button>{{brand_chips}}</div>
-  <div class="chips chips-sm" id="sides">
-    <button class="chip active" data-side="">Будь-яка сторона</button>
-    <button class="chip" data-side="Ліва">Ліва</button>
-    <button class="chip" data-side="Права">Права</button>
-    <button class="chip" data-side="Ліва + права">Пара / обидві</button>
-  </div>
-  <div class="grid" id="grid">
-{{cards}}
-  </div>
-  <div class="empty" id="empty" hidden>
-    <h3>Такої фари зараз немає в наявності</h3>
-    <p class="muted">Напишіть нам модель і рік або VIN — підберемо та привеземо зі США під замовлення.</p>
-    {{cta_request}}
-  </div>
+  <div class="side-backdrop" id="side-backdrop"></div>
 </section>
 
 <section class="band" id="how">
