@@ -45,7 +45,23 @@ def heur_side(brand, pn):
         if k.startswith("100008A"): return "Права", "Koito 10000 (неперевірено)"
         if k.startswith("101008A"): return "Ліва", "Koito 10100 (неперевірено)"
         if re.match(r"^\d{3}11[A-Z0-9]{3}AS2$", k): return "", "номер DEPO (аналог!), не оригінал"
-    if brand == "Ford":
+    if brand in ("Honda", "Acura"):
+        if k.startswith("33100"): return "Права", "код Honda 33100"
+        if k.startswith("33150"): return "Ліва", "код Honda 33150"
+    if brand in ("Hyundai", "Kia"):
+        if k.startswith("92102"): return "Права", "код Hyundai/Kia 92102"
+        if k.startswith("92101"): return "Ліва", "код Hyundai/Kia 92101"
+    if brand in ("Nissan", "Infiniti"):
+        if re.match(r"^(26010|26120)", k): return "Права", "код Nissan"
+        if re.match(r"^(26060|26125)", k): return "Ліва", "код Nissan"
+    if brand in ("Volkswagen", "Audi"):
+        m = re.match(r"^[0-9A-Z]{3}941(\d{3})", k)
+        if m and m.group(1)[0] == "0" or (m and m.group(1)[0] == "7"):
+            return ("Права" if int(m.group(1)) % 2 == 0 else "Ліва"), "парність VAG"
+    if brand == "Subaru":
+        m = re.match(r"^8400[12][A-Z]{2}(\d)(\d)", k)
+        if m: return ("Права" if int(m.group(1) + m.group(2)) % 2 == 0 else "Ліва"), "парність Subaru (2 цифри після літер)"
+    if brand in ("Ford", "Land Rover"):
         if re.search(r"13W029|13E014|13404", k): return "Права", "інженерний код Ford"
         if re.search(r"13W030|13E015|13405", k): return "Ліва", "інженерний код Ford"
     if re.search(r"(^PC\d|DEPO|TYC)", k): return "", "схоже на номер аналога, не оригінал"
@@ -66,7 +82,11 @@ def main():
         if p.get("archived") or p.get("brand") not in brands: continue
         pns = [x for x in [p.get("pn")] + list(p.get("pn_alt") or []) if x]
         sides = {(find(idx, x) or {}).get("side") for x in pns} - {None, ""}
-        pair = len(sides) == 2 or "LH + RH" in (p.get("key") or "")
+        hsides = {heur_side(p.get("brand"), x)[0] for x in pns if not find(idx, x)} - {None, ""}
+        allsides = sides | hsides
+        pair = len(allsides) == 2 or "LH + RH" in (p.get("key") or "")
+        if len(allsides) == 2 and "LH + RH" not in (p.get("key") or ""):
+            out.append((p["id"], "перевірити", " / ".join(pns), p.get("key"), "у картці на один бік є номери ЛІВОЇ і ПРАВОЇ фари — це пара чи помилка в полі парт-номера?"))
         for pn in pns:
             r = find(idx, pn)
             if not r:
