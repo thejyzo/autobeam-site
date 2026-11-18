@@ -1,0 +1,98 @@
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap hero-in">
+    <div class="hero-text">
+      <p class="eyebrow">Фари · ліхтарі · ДХО</p>
+      <h1>Оригінальні фари зі США —<br><span>в наявності та під замовлення</span></h1>
+      <p class="lead">Великий вибір фар, ліхтарів та ДХО вже в наявності. Не знайшли свою — підберемо за VIN чи парт-номером або привеземо під замовлення.</p>
+      {{cta_hero}}
+      <ul class="hero-facts">
+        <li><b>Оригінал</b> жодних реплік</li>
+        <li><b>Перевірка</b> кожної фари перед відправкою</li>
+        <li><b>Підбір</b> за VIN або парт-номером</li>
+      </ul>
+    </div>
+    <form class="finder" id="finder" onsubmit="return false">
+      <label for="q">Знайдіть свою фару</label>
+      <p class="muted small">Введіть модель авто або парт-номер</p>
+      <input id="q" type="search" placeholder="Напр. RAV4, CX-5 або 92101-C6610" autocomplete="off">
+      <button class="btn btn-amber" type="button" id="finder-go">Шукати в каталозі</button>
+      <p class="small muted">Немає потрібної? <a href="{{telegram}}" target="_blank" rel="noopener" data-track="telegram" data-ctx="finder">Надішліть VIN у Telegram</a> — знайдемо під замовлення.</p>
+    </form>
+  </div>
+</section>
+
+<section class="wrap" id="catalog">
+  <div class="sec-head">
+    <h2>Каталог <span class="muted small" id="count"></span></h2>
+    <div class="tools">
+      <input id="q2" type="search" placeholder="Пошук: модель, рік, парт-номер" autocomplete="off">
+      <select id="sort" aria-label="Сортування">
+        <option value="new">Спершу нові</option>
+        <option value="cheap">Спершу дешевші</option>
+        <option value="exp">Спершу дорожчі</option>
+      </select>
+    </div>
+  </div>
+  <div class="chips" id="brands"><button class="chip active" data-brand="">Усі марки</button>{{brand_chips}}</div>
+  <div class="chips chips-sm" id="sides">
+    <button class="chip active" data-side="">Будь-яка сторона</button>
+    <button class="chip" data-side="Ліва">Ліва</button>
+    <button class="chip" data-side="Права">Права</button>
+    <button class="chip" data-side="Ліва + права">Пара / обидві</button>
+  </div>
+  <div class="grid" id="grid">
+{{cards}}
+  </div>
+  <div class="empty" id="empty" hidden>
+    <h3>Такої фари зараз немає в наявності</h3>
+    <p class="muted">Напишіть нам модель і рік або VIN — підберемо та привеземо зі США під замовлення.</p>
+    {{cta_request}}
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <h2>Як ми працюємо</h2>
+    <ol class="steps">
+      <li><b>Підбираємо</b><span>Знаходимо потрібну фару за моделлю, парт-номером або VIN.</span></li>
+      <li><b>Привозимо зі США</b><span>Доставка й оформлення — наша турбота, вам нічого не треба робити.</span></li>
+      <li><b>Перевіряємо</b><span>Кожну фару діагностуємо: світло, корпус, кріплення, герметичність.</span></li>
+      <li><b>Відправляємо вам</b><span>Нова пошта по всій Україні або самовивіз у Харкові.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="wrap why">
+  <h2>Чому AutoBeam</h2>
+  <div class="why-grid">
+    <div><h3>Тільки оригінал</h3><p class="muted">Жодних дешевих підробок чи реплік — оптика з завода-виробника авто.</p></div>
+    <div><h3>Ціна нижча за нову</h3><p class="muted">Значно дешевше нових аналогів при збереженні ресурсу.</p></div>
+    <div><h3>Пошук за парт-номером</h3><p class="muted">Допомагаємо підібрати фару під конкретну модель та комплектацію.</p></div>
+    <div><h3>Під замовлення</h3><p class="muted">Немає в наявності — знайдемо в США і привеземо.</p></div>
+  </div>
+</section>
+
+<section class="wrap request">
+  <div class="request-card">
+    <h2>Не знайшли свою фару?</h2>
+    <p class="lead">Надішліть фото старої фари, парт-номер або VIN — відповімо з ціною і термінами.</p>
+    {{cta_request}}
+  </div>
+</section>
+
+<section class="wrap faq" id="faq">
+  <h2>Часті питання</h2>
+  <details><summary>Фари нові чи вживані?</summary><p>Здебільшого це оригінальні б/в фари з автомобілів у США в хорошому стані. Стан кожної позиції вказаний у картці товару, на фото видно всі деталі.</p></details>
+  <details><summary>Чи підійде американська фара на моє авто?</summary><p>Звіряйте парт-номер на корпусі вашої фари або надішліть нам VIN — перевіримо сумісність. Фари з США часто відрізняються від європейських (коректор, габарит, ДХО), тому підказуємо перед покупкою.</p></details>
+  <details><summary>Як відправляєте?</summary><p>Новою поштою по всій Україні, надійно запаковану.</p></details>
+  <details><summary>Як оплатити?</summary><p>Узгоджуємо в месенджері: передоплата на картку або оплата при отриманні з частковою передоплатою.</p></details>
+  <details><summary>Чи можна замовити фару, якої немає в каталозі?</summary><p>Так. Привеземо зі США під замовлення — напишіть модель, рік і комплектацію.</p></details>
+</section>
+
+<section class="wrap contacts-sec">
+  <h2>Звʼяжіться з нами</h2>
+  <p class="muted">Відповідаємо в Telegram і Viber, приймаємо дзвінки.</p>
+  {{cta_contacts}}
+</section>
+<script src="assets/catalog.js"></script>
