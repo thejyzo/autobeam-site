@@ -12,6 +12,7 @@ con = sqlite3.connect(DB)
 empty = []
 for pid, data in con.execute("SELECT id, data FROM products"):
     p = json.loads(data)
+    if "порожня картка" in (p.get("note") or ""): p = dict(p, note="")   # our own archive mark
     if not any(p.get(f) for f in FIELDS):
         empty.append((pid, p))
 print("порожніх карток:", len(empty), " ".join(pid for pid, _ in empty))
