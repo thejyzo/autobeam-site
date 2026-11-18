@@ -104,7 +104,7 @@ def main():
         "url": CFG["site_url"], "telephone": CFG["phone_intl"], "areaServed": "UA",
         "sameAs": [CFG["telegram"], CFG["olx"]]}, ensure_ascii=False)
 
-    idx = page("index.html", base="", title="AutoBeam — оригінальні фари зі США в наявності та під замовлення",
+    idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХО зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
                canonical=CFG["site_url"] + "/", og_image=CFG["banner"], jsonld=ld_org,
                count=len(items), brand_chips=brand_chips, cards="\n".join(card(i) for i in items),
@@ -123,7 +123,7 @@ def main():
                        "itemCondition": "https://schema.org/UsedCondition" if it["state"] == "Вживане" else "https://schema.org/NewCondition",
                        "url": f"{CFG['site_url']}/fary/{it['slug']}.html"}}, ensure_ascii=False)
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
-                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}Ціна {it['price_txt']}. Оригінал зі США, перевірена перед продажем. Доставка по Україні.",
+                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}Ціна {it['price_txt']}. Оригінал зі США, гарантія 14 днів. Доставка по Україні.",
                  canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=img(it["photos"][0], "1200x900"), jsonld=ld,
                  name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_txt=it["price_txt"], pn=esc(it["pn"] or "—"),
                  main_img=img(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
