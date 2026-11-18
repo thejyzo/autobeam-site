@@ -1,12 +1,12 @@
-<div class="wrap crumbs"><a href="/">Головна</a> / <a href="/#catalog">Каталог</a> / <a href="/?model={{model}}#catalog">{{brand}} {{mname}}</a> / <span>Під замовлення</span></div>
+<div class="wrap crumbs"><a href="/">Головна</a> / <a href="/#catalog">Каталог</a> / <a href="/?model={{model}}#catalog">{{brand}} {{mname}}</a> / <span>{{status}}</span></div>
 <section class="wrap product" data-pid="{{pid}}">
   <div class="gallery">
-    <div class="g-main ph ph-lg"><span class="ph-brand">{{brand}}</span><span class="ph-model">{{mname}}</span><span class="ph-years">{{years}}</span><span class="badge">Під замовлення</span></div>
+    <div class="g-main ph ph-lg"><span class="ph-brand">{{brand}}</span><span class="ph-model">{{mname}}</span><span class="ph-years">{{years}}</span><span class="badge">{{status}}</span></div>
   </div>
   <div class="p-info">
     <p class="eyebrow">{{brand}} · {{kind}} · оригінал США</p>
     <h1>{{name}}</h1>
-    <div class="p-price p-price-order">Під замовлення</div>
+    <div class="p-price p-price-order">{{status}}</div>
     <p class="muted">Привеземо оригінал зі США. Напишіть нам VIN або парт-номер — звіримо сумісність і назвемо ціну та термін.</p>
     <button class="btn btn-amber req-inline" type="button" data-req="order" data-part="{{name}}">Дізнатися ціну і термін</button>
     {{cta}}

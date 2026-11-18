@@ -253,10 +253,10 @@ def main():
 
     def ocard(o, base=""):
         return f'''<a class="card card-order" href="{base}fary/{o['slug']}.html">
-  <div class="card-img ph"><span class="ph-brand">{esc(o['brand'])}</span><span class="ph-model">{esc(o['mname'])}</span><span class="badge">Під замовлення</span></div>
+  <div class="card-img ph"><span class="ph-brand">{esc(o['brand'])}</span><span class="ph-model">{esc(o['mname'])}</span><span class="badge">{ST_LABEL[o.get('st', 'order')]}</span></div>
   <div class="card-body"><div class="card-brand">{esc(o['brand'])} · {esc(o['kind'])}</div>
   <h3>{esc(o['name'])}</h3><div class="card-meta">{esc(" · ".join(x for x in (o['side'], o['years']) if x))}</div>
-  <div class="card-price card-price-order">Ціна за запитом</div></div></a>'''
+  <div class="card-price card-price-order">{pprice(o) if (o.get('price') or o.get('uah')) else 'Ціна за запитом'}</div></div></a>'''
 
     ld_org = json.dumps({"@context": "https://schema.org", "@type": "AutoPartsStore", "name": "AutoBeam",
         "url": CFG["site_url"], "telephone": CFG["phone_intl"], "areaServed": "UA",
@@ -296,9 +296,10 @@ def main():
     for o in orders:
         rel = [x for x in items if x["model"] == o["model"] and x["st"] == "in"][:4] or [x for x in items if x["brand"] == o["brand"] and x["st"] == "in"][:4]
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": o["name"], "brand": {"@type": "Brand", "name": o["brand"]},
-            "offers": {"@type": "Offer", "priceCurrency": "UAH", "availability": "https://schema.org/PreOrder", "url": f"{CFG['site_url']}/fary/{o['slug']}.html"}}, ensure_ascii=False)
-        p = page("product_order.html", base="../", title=f"{o['name']} — під замовлення зі США | AutoBeam",
-                 description=f"{o['name']} — оригінал зі США під замовлення. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.",
+            "offers": {"@type": "Offer", "priceCurrency": "UAH", "availability": {"in": "https://schema.org/InStock", "soon": "https://schema.org/PreOrder", "order": "https://schema.org/BackOrder"}[o.get("st", "order")], "url": f"{CFG['site_url']}/fary/{o['slug']}.html"}}, ensure_ascii=False)
+        st_txt = ST_LABEL[o.get("st", "order")]
+        p = page("product_order.html", base="../", title=f"{o['name']} — {st_txt.lower()} | AutoBeam",
+                 description=f"{o['name']} — оригінал зі США, {st_txt.lower()}. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.", status=st_txt,
                  canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["site_url"] + "/assets/og.png?v=1", jsonld=ld,
                  name=esc(o["name"]), brand=esc(o["brand"]), mname=esc(o["mname"]), kind=esc(o["kind"]), years=esc(o["years"]), trim=esc(o["trim"]),
                  side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order"), pid=o["id"],

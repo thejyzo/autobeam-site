@@ -147,8 +147,8 @@
     else if (st.sort === 'exp') list.sort(function (a, b) { return ob(a, b) || pr(b) - pr(a); });
     else list.sort(function (a, b) { return a._i - b._i; });
     grid.innerHTML = list.map(function (d) {
-      if (d.order) return '<a class="card card-order" href="fary/' + d.slug + '.html"><div class="card-img ph"><span class="ph-brand">' + esc(d.brand) + '</span><span class="ph-model">' + esc((MODELS[d.model] || {}).name || '') + '</span><span class="badge">Під замовлення</span></div>' +
-        '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3><div class="card-meta">' + esc([d.side, d.years].filter(Boolean).join(' · ')) + '</div><div class="card-price card-price-order">Ціна за запитом</div></div></a>';
+      if (d.order) return '<a class="card card-order" href="fary/' + d.slug + '.html"><div class="card-img ph"><span class="ph-brand">' + esc(d.brand) + '</span><span class="ph-model">' + esc((MODELS[d.model] || {}).name || '') + '</span><span class="badge">' + ({in: 'В наявності', soon: 'Незабаром у наявності'}[d.st] || 'Під замовлення') + '</span></div>' +
+        '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3><div class="card-meta">' + esc([d.side, d.years].filter(Boolean).join(' · ')) + '</div>' + (d.uah ? '<div class="card-price"><b class="uah">' + sp(d.uah) + ' грн</b></div>' : d.price ? '<div class="card-price" data-usd="' + d.price + '">' + fmt(d.price) + '</div>' : '<div class="card-price card-price-order">Ціна за запитом</div>') + '</div></a>';
       var meta = [d.side, d.light, d.years].filter(Boolean).join(' · ');
       var badge = d.st === 'soon' ? '<span class="badge badge-soon">Незабаром у наявності</span>' : d.st === 'order' ? '<span class="badge badge-order">Під замовлення</span>' : '';
       return '<a class="card" href="fary/' + d.slug + '.html"><div class="card-img"><img loading="lazy" src="' + d.img + '" alt="' + esc(d.name) + '">' + badge + '</div>' +
