@@ -41,7 +41,7 @@ switch ($act) {
       $rows[] = [
         'id' => $p['id'], 'key' => $p['key'] ?? '', 'kind' => $p['kind'] ?? '', 'brand' => $p['brand'] ?? '', 'model' => $p['model'] ?? '',
         'years' => $p['years'] ?? '', 'side' => $p['side'] ?? '', 'trim' => $p['trim'] ?? '', 'title' => $p['title'] ?? '',
-        'pn' => $p['pn'] ?? '', 'price' => $p['price'] ?? '', 'currency' => $p['currency'] ?? 'USD',
+        'pn' => $p['pn'] ?? '', 'pns' => implode(' ', array_merge($p['pn_alt'] ?? [], [$p['avto_code'] ?? ''])), 'price' => $p['price'] ?? '', 'currency' => $p['currency'] ?? 'USD',
         'photo' => ($p['photos'][0] ?? ''), 'nphotos' => count($p['photos'] ?? []), 'hasdesc' => !empty($p['description']),
         'show' => !empty($p['show']), 'olx' => $p['olx_id'] ?? '', 'olx_active' => !empty($p['olx_active']), 'note' => $p['note'] ?? '',
         'status_manual' => $p['status_manual'] ?? '', 'archived' => !empty($p['archived']), 'stock' => $s,

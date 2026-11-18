@@ -104,18 +104,43 @@
   st.q = params.get('q') || ''; st.brand = params.get('brand') || ''; st.model = params.get('model') || '';
   if (st.model && MODELS[st.model]) st.brand = MODELS[st.model].brand;
 
-  var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–.\/()]/g, ''); };
-  data.forEach(function (d, i) { d._i = i; d._s = norm(d.name + d.pn + d.brand + d.years + d.light + d.side + d.kind); });
+  var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–—_.,:;#\/()]/g, ''); };
+  // part numbers: ignore dashes/spaces/dots, Mopar "P" prefix, letter case
+  var pnorm = function (s) { s = (s || '').toLowerCase().replace(/[^0-9a-zа-яії]/g, ''); return /^p\d{8}/.test(s) ? s.slice(1) : s; };
+  data.forEach(function (d, i) { d._i = i; d.pns = d.pns || []; d._s = norm(d.name + ' ' + d.pn + ' ' + d.pns.join(' ') + d.brand + d.years + d.light + d.side + d.kind + (MODELS[d.model] ? MODELS[d.model].name : '')); });
+  var prefix = function (a, b) { var n = 0; while (n < a.length && n < b.length && a[n] === b[n]) n++; return n; };
+  // 2 = exact / contained part number, 1 = similar root (same beginning, different suffix), 0 = no
+  function pnScore(d, q) {
+    var best = 0;
+    for (var i = 0; i < d.pns.length; i++) {
+      var p = d.pns[i];
+      if (p.indexOf(q) > -1 || (p.length >= 6 && q.indexOf(p) > -1)) return 2;
+      var c = prefix(p, q);
+      if (c >= 6 && c >= Math.min(p.length, q.length) - 3) best = 1;
+    }
+    return best;
+  }
+  function qinfo() {
+    var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm).filter(Boolean);
+    var joined = pnorm(st.q);
+    return {words: words, pn: /\d/.test(joined) && joined.length >= 5 ? joined : ''};
+  }
+  function textOk(d, qi) { return qi.words.every(function (w) { return d._s.indexOf(w) > -1; }) || (qi.pn && pnScore(d, qi.pn) === 2); }
   var esc = function (s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var fmt = function (u) { return priceHtml(u); };
 
   function render() {
-    var words = st.q.toLowerCase().split(/\s+/).filter(Boolean).map(norm);
-    var list = data.filter(function (d) {
+    var qi = qinfo(), similar = false;
+    var base = function (d) {
       return (!st.av || st.av === (d.st || (d.order ? 'order' : 'in'))) && (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) &&
         (!st.side || d.side === st.side || (d.side || '').indexOf('Пара') === 0 && st.side === 'Ліва + права' || (st.side !== 'Ліва + права' && d.side === 'Ліва + права')) &&
-        words.every(function (w) { return d._s.indexOf(w) > -1; });
-    });
+        true;
+    };
+    var list = data.filter(function (d) { return base(d) && textOk(d, qi); });
+    if (!list.length && qi.pn) {               // no exact hit: show items whose part number has the same root
+      list = data.filter(function (d) { return base(d) && pnScore(d, qi.pn) === 1; });
+      similar = list.length > 0;
+    }
     var RK = {in: 0, soon: 1, order: 2}; var ob = function (a, b) { return (RK[a.st] || 0) - (RK[b.st] || 0) || (a.order ? 1 : 0) - (b.order ? 1 : 0); };
     var pr = function (d) { return d.uah ? d.uah / RATE : d.price; };
     if (st.sort === 'cheap') list.sort(function (a, b) { return ob(a, b) || pr(a) - pr(b); });
@@ -132,7 +157,7 @@
         (d.uah ? '<div class="card-price"><b class="uah">' + sp(d.uah) + ' грн</b></div>' : d.price ? '<div class="card-price" data-usd="' + d.price + '">' + fmt(d.price) + '</div>' : '<div class="card-price card-price-order">Ціна за запитом</div>') + '</div></a>';
     }).join('');
     var filtered = st.q || st.brand || st.side || st.model || st.av;
-    document.getElementById('count').textContent = filtered ? 'знайдено ' + list.length : '';
+    document.getElementById('count').textContent = similar ? 'точного збігу немає — схожі парт-номери: ' + list.length : (filtered ? 'знайдено ' + list.length : '');
     var m = MODELS[st.model], label = m ? m.brand + ' ' + m.name : st.brand;
     document.getElementById('cat-title').firstChild.nodeValue = label ? 'Фари ' + label + ' ' : 'Каталог ';
     document.getElementById('empty-title').textContent = label ? 'Фар для ' + label + ' зараз немає в наявності' : 'Такої фари зараз немає в наявності';
@@ -148,7 +173,7 @@
     document.querySelectorAll('#sides .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.side === st.side); });
     document.querySelectorAll('#avail .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.av === st.av); });
     // availability counts follow the current brand/model/search; hide the block inside one model
-    var scope = data.filter(function (d) { return (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) && words.every(function (w) { return d._s.indexOf(w) > -1; }); });
+    var scope = data.filter(function (d) { return (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) && (similar ? pnScore(d, qi.pn) === 1 : textOk(d, qi)); });
     var cnt = {in: 0, soon: 0, order: 0}; scope.forEach(function (d) { cnt[d.st || (d.order ? 'order' : 'in')]++; });
     var av = document.getElementById('avail');
     ['in', 'soon', 'order'].forEach(function (k) { var b = av.querySelector('[data-av=' + k + ']'); if (b) { b.querySelector('span').textContent = cnt[k]; b.hidden = !cnt[k] && k === 'soon'; } });

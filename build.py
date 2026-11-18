@@ -217,8 +217,12 @@ def main():
 
     # catalog for client-side filtering
     keys = ("id", "name", "price", "uah", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug", "st")
-    slim = [dict({k: it[k] for k in keys}, img=pimg(it["photos"][0], "400x300")) for it in items]
-    slim += [dict({k: o[k] for k in keys}, order=1) for o in orders]
+    def pnorm(x):
+        x = re.sub(r"[^0-9a-z]", "", x.lower())
+        return x[1:] if re.match(r"^p\d{8}", x) else x
+    pns = lambda it: sorted({pnorm(x) for x in [it["pn"]] + list(it.get("pn_alt") or []) + [it.get("avto_code") or ""] if len(pnorm(x)) >= 5})
+    slim = [dict({k: it[k] for k in keys}, img=pimg(it["photos"][0], "400x300"), pns=pns(it)) for it in items]
+    slim += [dict({k: o[k] for k in keys}, order=1, pns=pns(o)) for o in orders]
     (OUT / "assets" / "config.js").write_text("window.AB_CONFIG=" + json.dumps(CFG, ensure_ascii=False) + ";", encoding="utf-8")
 
     # left sidebar: all brands/models ever handled (data/models.json) with in-stock counts

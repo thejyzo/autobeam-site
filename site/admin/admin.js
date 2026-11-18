@@ -37,7 +37,7 @@
       $('#b-pub').classList.toggle('hot', !!d.dirty);
     });
   }
-  function norm(s) { return String(s || '').toLowerCase().replace(/[\s\-_.]/g, ''); }
+  function norm(s) { s = String(s || '').toLowerCase().replace(/[^0-9a-zа-яіїєґ]/g, ''); return /^p\d{8}/.test(s) ? s.slice(1) : s; }
   function render() {
     var q = norm($('#q').value), fs = $('#f-status').value, fx = $('#f-extra').value;
     var rows = ROWS.filter(function (r) {
@@ -50,7 +50,7 @@
       if (fx === 'nodesc' && r.hasdesc) return false;
       if (fx === 'note' && !r.note) return false;
       if (fx === 'hidden' && r.show) return false;
-      if (q) { var hay = norm([r.id, r.key, r.title, r.brand, r.model, r.pn, r.years, r.side].join(' ')); if (hay.indexOf(q) < 0) return false; }
+      if (q) { var hay = [r.id, r.key, r.title, r.brand, r.model, r.pn, r.pns, r.years, r.side].map(norm).join('|'); if (hay.indexOf(q) < 0) return false; }
       return true;
     });
     $('#count').textContent = rows.length + ' з ' + ROWS.filter(function (r) { return !r.archived; }).length;
@@ -92,7 +92,7 @@
     var olxUrl = p.olx_id ? 'https://www.olx.ua/d/' + p.olx_id + '/' : '';
     $('#ed').innerHTML =
       '<div class="edh"><div><b class="id">' + p.id + '</b> <i class="st ' + (SCLS[st] || '') + '">' + st + '</i>' +
-      (s ? '<small class="stock">склад ' + s[0] + ' · ремонт ' + s[1] + ' · в дорозі ' + s[2] + ' · продано ' + s[3] + '</small>' : (p.key ? '<small class="stock">немає в обліку</small>' : '')) +
+      (s ? '<small class="stock">склад ' + s[0] + ' · ремонт ' + s[1] + ' · в дорозі ' + s[2] + '</small>' : (p.key ? '<small class="stock">немає в обліку</small>' : '')) +
       '</div><div class="acts">' +
       (olxUrl ? '<a class="ghost btn" target="_blank" rel="noopener" href="' + olxUrl + '">OLX ↗</a>' : '') +
       '<button type="button" class="ghost" data-do="copy">Копія</button>' +
