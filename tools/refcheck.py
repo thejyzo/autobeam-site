@@ -47,13 +47,15 @@ def main():
     out = []
     for p in P:
         if p.get("archived") or p.get("brand") not in brands: continue
-        for pn in [p.get("pn")] + list(p.get("pn_alt") or []):
-            if not pn: continue
+        pns = [x for x in [p.get("pn")] + list(p.get("pn_alt") or []) if x]
+        sides = {(find(idx, x) or {}).get("side") for x in pns} - {None, ""}
+        pair = len(sides) == 2 or "LH + RH" in (p.get("key") or "")
+        for pn in pns:
             r = find(idx, pn)
             if not r:
                 out.append((p["id"], "НЕМАЄ В ДОВІДНИКУ", pn, p.get("key"), "")); continue
             probs = []
-            if r["side"] and p.get("side") in ("Ліва", "Права") and r["side"] != p["side"]: probs.append("бік: довідник=%s, картка=%s" % (r["side"], p["side"]))
+            if r["side"] and not pair and p.get("side") in ("Ліва", "Права") and r["side"] != p["side"]: probs.append("бік: довідник=%s, картка=%s" % (r["side"], p["side"]))
             afs_ref = bool(re.search(r"AFS|adaptive", r["variant"], re.I)) and not re.search(r"без (AFS|adaptive)", r["variant"], re.I)
             afs_key = "AFS" in (p.get("key") or "") and "N-AFS" not in (p.get("key") or "")
             if p.get("key") and r.get("keys") and p["key"] not in r["keys"] and afs_ref != afs_key:
