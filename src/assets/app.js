@@ -18,7 +18,7 @@
   if (C.gtag_id && !saved) {
     document.addEventListener('DOMContentLoaded', function () {
       var b = document.createElement('div'); b.className = 'cookie-bar';
-      b.innerHTML = '<span>Ми використовуємо cookies Google Analytics і Google Ads, щоб покращувати сайт і рекламу.</span>'
+      b.innerHTML = '<span>Ми використовуємо файли cookie, щоб сайт працював зручніше.</span>'
         + '<span class="cookie-btns"><button type="button" data-c="denied" class="btn-ghost">Відхилити</button>'
         + '<button type="button" data-c="granted" class="btn-ok">Прийняти</button></span>';
       b.addEventListener('click', function (e) {
