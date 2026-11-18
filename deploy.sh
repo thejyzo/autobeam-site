@@ -26,6 +26,6 @@ php "$REPO/server/stock.php" || true
 if [ -n "$NEED" ]; then
   rm -f "$DATA/publish" "$DATA/dirty"
   AB_OUT="$BUILD" AB_DB="$DATA/products.sqlite" AB_STOCK="$DATA/stock.json" AB_RATE="$WWW/rate.json" python3 "$REPO/build.py" > "$DATA/build.log" 2>&1
-  rsync -a --delete --exclude '.htaccess' --exclude '.well-known' --exclude 'rate.json' --exclude 'media' "$BUILD/" "$WWW/"
+  rsync -a --delete --exclude '/.htaccess' --exclude '/.well-known' --exclude '/rate.json' --exclude '/media' "$BUILD/" "$WWW/"
   echo "$(date '+%F %T') built+deployed:$NEED | $(tail -1 "$DATA/build.log")" >> "$HOME/deploy.log"
 fi
