@@ -121,7 +121,7 @@
    "model": "Grand Cherokee",
    "gen": "WK2 рестайлінг",
    "years": "2017-2021",
-   "variant": "ксенон HID + LED DRL (Limited/Overland/Summit), з AFS або без",
+   "variant": "ксенон HID + LED DRL; 68266660/61 = Limited X / Summit, Bi-Xenon, код LM2",
    "right": [
     "68266654AJ",
     "68266648AF (за парою)",
@@ -136,9 +136,11 @@
    "sources": [
     "jeeppartsdeal 68266655AJ Front Driver Side, 68266654AJ Front Passenger Side",
     "jeeppartsdeal 2017: 68266661AI Driver, 68266660AI Passenger",
-    "jeeppartsgiant 2017 Summit: 68266649AD/68266648AD"
+    "jeeppartsgiant 2017 Summit: 68266649AD/68266648AD",
+    "go-parts CH2503315: 2017-2021 GC LIMITED X|SUMMIT; Bi-Xenon; Code [LM2] OEM 68266660AI (Right)",
+    "Walmart/aftermarket interchange: CH2502299/CH2503299 = 68266649AH/68266648AH для Laredo X 3.6L"
    ],
-   "note": "Ваше оголошення 915791597 '68266649AF 68266648AF' = пара Summit (ліва 649, права 648)."
+   "note": "68266648/49 за aftermarket-інтерчейнджем — Laredo X (не Summit); тип лампи для них не підтверджено каталогом — звірити з фото (ксенон чи галоген-проектор). Ваше оголошення 915791597 = пара (649 ліва, 648 права)."
   },
   {
    "model": "Grand Cherokee",
@@ -246,6 +248,59 @@
     "partrequest 2025 Wagoneer Left 68590079AD"
    ],
    "note": "Сервісні номери 68598982…991AA розрізняються за 'Bi-Function LED / Black Accents' і боком; детальна мапа — у moparpartsgiant."
+  },
+  {
+   "model": "Compass",
+   "gen": "MP дорестайлінг",
+   "years": "2017-2021",
+   "variant": "ксенон Bi-Xenon HID з LED signature",
+   "left": [
+    "55112715AF (AB…AE)",
+    "55112717AG (Export)"
+   ],
+   "right": [
+    "55112714AC"
+   ],
+   "confidence": "high (ліва), medium (права)",
+   "sources": [
+    "jeeppartsdeal 2019: Front Driver Side replaces 55112715AB…AF",
+    "moparpartsgiant 55112715AF 'Headlight Hid Xenon', Driver Side",
+    "chrysler dealer 55112717AG Left Export [BI-XENON HID H/LMPS W/LED SIGNATURE]"
+   ]
+  },
+  {
+   "model": "Compass",
+   "gen": "MP дорестайлінг",
+   "years": "2017-2021",
+   "variant": "серія 68292228/29 (тип не підтверджено; дешевша за ксенонову — ймовірно галоген)",
+   "left": [
+    "68292229AG (AB…AF)"
+   ],
+   "right": [
+    "68292228AG"
+   ],
+   "confidence": "high (бік), low (тип)",
+   "sources": [
+    "jeeppartsdeal 2019 Compass 68292229AG Front Driver Side replaces AB…AF",
+    "store.mopar.com 68292229AG Headlamp, Left 2017-2019"
+   ],
+   "note": "Ваша картка 'Compass 17-21 Xenon LH' має 68292229AC — у каталозі ксенонова ліва = 55112715. Перевірити тип за фото."
+  },
+  {
+   "model": "Cherokee",
+   "gen": "KM (новий)",
+   "years": "2026+",
+   "variant": "LED",
+   "right": [
+    "68538458AC (AA, AB)"
+   ],
+   "left": [
+    "68538457AK (за парою)"
+   ],
+   "confidence": "high (права), medium (ліва)",
+   "sources": [
+    "store.mopar.com 68538458AC Headlamp, Right 2024-2026 Jeep"
+   ]
   }
  ],
  "brands": [
