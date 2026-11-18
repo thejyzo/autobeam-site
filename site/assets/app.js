@@ -134,6 +134,12 @@
     });
     document.querySelectorAll('#sides .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.side === st.side); });
     document.querySelectorAll('#avail .chip').forEach(function (b) { b.classList.toggle('active', b.dataset.av === st.av); });
+    // availability counts follow the current brand/model/search; hide the block inside one model
+    var scope = data.filter(function (d) { return (!st.brand || d.brand === st.brand) && (!st.model || d.model === st.model) && words.every(function (w) { return d._s.indexOf(w) > -1; }); });
+    var nIn = scope.filter(function (d) { return !d.order; }).length, nOr = scope.length - nIn;
+    var av = document.getElementById('avail');
+    av.querySelector('[data-av=in] span').textContent = nIn; av.querySelector('[data-av=order] span').textContent = nOr;
+    av.hidden = !!st.model;
     var act = document.querySelector('#side .side-model.active');
     if (act) { var sb = document.getElementById('side'); sb.scrollTop = act.offsetTop - sb.clientHeight / 2; }
     try {
@@ -152,7 +158,7 @@
   side.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-brand]');
     if (b) {
-      st.brand = b.dataset.brand; st.model = b.dataset.model;
+      st.brand = b.dataset.brand; st.model = b.dataset.model; if (st.model) st.av = '';
       gtag('event', 'select_model', { brand: st.brand, model: st.model });
       render(); sideOpen(false);
       if (window.innerWidth < 900) document.getElementById('catalog').scrollIntoView();

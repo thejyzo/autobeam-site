@@ -178,7 +178,8 @@ def main():
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
                  description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}Ціна {it['price_txt']}. Оригінал зі США, гарантія 14 днів. Доставка по Україні.",
                  canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=img(it["photos"][0], "1200x900"), jsonld=ld,
-                 name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_txt=it["price_txt"], price_uah=uah_fmt(it["price"]), pn=esc(it["pn"] or "—"),
+                 name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_txt=it["price_txt"], price_uah=uah_fmt(it["price"]), model=it["model"],
+                 model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=img(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
                  cta=contact_buttons("product"), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")

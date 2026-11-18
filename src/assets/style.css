@@ -240,3 +240,4 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
   .mbar svg{width:22px;height:22px}
   .mbar a:nth-child(1) svg{color:var(--amber)} .mbar a:nth-child(2) svg{color:var(--tg)} .mbar a:nth-child(3) svg{color:var(--viber)}
 }
+[hidden]{display:none!important}
