@@ -1,0 +1,372 @@
+{
+ "brand": "Toyota",
+ "brands": [
+  "Toyota",
+  "Lexus"
+ ],
+ "updated": "2026-11-18",
+ "rules": [
+  "Toyota/Lexus, код деталі (перші 5 цифр): ПРАВА = 81110 (фара в зборі), 81130 / 81140 / 81145 (unit assy, 'w/gas'); ЛІВА = 81150 (фара в зборі), 81170 / 81160 / 81070 / 81185 (unit assy). Підтверджено каталогами: 81140-48J20 Passenger, 81070-48J20 Driver (Venza); 81145-42C80 Right, 81185-42C80 Left (bZ4X); 81170-42640 'Unit Assy, Headlamp, LH' (RAV4); 81130-42D90 Right Hand.",
+  "Unit assy (8113x/8114x/8117x/8118x/8107x) і Headlamp assy (81110/81150) — це та сама фара в різних варіантах поставки (unit — без кріплень/коректора або для іншого ринку), друга частина номера (після дефісу) збігається для однієї модифікації.",
+  "Суфікс зміни: 81110-0R140 → 0R141 → 0R142 — одна фара, новіша ревізія.",
+  "Номери Koito на етикетці (10000-8A…, 10100-8A…) — внутрішні, не каталожні. За вашими оголошеннями 10000 = права, 10100 = ліва; в каталогах це не перевіряється (позначено як неперевірене)."
+ ],
+ "items": [
+  {
+   "model": "Corolla",
+   "gen": "E170 рестайлінг (sedan)",
+   "years": "2017-2019",
+   "variant": "LED з LED DRL (SE, XLE, XSE, 50th Anniversary)",
+   "right": [
+    "81110-02M90"
+   ],
+   "left": [
+    "81150-02M90"
+   ],
+   "confidence": "high",
+   "sources": [
+    "toyotapartsnow 2017 Corolla 81110-02M90 Passenger Side, note PLUS3 PACKAGE",
+    "go-parts TO2503250: Includes LED DRL, SE/XLE/XSE/50th, excludes L/LE, OEM 81110-02M90",
+    "olathetoyota 81150-02M90 'Corolla. With led. Left.'"
+   ]
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA40 рестайлінг",
+   "years": "2016-2018",
+   "variant": "LED (Limited / Platinum, Japan або Canada built)",
+   "left": [
+    "81170-42640 (unit)",
+    "81185-42670 (unit w/gas)"
+   ],
+   "right": [
+    "81145-42670 (unit w/gas)",
+    "81130-42640 (за парою)"
+   ],
+   "confidence": "high (81170-42640 ліва), medium (тип лампи)",
+   "sources": [
+    "toyotapartsdeal 81170-42640 'Unit Assembly, Headlamp, Lh', Driver Side, AVA44 (2.5 бензин)",
+    "olathetoyota 81185-42670 Left, 'Japan built, 2016-18, led lamps'",
+    "northpark 81110-0R080 Right 'With halogen. Canada built 2016-18 halogen'"
+   ],
+   "note": "Ваша картка 'RAV4 16-18 Halogen + LED DRL LH' з 81170-42640 — бік підтверджено. Тип (галоген чи LED) у каталозі для 42640 не вказаний — звірити з фото: галогенні сервісні номери 81110/81150-0R080 і сусідні."
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA50",
+   "years": "2019-2021",
+   "variant": "Multi-LED рефлектор, хром, North America built (XLE, Adventure, Limited, TRD Off Road, без гібрида)",
+   "right": [
+    "81110-0R142",
+    "81110-0R141",
+    "81110-0R140"
+   ],
+   "left": [
+    "81150-0R142",
+    "81150-0R140"
+   ],
+   "confidence": "high",
+   "sources": [
+    "autonation toyota 81110-0R142: '2019-21, multi-led, north america built, chrome bezel. RAV4. Right. Without hybrid. Xle. Adventure. Limited. Trd off road.' replaces 0R140/0R141",
+    "aletoparts 811100R140 → catalog 81110-0R142 Right"
+   ]
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA50",
+   "years": "2019-2021",
+   "variant": "Projector LED без адаптиву, хром, North America built (у т.ч. гібрид Limited/XLE/XSE)",
+   "right": [
+    "81110-0R162 (0R160, 0R161)"
+   ],
+   "left": [
+    "81150-0R162"
+   ],
+   "confidence": "high",
+   "sources": [
+    "aletoparts 81110-0R162: '2019-21 north america built projector led without adaptive lights... Right'",
+    "aletoparts 81150-0R162 Left, with hybrid, Limited, XLE, XSE"
+   ]
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA50",
+   "years": "2019-2021",
+   "variant": "Projector LED з адаптивом (Limited hybrid)",
+   "left": [
+    "81170-42A12 (42A10, 42A11)"
+   ],
+   "right": [
+    "81130-42A12"
+   ],
+   "confidence": "high",
+   "sources": [
+    "olathetoyota 81170-42A12: '2019-21, projector led, with adaptive lights... Left. With hybrid. Limited.'",
+    "toyotapartsnow 81130-42A12 Passenger Side"
+   ]
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA50 рестайлінг",
+   "years": "2022-2025",
+   "variant": "LED з LED поворотом, North America built (XLE Premium, XSE, Prime SE/XSE)",
+   "right": [
+    "81110-0R360",
+    "81110-42D90 (замінено на 0R360)"
+   ],
+   "left": [
+    "81150-0R360",
+    "81150-42D90"
+   ],
+   "confidence": "high",
+   "sources": [
+    "toyotapartsnow 81110-0R360 Passenger Side, replaces 81110-42D90; 2022-2023 RAV4 Prime SE, XSE",
+    "toyota.com 81150-0R360 Left, previous 81150-42D90",
+    "go-parts: 81110-0R360 LED, with LED Signal Lamp, North America Built"
+   ],
+   "note": "Ваша картка AB-0116 (0R360 + 42D90) — це одна і та сама права фара (стара/нова нумерація). AB-0114 'LH' має 81150-0R360 і 81150-42D90 — ліва, збігається."
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA50 рестайлінг",
+   "years": "2022-2025",
+   "variant": "LED з ламповим поворотом (Adventure, Trail, TRD Off-Road, XLE, XLE Premium)",
+   "right": [
+    "81110-0R350"
+   ],
+   "left": [
+    "81150-0R350"
+   ],
+   "confidence": "high",
+   "sources": [
+    "go-parts: 81110-0R350 LED, with Bulb Signal Lamp, Adventure/Trail/TRD/XLE/XLE Premium",
+    "toyotapartsdeal 2023 RAV4 81110-0R350 Right Hand"
+   ],
+   "note": "Ваша картка AB-0115 має '811100R35000' — схоже на 81110-0R350 з зайвими '00' (артефакт етикетки)."
+  },
+  {
+   "model": "RAV4",
+   "gen": "XA60",
+   "years": "2026+",
+   "variant": "LED",
+   "right": [
+    "81110-0R520"
+   ],
+   "left": [],
+   "confidence": "low (немає в доступних каталогах)",
+   "sources": [
+    "тільки ваше оголошення"
+   ]
+  },
+  {
+   "model": "Camry",
+   "gen": "XV70",
+   "years": "2018-2024",
+   "variant": "Bi-LED з чорними акцентами, без full LED, US built (L/LE/SE 2.5; TRD 3.5; XSE)",
+   "right": [
+    "81110-06F60"
+   ],
+   "left": [
+    "81150-06F60 (за парою)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "olathetoyota 81110-06F60: 'Without full led, with black accents. BI-LED US BUILT... Right... L, le, se... TRD'",
+    "go-parts TO2503299 OEM 81110-06F60 Right, XSE/SE/TRD"
+   ]
+  },
+  {
+   "model": "Camry",
+   "gen": "XV80",
+   "years": "2025+",
+   "variant": "LED projector (LE, SE)",
+   "right": [
+    "81110-AQ010"
+   ],
+   "left": [
+    "81150-AQ010"
+   ],
+   "confidence": "high",
+   "sources": [
+    "paintedautoparts 81110AQ010 Right LE/SE 2025 (TO2503343)",
+    "go-parts 81150-AQ010 Left LE/SE 2025"
+   ],
+   "note": "XSE має інші номери: 81110-AQ040 / 81150-AQ040."
+  },
+  {
+   "model": "Venza",
+   "gen": "XU80",
+   "years": "2021-2024",
+   "variant": "Projector LED (Limited, XLE)",
+   "right": [
+    "81110-48J30"
+   ],
+   "left": [
+    "81150-48J30"
+   ],
+   "confidence": "high",
+   "sources": [
+    "toyotapartsnow 2023 Venza: 81150-48J30 'Projector-Style Led Lamps', Driver Side",
+    "go-parts TO2502323 Limited|XLE 81150-48J30"
+   ]
+  },
+  {
+   "model": "Venza",
+   "gen": "XU80",
+   "years": "2021-2024",
+   "variant": "LED рефлектор (LE)",
+   "right": [
+    "81140-48J20 (unit)"
+   ],
+   "left": [
+    "81070-48J20 (unit)"
+   ],
+   "confidence": "high",
+   "sources": [
+    "toyotapartsnow 81140-48J20 'Led Lamps', Passenger Side; 81070-48J20 Driver Side",
+    "go-parts TO2503322 Venza LE 81140-48J20 (Right)"
+   ]
+  },
+  {
+   "model": "Highlander",
+   "gen": "XU70",
+   "years": "2020-2023",
+   "variant": "Projector LED, без адаптиву, чорна (Limited)",
+   "right": [
+    "81110-0E530"
+   ],
+   "left": [
+    "81150-0E530"
+   ],
+   "confidence": "high",
+   "sources": [
+    "toyotapartsdeal 81150-0E530 Headlamp Assy, Lh",
+    "go-parts TO2502294: Projector Type, without Adaptive, OEM 81150-0E530 (Limited)",
+    "toyotapartsnow 81110-0E530 Black, Passenger Side"
+   ]
+  },
+  {
+   "model": "Highlander",
+   "gen": "XU70",
+   "years": "2020-2023",
+   "variant": "з адаптивом (Platinum)",
+   "right": [
+    "81110-0E480"
+   ],
+   "left": [
+    "81150-0E480"
+   ],
+   "confidence": "high",
+   "sources": [
+    "northpark 81110-0E480 'Highlander. Right. With adaptive lighting.'",
+    "olathe 81150-0E480 Left with adaptive"
+   ]
+  },
+  {
+   "model": "Highlander",
+   "gen": "XU70",
+   "years": "2020-2023",
+   "variant": "LED-strip DRL, чорні акценти, без адаптиву (XLE/XSE)",
+   "right": [
+    "81110-0E470"
+   ],
+   "left": [
+    "81150-0E470"
+   ],
+   "confidence": "high",
+   "sources": [
+    "autopartsprime 81150-0E470 'W/O Adaptive Lighting, W/Led-Strip Drl, W/Black Accent'"
+   ]
+  },
+  {
+   "model": "Grand Highlander",
+   "gen": "AS10",
+   "years": "2024+",
+   "variant": "без LED DRL (LE, XLE)",
+   "right": [
+    "81110-0E760"
+   ],
+   "left": [
+    "81150-0E760"
+   ],
+   "confidence": "high",
+   "sources": [
+    "northpark 81150-0E760 'Without led daytime running lamp... Grand Highlander. Left. Xle. Le.'",
+    "toyotapartsnow 81110-0E760 Passenger Side"
+   ]
+  },
+  {
+   "model": "Grand Highlander",
+   "gen": "AS10",
+   "years": "2024+",
+   "variant": "з LED DRL (Limited, Platinum)",
+   "right": [
+    "81110-0E770"
+   ],
+   "left": [
+    "81150-0E770"
+   ],
+   "confidence": "high",
+   "sources": [
+    "olathetoyota 81110-0E770: 'With led daytime running lamp... Grand Highlander. Right. Limited. Platinum.'"
+   ],
+   "note": "Ваша картка AB-0136 має обидва 0E760 і 0E770 — це РІЗНІ фари (без DRL / з DRL). Треба лишити тільки номер з етикетки."
+  },
+  {
+   "model": "Prius Prime",
+   "gen": "XW50",
+   "years": "2017-2022",
+   "variant": "LED (unit w/gas)",
+   "left": [
+    "81185-47800",
+    "81185-47801"
+   ],
+   "right": [
+    "81145-47800",
+    "81145-47801"
+   ],
+   "confidence": "high (бік за кодом), medium (комплектація)",
+   "sources": [
+    "toyota.com 81145-47801 'Headlamp Unit Right Hand With Gasket'"
+   ]
+  },
+  {
+   "model": "bZ4X",
+   "gen": "EA10",
+   "years": "2023-2025",
+   "variant": "Bi-LED, XLE, без Nightshade",
+   "right": [
+    "81145-42C80"
+   ],
+   "left": [
+    "81185-42C80"
+   ],
+   "confidence": "high",
+   "sources": [
+    "olathetoyota 81145-42C80: 'BZ4X. Right. Xle series. BI-LED. without Nightshade.'",
+    "sparksparts 81185-42C80: 'BZ4X. Left. Xle series. Bi-led'"
+   ],
+   "note": "Limited (Multi-LED): права 81145-42D10."
+  },
+  {
+   "model": "Lexus NX",
+   "gen": "AZ20",
+   "years": "2022-2025",
+   "variant": "single beam LED, без адаптиву, без full LED, North America built (NX250, NX350h)",
+   "right": [
+    "81110-F6011",
+    "81110-F6010 (замінено)"
+   ],
+   "left": [
+    "81150-F6011",
+    "81150-F6010"
+   ],
+   "confidence": "high",
+   "sources": [
+    "longolexus 81110-F6011: 'Single beam, nap built. Us built. Without full led. Right. NX250. NX350h.' replaces F6010",
+    "go-parts LX2503194 w/o Adaptive; Single Beam; NA built OEM 81110-F6011"
+   ],
+   "note": "Ваша картка AB-0268 має також 10000-8A13Y — це номер Koito на етикетці."
+  }
+ ]
+}

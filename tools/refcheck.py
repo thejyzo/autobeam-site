@@ -36,6 +36,23 @@ def find(idx, pn):
         if len(k) >= 8 and (c.startswith(k) or k.startswith(c)) and abs(len(c) - len(k)) <= 1: return idx[c]
     return None
 
+def heur_side(brand, pn):
+    """Side by numbering rules (data/reference/*.json 'rules'); only a hint for the report."""
+    k = npn(pn)
+    if brand in ("Toyota", "Lexus"):
+        if re.match(r"^(81110|81130|81140|81145)", k): return "Права", "код Toyota"
+        if re.match(r"^(81150|81170|81160|81070|81185)", k): return "Ліва", "код Toyota"
+        if k.startswith("100008A"): return "Права", "Koito 10000 (неперевірено)"
+        if k.startswith("101008A"): return "Ліва", "Koito 10100 (неперевірено)"
+        if re.match(r"^\d{3}11[A-Z0-9]{3}AS2$", k): return "", "номер DEPO (аналог!), не оригінал"
+    if brand == "Ford":
+        if re.search(r"13W029|13E014|13404", k): return "Права", "інженерний код Ford"
+        if re.search(r"13W030|13E015|13405", k): return "Ліва", "інженерний код Ford"
+    if re.search(r"(^PC\d|DEPO|TYC)", k): return "", "схоже на номер аналога, не оригінал"
+    if brand in ("Jeep", "Dodge", "Chrysler", "RAM") and re.match(r"^68\d{6}[A-Z]{2}$", k):
+        return ("Права" if int(k[7]) % 2 == 0 else "Ліва"), "парність Mopar"
+    return None, ""
+
 def main():
     dbf = Path(os.environ.get("AB_DB", str(Path.home() / "autobeam_data/products.sqlite")))
     if dbf.exists():
@@ -53,7 +70,12 @@ def main():
         for pn in pns:
             r = find(idx, pn)
             if not r:
-                out.append((p["id"], "НЕМАЄ В ДОВІДНИКУ", pn, p.get("key"), "")); continue
+                hs, why = heur_side(p.get("brand"), pn)
+                if hs and not pair and p.get("side") in ("Ліва", "Права") and hs != p["side"]:
+                    out.append((p["id"], "перевірити", pn, p.get("key"), "бік за правилом (%s) = %s, картка = %s" % (why, hs, p["side"])))
+                else:
+                    out.append((p["id"], "НЕМАЄ В ДОВІДНИКУ", pn, p.get("key"), why + (" — бік збігається" if hs else "")))
+                continue
             probs = []
             if r["side"] and not pair and p.get("side") in ("Ліва", "Права") and r["side"] != p["side"]: probs.append("бік: довідник=%s, картка=%s" % (r["side"], p["side"]))
             afs_ref = bool(re.search(r"AFS|adaptive", r["variant"], re.I)) and not re.search(r"без (AFS|adaptive)", r["variant"], re.I)
