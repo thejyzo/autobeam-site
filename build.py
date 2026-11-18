@@ -44,7 +44,7 @@ def parse(row):
     if t.startswith("скло"): kind = "Скло фари"
     elif "корпус" in t: kind = "Корпус фари"
     elif "ліхтар" in t: kind = "Ліхтар"
-    elif t.startswith("дхо") : kind = "ДХО"
+    elif t.startswith("дхо") : kind = "ДХВ"
     else: kind = "Фара"
     left, right = ("ліва" in t or "ліве" in t or "лів" in t.split()), ("права" in t or "праве" in t or "правий" in t)
     side = "Ліва + права" if left and right else "Ліва" if left else "Права" if right else ""
@@ -263,8 +263,8 @@ def main():
         "sameAs": [CFG["telegram"], CFG["olx"]]}, ensure_ascii=False)
 
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
-               description=f"Оригінальні фари, ліхтарі та ДХО зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
-               canonical=CFG["site_url"] + "/", og_image=CFG["site_url"] + "/assets/og.png?v=1", jsonld=ld_org,
+               description=f"Оригінальні фари, ліхтарі та ДХВ зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
+               canonical=CFG["site_url"] + "/", og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld_org,
                count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join([card(i) for i in items] + [ocard(o) for o in orders]), order_count=sum(i["st"] == "order" for i in items + orders),
                stock_count=sum(i["st"] == "in" for i in items), soon_count=sum(i["st"] == "soon" for i in items + orders),
                cta_hero=contact_buttons("hero"), cta_request=contact_buttons("request", "center"), cta_contacts=contact_buttons("contacts"))
@@ -300,7 +300,7 @@ def main():
         st_txt = ST_LABEL[o.get("st", "order")]
         p = page("product_order.html", base="../", title=f"{o['name']} — {st_txt.lower()} | AutoBeam",
                  description=f"{o['name']} — оригінал зі США, {st_txt.lower()}. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.", status=st_txt,
-                 canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["site_url"] + "/assets/og.png?v=1", jsonld=ld,
+                 canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld,
                  name=esc(o["name"]), brand=esc(o["brand"]), mname=esc(o["mname"]), kind=esc(o["kind"]), years=esc(o["years"]), trim=esc(o["trim"]),
                  side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order"), pid=o["id"],
                  related_title=("В наявності для " + esc(o["brand"] + " " + o["mname"])) if any(x["model"] == o["model"] and x["st"] == "in" for x in items) else ("В наявності для " + esc(o["brand"])),

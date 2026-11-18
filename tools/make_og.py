@@ -20,7 +20,7 @@ for y0,x1 in [(22,58),(31,60),(40,56)]:
     d.polygon([P(34,y0),P(x1,y0),P(x1-4,y0+5),P(34,y0+5)],fill=AMB)
 # text
 x=80*S
-d.text((x,96*S),"ФАРИ · ЛІХТАРІ · ДХО",font=mf(24,700),fill=AMB)
+d.text((x,96*S),"ФАРИ · ЛІХТАРІ · ДХВ",font=mf(24,700),fill=AMB)
 f=mf(92,800)
 d.text((x,150*S),"Auto",font=f,fill="#ffffff")
 d.text((x+d.textlength("Auto",font=f),150*S),"Beam",font=f,fill=AMB)

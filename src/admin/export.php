@@ -7,7 +7,7 @@ start_session();
 if (empty($_SESSION['ok'])) { http_response_code(401); exit('auth'); }
 $cat = preg_replace('/\D/', '', $_GET['cat'] ?? '2544');
 $mode = $_GET['mode'] ?? 'active';            // active = лише картки з активним оголошенням; all = + в наявності без оголошення
-$KCAT = ['Фара' => '2544', 'ДХО' => '2544', 'Скло фари' => '2544', 'Ліхтар' => '2545', 'Повторювач' => '2545', 'Корпус фари' => '2550'];
+$KCAT = ['Фара' => '2544', 'ДХО' => '2544', 'ДХВ' => '2544', 'Скло фари' => '2544', 'Ліхтар' => '2545', 'Повторювач' => '2545', 'Корпус фари' => '2550'];
 $site = 'https://autobeam.com.ua';
 $stock = stock_map();
 header('Content-Type: text/csv; charset=utf-8');

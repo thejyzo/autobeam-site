@@ -117,7 +117,7 @@ def match(it, pns):
         side = {"Ліва": "Ліва", "Права": "Права", "Ліва + права": "Пара (ліва + права)"}.get(it["side"], "")
         ps = pns_side(pns)
         if ps: side = ps                     # part number is more reliable than the (SEO) title
-        kind = {"Ліхтар": "Ліхтар", "ДХО": "ДХО"}.get(it["kind"], "Фара")
+        kind = {"Ліхтар": "Ліхтар", "ДХО": "ДХВ"}.get(it["kind"], "Фара")
         h = m.hints(it["title"])
         best, bs = None, -99
         for p in PRODS:
@@ -196,7 +196,7 @@ def main():
         else:
             out.append(card(p, None, p["key"]))
     for it in extra:
-        base = dict(kind=it["kind"] if it["kind"] in ("Скло фари", "Корпус фари", "Ліхтар", "ДХО") else "Фара", brand=it["brand"],
+        base = dict(kind=it["kind"] if it["kind"] in ("Скло фари", "Корпус фари", "Ліхтар", "ДХО", "ДХВ") else "Фара", brand=it["brand"],
                     mname=next((mn for mn, rx, _ in build.MODELS.get(it["brand"], []) if build.mslug(it["brand"], mn) == it["model"]), ""),
                     years=it["years"], side={"Ліва + права": "Пара (ліва + права)"}.get(it["side"], it["side"]), trim=it["light"])
         o = card(base, it, "")

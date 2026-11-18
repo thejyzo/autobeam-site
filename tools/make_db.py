@@ -27,8 +27,8 @@ def parse_acc(raw):
     t = s[len(brand):].strip()
     if re.search(r"ФОНАРЬ", t): kind = "Ліхтар"; t = re.sub(r"ФОНАРЬ( ВНЕШНИЙ)?", "", t)
     if re.search(r"Signal", t, re.I): kind = "Повторювач"; t = re.sub(r"Signal Lamp", "", t, flags=re.I)
-    if re.search(r"\bcenter\b", t): kind = "ДХО"; side = "Центральна"; t = t.replace("center", "")
-    if re.search(r"\bDRL\b", t) and not re.search(r"LED|Halogen|Xenon", t, re.I): kind = "ДХО"
+    if re.search(r"\bcenter\b", t): kind = "ДХВ"; side = "Центральна"; t = t.replace("center", "")
+    if re.search(r"\bDRL\b", t) and not re.search(r"LED|Halogen|Xenon", t, re.I): kind = "ДХВ"
     if re.search(r"LH \+ RH", t): side = "Пара (ліва + права)"; t = t.replace("LH + RH", "")
     elif re.search(r"\bLH\b", t): side = side or "Ліва"; t = re.sub(r"\bLH\b", "", t)
     elif re.search(r"\bRH\b", t): side = side or "Права"; t = re.sub(r"\bRH\b", "", t)
@@ -44,7 +44,7 @@ def parse_acc(raw):
     t = re.sub(r"(?i)\b(70|cross|sport|5)\b", " ", t) if brand in ("Toyota", "Volkswagen", "Land Rover") else t
     for a, b in TRIM_TR: t = re.sub(a, b, t, flags=re.I)
     trim = re.sub(r"\s+", " ", t).strip(" +/") or ""
-    if kind == "ДХО" and trim == "DRL": trim = "LED"
+    if kind == "ДХВ" and trim == "DRL": trim = "LED"
     return dict(brand=brand, mname=mname, years=years, side=side, kind=kind, body=body, trim=trim)
 
 def yr_range(y):
@@ -75,7 +75,7 @@ def main():
     unmatched = []
     for it in olx:
         side = {"Ліва": "Ліва", "Права": "Права", "Ліва + права": "Пара (ліва + права)"}.get(it["side"], "")
-        kind = {"Ліхтар": "Ліхтар", "ДХО": "ДХО"}.get(it["kind"], "Фара")
+        kind = {"Ліхтар": "Ліхтар", "ДХО": "ДХВ"}.get(it["kind"], "Фара")
         if it["kind"] in ("Скло фари", "Корпус фари"): unmatched.append(it); continue
         h = hints(it["title"])
         def pick(strict_years):

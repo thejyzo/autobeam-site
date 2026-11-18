@@ -73,7 +73,7 @@
   ['#q', '#f-status', '#f-extra'].forEach(function (s) { $(s).addEventListener('input', render); });
 
   /* ---------- editor ---------- */
-  var KINDS = ['Фара', 'Ліхтар', 'ДХО', 'Повторювач', 'Скло фари', 'Корпус фари', 'Інше'];
+  var KINDS = ['Фара', 'Ліхтар', 'ДХВ', 'Повторювач', 'Скло фари', 'Корпус фари', 'Інше'];
   var SIDES = ['Ліва', 'Права', 'Пара (ліва + права)', 'Центральна', ''];
   var STATUSES = ['', 'В наявності', 'Незабаром у наявності', 'Під замовлення', 'Приховати'];
   function sel(name, opts, v) { return '<select name="' + name + '">' + opts.map(function (o) { return '<option' + (o === v ? ' selected' : '') + ' value="' + esc(o) + '">' + esc(o || '—') + '</option>'; }).join('') + '</select>'; }
@@ -243,7 +243,7 @@
   var KW = {
     'Фара': {ua: ['фара', 'фара передня', 'передня фара', 'фара головного світла', 'оптика'], ru: ['фара', 'фара передняя', 'передняя фара', 'оптика'], en: ['headlight', 'headlamp', 'head light', 'front lamp'], g: 'f', n: 'фара', what: 'фари'},
     'Ліхтар': {ua: ['ліхтар', 'задній ліхтар', 'ліхтар задній', 'задня оптика'], ru: ['фонарь', 'задний фонарь', 'стоп', 'задняя оптика'], en: ['tail light', 'taillight', 'tail lamp', 'rear lamp'], g: 'm', n: 'ліхтар', what: 'ліхтаря'},
-    'ДХО': {ua: ['ДХО', 'ДХВ', 'ДХО ДХВ', 'денні ходові вогні'], ru: ['ДХО', 'дневные ходовые огни'], en: ['DRL', 'daytime running light', 'daytime running lamp'], g: 'm', n: 'ДХО ДХВ', what: 'ДХО'},
+    'ДХВ': {ua: ['ДХВ', 'денні ходові вогні', 'ДХО', 'ДХВ ДХО'], ru: ['ДХО', 'дневные ходовые огни'], en: ['DRL', 'daytime running light', 'daytime running lamp'], g: 'm', n: 'ДХВ ДХО', what: 'ДХВ'},
     'Повторювач': {ua: ['повторювач', 'повторювач повороту', 'поворот'], ru: ['повторитель', 'повторитель поворота', 'поворотник'], en: ['turn signal', 'turn signal light', 'side marker'], g: 'm', n: 'повторювач повороту', what: 'повторювача'},
     'Скло фари': {ua: ['скло фари', 'скло на фару', 'стекло фари'], ru: ['стекло фары', 'стекло на фару'], en: ['headlight lens', 'headlamp lens', 'headlight cover'], g: 'n', n: 'скло фари', what: 'скла'},
     'Корпус фари': {ua: ['корпус фари', 'корпус на фару', 'маска фари'], ru: ['корпус фары', 'маска фары'], en: ['headlight housing', 'headlamp housing', 'headlight bezel'], g: 'm', n: 'корпус фари', what: 'корпусу'}
@@ -272,8 +272,8 @@
   function uniq(a) { var s = {}, o = []; a.forEach(function (x) { x = String(x).replace(/\s+/g, ' ').trim(); var k = x.toLowerCase(); if (x && !s[k]) { s[k] = 1; o.push(x); } }); return o; }
   var G = {
     title: function (p) {
-      var k = KW[p.kind] || KW['Фара'], sw = SIDE_W[p.side];
-      var t = [p.kind === 'ДХО' ? 'ДХО ДХВ' : p.kind, sw ? sw[k.g] : '', p.brand, p.model, yshort(p.years), p.trim, 'США', p.original === 'Аналог' ? '' : 'ОРИГІНАЛ'].filter(Boolean).join(' ');
+      var k = KW[p.kind === 'ДХО' ? 'ДХВ' : p.kind] || KW['Фара'], sw = SIDE_W[p.side];
+      var t = [/^ДХ[ОВ]$/.test(p.kind) ? 'ДХВ ДХО' : p.kind, sw ? sw[k.g] : '', p.brand, p.model, yshort(p.years), p.trim, 'США', p.original === 'Аналог' ? '' : 'ОРИГІНАЛ'].filter(Boolean).join(' ');
       return t.replace(/\s+/g, ' ').slice(0, 70).trim();
     },
     names: function (p) {
@@ -289,7 +289,7 @@
       return uniq(out);
     },
     keywords: function (p) {
-      var k = KW[p.kind] || KW['Фара'], sw = SIDE_W[p.side] || null, names = G.names(p), ys = years(p.years), out = [];
+      var k = KW[p.kind === 'ДХО' ? 'ДХВ' : p.kind] || KW['Фара'], sw = SIDE_W[p.side] || null, names = G.names(p), ys = years(p.years), out = [];
       var main = names.slice(0, 3);
       names.forEach(function (n) { out.push(n); });
       main.forEach(function (n) { ys.forEach(function (y) { out.push(n + ' ' + y); }); out.push(n + ' ' + yshort(p.years), n + ' USA', n + ' США', n + ' Америка', n + ' US Spec'); if (p.trim) out.push(n + ' ' + p.trim); });
@@ -307,7 +307,7 @@
       return uniq(out);
     },
     desc: function (p) {
-      var k = KW[p.kind] || KW['Фара'], sw = SIDE_W[p.side], g = k.g;
+      var k = KW[p.kind === 'ДХО' ? 'ДХВ' : p.kind] || KW['Фара'], sw = SIDE_W[p.side], g = k.g;
       var adj = {f: ['оригінальна', 'нова'], m: ['оригінальний', 'новий'], n: ['оригінальне', 'нове']}[g];
       var isNew = p.state === 'Нове', orig = p.original !== 'Аналог';
       var pr = g === 'f' ? 'Продається' : 'Продається';
@@ -326,8 +326,8 @@
       return text + sel.join(', ') + '.';
     },
     short: function (p) {
-      var k = KW[p.kind] || KW['Фара'], sw = SIDE_W[p.side];
-      return [(p.original === 'Аналог' ? '' : 'ОРИГІНАЛ'), p.kind === 'ДХО' ? 'ДХО ДХВ' : p.kind, sw ? sw[k.g] : '', p.brand, p.model, p.years, p.trim, 'США.'].filter(Boolean).join(' ') +
+      var k = KW[p.kind === 'ДХО' ? 'ДХВ' : p.kind] || KW['Фара'], sw = SIDE_W[p.side];
+      return [(p.original === 'Аналог' ? '' : 'ОРИГІНАЛ'), /^ДХ[ОВ]$/.test(p.kind) ? 'ДХВ ДХО' : p.kind, sw ? sw[k.g] : '', p.brand, p.model, p.years, p.trim, 'США.'].filter(Boolean).join(' ') +
         ' ' + (p.state === 'Нове' ? 'Нове.' : 'Б/У.') + (p.pn ? ' Номер запчастини: ' + p.pn + '.' : '') + ' Ціна за 1 шт.';
     }
   };
