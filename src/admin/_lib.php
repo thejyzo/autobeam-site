@@ -81,7 +81,8 @@ function put_product($p) {
 }
 function next_id() {
   $max = 0;
-  foreach (db()->query('SELECT id FROM products') as $r) { $n = (int) substr($r['id'], 3); if ($n > $max) $max = $n; }
+  // history too, so a number of a deleted card is never reused
+  foreach (db()->query('SELECT id FROM products UNION SELECT id FROM history') as $r) { $n = (int) substr($r['id'], 3); if ($n > $max) $max = $n; }
   return sprintf('AB-%04d', $max + 1);
 }
 
