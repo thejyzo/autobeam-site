@@ -8,7 +8,8 @@
     <p class="eyebrow">{{brand}} · {{kind}} · оригінал США</p>
     <h1>{{name}}</h1>
     <div class="p-pn">Парт-номер: <b>{{pn}}</b> <button class="copy" data-copy="{{pn_raw}}" type="button">копіювати</button></div>
-    <div class="p-price" data-usd="{{price_usd}}">{{price_html}}</div>
+    {{status_html}}
+    <div class="p-price" {{price_attr}}>{{price_html}}</div>
     <p class="muted small">Ціна в гривнях за поточним курсом. Наявність уточнюйте перед оплатою.</p>
     <p class="p-order-hint">Щоб замовити, напишіть нам парт-номер або посилання на цю сторінку:</p>
     {{cta}}
@@ -18,7 +19,7 @@
       <li>Відправка Новою поштою по Україні, працюємо офіційно (ФОП)</li>
       <li>Допоможемо звірити сумісність за VIN</li>
     </ul>
-    <a class="olx-link" href="{{olx_url}}" target="_blank" rel="noopener" data-track="olx" data-ctx="product">Це оголошення на OLX →</a>
+    {{olx_html}}
   </div>
 </section>
 <section class="wrap related">

@@ -245,3 +245,10 @@ input:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px}
   .mbar a:nth-child(1) svg{color:var(--amber)} .mbar a:nth-child(2) svg{color:var(--tg)} .mbar a:nth-child(3) svg{color:var(--viber)}
 }
 [hidden]{display:none!important}
+/* availability badges on photo cards + product status */
+.card-img{position:relative}
+.card-img .badge{position:absolute;left:10px;top:10px;font:700 .72rem var(--body);padding:4px 9px;border-radius:999px;backdrop-filter:blur(6px)}
+.badge-soon{background:rgba(255,159,67,.2);border:1px solid rgba(255,159,67,.55);color:#ffb870}
+.badge-order{background:rgba(20,20,24,.75);border:1px solid rgba(255,255,255,.18);color:#ddd}
+.p-status{display:inline-block;margin:6px 0 2px;font:700 .8rem var(--body);padding:5px 11px;border-radius:999px}
+.p-in{background:rgba(62,207,142,.15);color:#3ecf8e}.p-soon{background:rgba(255,159,67,.16);color:#ffb870}.p-order{background:rgba(255,255,255,.08);color:#ccc}
