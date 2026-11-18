@@ -92,12 +92,12 @@
     var st = statusOf({status_manual: p.status_manual, key: p.key}, s);
     var olxUrl = p.olx_id ? 'https://www.olx.ua/d/' + p.olx_id + '/' : '';
     $('#ed').innerHTML =
-      '<div class="edh"><div><b class="id">' + p.id + '</b> <i class="st ' + (SCLS[st] || '') + '">' + st + '</i>' +
+      '<div class="edh"><div><b class="id">' + (p.id || 'Нова — ще не збережена') + '</b> <i class="st ' + (SCLS[st] || '') + '">' + st + '</i>' +
       (s ? '<small class="stock">склад ' + s[0] + ' · ремонт ' + s[1] + ' · в дорозі ' + s[2] + '</small>' : (p.key ? '<small class="stock">немає в обліку</small>' : '')) +
       '</div><div class="acts">' +
       (olxUrl ? '<a class="ghost btn" target="_blank" rel="noopener" href="' + olxUrl + '">OLX ↗</a>' : '') +
       '<button type="button" class="ghost" data-do="copy">Копія</button>' +
-      '<button type="button" class="ghost" data-do="arch">' + (p.archived ? 'З архіву' : 'В архів') + '</button>' +
+      '<button type="button" class="ghost" data-do="arch">' + (!p.id ? 'Скасувати' : p.archived ? 'З архіву' : 'В архів') + '</button>' +
       '<button type="button" data-do="save" class="save">Зберегти</button></div></div>' +
       (p.note ? '<div class="note">⚑ ' + esc(p.note) + '</div>' : '') +
       '<form id="pf" autocomplete="off">' +
@@ -156,7 +156,7 @@
   }
   function save() {
     var p = collect();
-    return api('save', {p: p}).then(function (d) {
+    return api(p.id ? 'save' : 'create', {p: p}).then(function (d) {
       if (!d.ok) return toast('Помилка збереження', 1);
       CUR = d.p; DIRTY = false; toast('Збережено');
       var i = ROWS.findIndex(function (r) { return r.id === p.id; });
@@ -167,6 +167,10 @@
   $('#ed').addEventListener('input', function (e) { if (e.target.closest('#pf')) { DIRTY = true; counters(); } });
   $('#ed').addEventListener('change', function (e) {
     if (e.target.id === 'up') {
+      if (!CUR.id) {                     // a draft gets its number on the first photo upload
+        var inpEl = e.target;
+        return save().then(function () { if (CUR.id) inpEl.dispatchEvent(new Event('change', {bubbles: true})); });
+      }
       var fd = new FormData(); fd.append('id', CUR.id);
       Array.prototype.forEach.call(e.target.files, function (f) { fd.append('files[]', f); });
       toast('Завантажую фото…');
@@ -196,8 +200,9 @@
       case 'gshort': f.short.value = G.short(collect()); DIRTY = true; break;
       case 'ctitle': copy(f.title.value); break;
       case 'cdesc': copy(f.description.value); break;
-      case 'copy': (DIRTY ? save() : Promise.resolve()).then(function () { return api('create', {copy: CUR.id}); }).then(function (d) { load().then(function () { open(d.p.id); toast('Створено копію ' + d.p.id); }); }); break;
+      case 'copy': if (!CUR.id) return toast('Спочатку збережіть картку', 1); (DIRTY ? save() : Promise.resolve()).then(function () { return api('create', {copy: CUR.id}); }).then(function (d) { load().then(function () { open(d.p.id); toast('Створено копію ' + d.p.id); }); }); break;
       case 'arch':
+        if (!CUR.id) { CUR = null; DIRTY = false; $('#ed').innerHTML = ''; render(); return toast('Чернетку скасовано'); }
         if (!CUR.archived && !confirm('Перенести картку в архів? Вона зникне з сайту, але її можна буде повернути.')) return;
         api('archive', {id: CUR.id, on: !CUR.archived}).then(function (d) { CUR = d.p; draw(); load(); }); break;
     }
@@ -206,7 +211,12 @@
   document.addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 's' && CUR) { e.preventDefault(); save(); } });
   window.addEventListener('beforeunload', function (e) { if (DIRTY) { e.preventDefault(); e.returnValue = ''; } });
 
-  $('#b-new').onclick = function () { api('create', {}).then(function (d) { load().then(function () { open(d.p.id); }); }); };
+  // "Нова" opens an unsaved draft; the card (and its AB-number) is created only on the first "Зберегти"
+  $('#b-new').onclick = function () {
+    if (DIRTY && !confirm('Є незбережені зміни. Відкрити нову картку без збереження?')) return;
+    CUR = {id: '', kind: 'Фара', currency: 'USD', state: 'Вживане', original: 'Оригінал', photos: [], pn_alt: [], show: true};
+    STOCK = null; DIRTY = false; draw(); render();
+  };
   $('#b-pub').onclick = function () { api('publish').then(function () { toast('Сайт і фіди оновляться протягом кількох хвилин'); $('#b-pub').classList.remove('hot'); }); };
   $('#b-exp').onchange = function () { var v = this.value.split(':'); if (v[0]) location.href = '/admin/export.php?cat=' + v[0] + '&mode=' + v[1]; this.value = ''; };
   $('#b-out').onclick = function () { api('logout').then(function () { location.reload(); }); };

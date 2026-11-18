@@ -64,6 +64,7 @@ switch ($act) {
   case 'create':
     $src = !empty($in['copy']) ? get_product($in['copy']) : null;
     $p = $src ? $src : ['kind' => 'Фара', 'currency' => 'USD', 'state' => 'Вживане', 'original' => 'Оригінал', 'photos' => [], 'pn_alt' => [], 'show' => true];
+    if (!$src && !empty($in['p']) && is_array($in['p'])) $p = array_merge($p, clean($in['p']));   // a draft saved for the first time
     $p['id'] = next_id();
     if ($src) { $p['olx_id'] = ''; $p['olx_active'] = false; $p['olx_dupes'] = []; $p['note'] = 'копія ' . $src['id']; }
     json_out(['ok' => true, 'p' => put_product($p)]);
