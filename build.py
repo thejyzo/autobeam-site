@@ -310,7 +310,7 @@ def main():
                        "itemCondition": "https://schema.org/UsedCondition" if it["state"] == "Вживане" else "https://schema.org/NewCondition",
                        "url": f"{CFG['site_url']}/fary/{it['slug']}.html"}}, ensure_ascii=False)
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
-                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}{ST_LABEL[it['st']]}. {("Аналог " + it["avto_maker"] + " (не оригінал)") if it["type"] == "Аналог" else "Оригінал зі США"}, гарантія 14 днів. Доставка по Україні.",
+                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}{ST_LABEL[it['st']]}. {('Аналог ' + it['avto_maker'] + ' (не оригінал)') if it['type'] == 'Аналог' else 'Оригінал зі США'}, гарантія 14 днів. Доставка по Україні.",
                  canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=pimg(it["photos"][0], "1200x900"), jsonld=ld,
                  name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_usd=it["price"], price_html=pprice(it), model=it["model"],
                  price_attr=(f'data-usd="{it["price"]}"' if it["price"] else ""), status_html=f'<span class="p-status p-{it["st"]}">{ST_LABEL[it["st"]]}</span>',
