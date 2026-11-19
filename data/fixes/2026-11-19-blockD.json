@@ -1,0 +1,9 @@
+[
+ {"id": "AB-0063", "why": "35: GC WL 68376987AG — Premium", "set": {"key": "Jeep Grand Cherokee WL 21-25 PREMIUM LH"}},
+ {"id": "AB-0183", "why": "36: Rogue Sport 26010-6MR0A — 2020-2023 галоген", "set": {"key": "Nissan Rogue Sport 20-22 Halogen RH", "years": "2020–2023"}},
+ {"id": "AB-0225", "why": "37: Passat 561941035C ліва, NMS2 2020-2022", "set": {"key": "Volkswagen Passat B9 NMS2 20-26 FULL LED LH", "years": "2020–2022"}},
+ {"id": "AB-0074", "why": "38: Sorento 92101-C6500 — 2019-2020 галоген + LED (позицію в DATA власник додасть)", "set": {"years": "2019–2020", "trim": "Halogen + LED"}},
+ {"id": "AB-0100", "why": "39: CR-V 33100-TLA-A01 — галоген (позицію в DATA власник додасть)", "set": {"trim": "Halogen"}},
+ {"id": "AB-0311", "why": "40: QX60 26010-9NV0B — права", "set": {"key": "Infiniti QX60 22-25 LED RH", "side": "Права"}},
+ {"id": "AB-0313", "why": "41: ліхтарі Camry 70 — прибрати з сайту (номери незрозумілі)", "set": {"status_manual": "Приховати"}}
+]
