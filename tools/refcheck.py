@@ -64,7 +64,8 @@ def heur_side(brand, pn):
     if brand in ("Ford", "Land Rover"):
         if re.search(r"13W029|13E014|13404", k): return "Права", "інженерний код Ford"
         if re.search(r"13W030|13E015|13405", k): return "Ліва", "інженерний код Ford"
-    if re.search(r"(^PC\d|DEPO|TYC)", k): return "", "схоже на номер аналога, не оригінал"
+    if re.search(r"(DEPO|TYC)", k): return "", "схоже на номер аналога, не оригінал"
+    if re.search(r"67890$", k): return "", "номер блоку/модуля, а не фари"
     if brand in ("Jeep", "Dodge", "Chrysler", "RAM") and re.match(r"^68\d{6}[A-Z]{2}$", k):
         return ("Права" if int(k[7]) % 2 == 0 else "Ліва"), "парність Mopar"
     return None, ""

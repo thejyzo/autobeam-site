@@ -155,6 +155,8 @@ def load_db():
         else: st = "order"
         model_txt = p["model"] if p.get("model", "").startswith(p["brand"]) else f'{p["brand"]} {p.get("model", "")}'
         name = re.sub(r"\s+", " ", f'{p["kind"]} {SIDE_TXT.get(p.get("side"), "")} {model_txt} {p.get("body", "")} {p.get("years", "")} {p.get("trim", "")}').strip()
+        if p.get("original") == "Аналог":
+            name += " — аналог" + (" " + p["avto_maker"] if p.get("avto_maker") else "")
         slug = slugify(name) if st != "order" or p.get("photos") else "pid-zamovlennia-" + slugify(name)
         if slug in seen: slug += "-" + p["id"].lower()
         seen.add(slug)
@@ -213,14 +215,14 @@ def write_feeds(all_items):
         if it["st"] != "in" or not (it["price"] or it["uah"]) or not it.get("photos"): continue
         price = it["uah"] or uah(it["price"])
         imgs = [pimg(u, "1200x900") if u.startswith("http") else CFG["site_url"] + u for u in it["photos"][:11]]
-        desc = it["short"] or (f'{it["name"]}. {"Оригінал" if it["type"] == "Оригінал" else "Аналог"} зі США, '
+        desc = it["short"] or (f'{it["name"]}. {"Оригінал зі США" if it["type"] == "Оригінал" else "Аналог " + it["avto_maker"] + " (не оригінал)"}, '
                                f'стан: {"нове" if it["state"] == "Нове" else "вживане, перевірене перед продажем"}. '
                                + (f'Парт-номер {it["pn"]}. ' if it["pn"] else "") + "Гарантія 14 днів. Доставка Новою поштою по Україні.")
         g = [("g:id", it["id"]), ("g:title", it["name"][:150]), ("g:description", desc[:5000]),
              ("g:link", f'{CFG["site_url"]}/fary/{it["slug"]}.html'), ("g:image_link", imgs[0]),
              *[("g:additional_image_link", u) for u in imgs[1:]],
              ("g:availability", "in_stock"), ("g:price", f"{price} UAH"),
-             ("g:condition", "new" if it["state"] == "Нове" else "used"), ("g:brand", it["brand"]),
+             ("g:condition", "new" if it["state"] == "Нове" else "used"), ("g:brand", it["avto_maker"] if it["type"] == "Аналог" and it["avto_maker"] else it["brand"]),
              ("g:product_type", f'{it["kind"]} > {it["brand"]}')]
         if it["pn"]: g.append(("g:mpn", it["pn"]))
         else: g.append(("g:identifier_exists", "no"))
@@ -297,8 +299,9 @@ def main():
     for it in items:
         rel = [x for x in items if x["brand"] == it["brand"] and x["id"] != it["id"] and x["st"] == "in"][:4]
         thumbs = "".join(f'<button class="thumb{" active" if n==0 else ""}" data-src="{pimg(p, "1200x900")}"><img src="{pimg(p, "200x150")}" alt=""></button>' for n, p in enumerate(it["photos"]))
-        specs = [("Наявність", ST_LABEL[it["st"]]), ("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", it["side"]),
-                 ("Світло", it["light"]), ("Роки", it["years"]), ("Стан", it["state"]), ("Походження", it["type"] + ", США")]
+        specs = [("Наявність", ST_LABEL[it["st"]]), *((("Номер " + (it["avto_maker"] or "аналога"), it["pn"]), ("Відповідник оригіналу", ", ".join(it["pn_alt"]))) if it["type"] == "Аналог" else
+                   (("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""),)), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", it["side"]),
+                 ("Світло", it["light"]), ("Роки", it["years"]), ("Стан", it["state"]), ("Походження", ("Аналог " + it["avto_maker"] + ", для авто з ринку США").replace("  ", " ") if it["type"] == "Аналог" else "Оригінал, США")]
         spec_html = "".join(f"<tr><th>{k}</th><td>{esc(v)}</td></tr>" for k, v in specs if v)
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": it["name"], "sku": it["pn"] or str(it["id"]),
             "mpn": it["pn"] or None, "brand": {"@type": "Brand", "name": it["brand"]}, "image": [pimg(p, "1200x900") for p in it["photos"]],
@@ -307,12 +310,12 @@ def main():
                        "itemCondition": "https://schema.org/UsedCondition" if it["state"] == "Вживане" else "https://schema.org/NewCondition",
                        "url": f"{CFG['site_url']}/fary/{it['slug']}.html"}}, ensure_ascii=False)
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
-                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}{ST_LABEL[it['st']]}. Оригінал зі США, гарантія 14 днів. Доставка по Україні.",
+                 description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}{ST_LABEL[it['st']]}. {("Аналог " + it["avto_maker"] + " (не оригінал)") if it["type"] == "Аналог" else "Оригінал зі США"}, гарантія 14 днів. Доставка по Україні.",
                  canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=pimg(it["photos"][0], "1200x900"), jsonld=ld,
                  name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_usd=it["price"], price_html=pprice(it), model=it["model"],
                  price_attr=(f'data-usd="{it["price"]}"' if it["price"] else ""), status_html=f'<span class="p-status p-{it["st"]}">{ST_LABEL[it["st"]]}</span>',
                  olx_html=(f'<a class="olx-link" href="{it["olx"]}" target="_blank" rel="noopener" data-track="olx" data-ctx="product">Це оголошення на OLX →</a>' if it["olx"] else ""),
-                 model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
+                 origin_tag=(f'аналог {esc(it["avto_maker"])}' if it["type"] == "Аналог" else "оригінал США"), model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=pimg(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
                  cta=contact_buttons("product"), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")

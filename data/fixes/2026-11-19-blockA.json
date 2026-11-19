@@ -1,0 +1,7 @@
+[
+ {"id": "AB-0113", "why": "RAV4 — аналог DEPO (власник)", "set": {"original": "Аналог", "avto_maker": "DEPO"}},
+ {"id": "AB-0146", "why": "Mazda 3: BGDP67890 — номер блоку, не фари", "pn_alt_remove": ["BGDP67890"], "note_add": "Номер блоку: BGDP67890"},
+ {"id": "AB-0001", "why": "EcoSport GN1Z-13008-BL = права Black", "set": {"key": "Ford EcoSport 18-22 Halogen + DRL Black RH"}},
+ {"id": "AB-0002", "why": "EcoSport GN15-13W029-TF = права Black", "set": {"key": "Ford EcoSport 18-22 Halogen + DRL Black RH"}},
+ {"id": "AB-0254", "why": "виправлення формату сторони пари", "set": {"side": "Пара (ліва + права)"}}
+]
