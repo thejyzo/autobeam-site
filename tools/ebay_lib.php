@@ -100,3 +100,24 @@ function ebay_purchases($cfg, $days = 30) {
   } while ($more && $page < 20);
   return [$rows, null];
 }
+
+// Photo URLs of lots (for the owner's private Google Drive folder per lot; not stored on the server, not used on the site).
+// Returns [itemId => [url, ...]] in the largest size eBay serves (s-l1600).
+function ebay_pictures($cfg, $ids) {
+  $out = [];
+  foreach (array_slice(array_unique($ids), 0, 10) as $id) {
+    if (!preg_match('/^\d{6,20}$/', $id)) continue;
+    $x = ebay_call($cfg, 'GetItem', "<ItemID>$id</ItemID><OutputSelector>PictureDetails</OutputSelector>");
+    $urls = [];
+    if ($x && (string) $x->Ack !== 'Failure') {
+      foreach ($x->Item->PictureDetails->PictureURL ?? [] as $u) {
+        $u = (string) $u;
+        if (preg_match('#/z/([A-Za-z0-9~_-]+)/\$_\d+\.#', $u, $m)) $u = 'https://i.ebayimg.com/images/g/' . $m[1] . '/s-l1600.jpg';
+        $u = preg_replace('#/s-l\d+\.(jpg|jpeg|png|webp)#i', '/s-l1600.$1', $u);
+        if (preg_match('#^https://i\.ebayimg\.com/#', $u)) $urls[] = $u;
+      }
+    }
+    $out[$id] = array_values(array_unique($urls));
+  }
+  return $out;
+}

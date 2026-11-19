@@ -13,6 +13,9 @@ if (!is_array($cfg) || empty($cfg['sheets_key']) || strlen($key) < 32 || !hash_e
 }
 if (empty($cfg['ebay_token'])) { http_response_code(500); echo '{"error":"no eBay token on server"}'; exit; }
 require "$home/autobeam_repo/tools/ebay_lib.php";
+if (isset($_GET['pics'])) { // ?pics=itemId,itemId (до 10)
+  echo json_encode(['pics' => ebay_pictures($cfg, explode(',', (string) $_GET['pics']))], JSON_UNESCAPED_SLASHES); exit;
+}
 [$rows, $err] = ebay_purchases($cfg, (int) ($_GET['days'] ?? 30));
 if ($err) { http_response_code(502); echo json_encode(['error' => $err], JSON_UNESCAPED_UNICODE); exit; }
 echo json_encode(['rows' => $rows], JSON_UNESCAPED_UNICODE);
