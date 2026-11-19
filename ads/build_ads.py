@@ -78,9 +78,19 @@ def fit(xs, n):
 
 def ad_texts(g):
     m, b, kind, analog = g["mn"], g["b"], g["kind"], g["analog"]
+    years = g["years"]
+    if kind in PARTS:
+        P = PARTS[kind]["pl"].capitalize()
+        heads = [f"{P} {m}", f"{P} {b} {m}", f"{m} {years}: {PARTS[kind]['pl']}", "Аналог, нова деталь", "Є в наявності",
+                 "Доставка Новою поштою", "Відправка того ж дня", "Підберемо за VIN", "AutoBeam — оптика зі США",
+                 "Пишіть у Telegram або Viber", "Фото реального товару", "Гарантія 14 днів"]
+        descs = [f"{P} для {b} {m} {years} — аналог (не оригінал). Ліва та права сторона.",
+                 "Є в наявності. Відправка Новою поштою по Україні того ж дня.",
+                 "Підберемо за VIN або номером фари. Пишіть у Telegram, Viber чи телефонуйте.",
+                 f"Також є оригінальні фари {b} зі США — підкажемо, що підходить саме вам."]
+        return fit(heads, 30)[:15], fit(descs, 90)[:4]
     pl = {"Фара": "фари", "Ліхтар": "ліхтарі", "ДХВ": "ходові вогні"}[kind]
     Pl = pl.capitalize()
-    years = g["years"]
     if analog:
         heads = [f"{Pl} {m} аналог DEPO", f"Аналог DEPO для {m}", f"{b} {m}: аналог DEPO", "Не оригінал — чесна ціна",
                  "Гарантія 14 днів", "Доставка Новою поштою", "Відправка в день замовлення", "Підбір за парт-номером",
@@ -130,6 +140,16 @@ OLD_GENS = {
  "CX-5": ["ke"], "Rogue": ["t32"], "Outback / Legacy": ["bs", "br"], "Forester": ["sk", "sj"], "A4": ["b8", "b7"],
 }
 
+PARTS = {  # separate products sold on their own (owner, 19.11): only for models where we have them
+ "Скло фари": {"nouns": ["скло фари", "стекло фары", "скло фар", "стекла фар", "скло на фару", "стекло на фару", "скло фари ліве", "скло фари праве",
+                         "стекло фары левое", "стекло фары правое"], "pl": "скло фари"},
+ "Корпус фари": {"nouns": ["корпус фари", "корпус фары", "корпус фар", "маска фари", "маска фары", "маска фар", "корпус на фару",
+                           "маска на фару", "декоративна маска фари", "внутрішня маска фари"], "pl": "корпус і маска фари"},
+}
+PART_NEG = ["скло фари", "стекло фары", "скло фар", "стекло фар", "стекла фар", "скло на фару", "стекло на фару",
+            "корпус фари", "корпус фары", "корпус фар", "корпус на фару"]
+
+
 def model_names(g):
     """All the ways people name this model: Latin / Cyrillic, with or without the brand, mixed (форд escape)."""
     m, b = g["mn"], g["b"]
@@ -178,7 +198,13 @@ def model_keywords(g):
     kind, analog = g["kind"], g["analog"]
     names = model_names(g)
     kw = []
-    if analog:
+    if kind in PARTS:
+        for x in names:
+            for n in PARTS[kind]["nouns"]:
+                kw += [f"{n} {x}", f"{x} {n}"]
+                if not n.endswith(" на фару"):
+                    kw += [f"{n} на {x}"]
+    elif analog:
         for x in names[:4]:
             kw += [f"фара {x} аналог", f"фара {x} depo", f"depo {x}"]
     else:
@@ -205,9 +231,6 @@ def model_keywords(g):
             for sw in side_words + extra:
                 kw += [f"{base} {sw} {x}", f"{sw} {base} {x}", f"{x} {base} {sw}"]
             kw += [f"{n} на {x}" for n in nouns[:3]] + ([f"оптика {x}", f"оптика на {x}"] if kind == "Фара" else [])
-            if kind == "Фара":   # owner: glass / housing searches are welcome for the lamps we have
-                for part in ["скло фари", "стекло фары", "корпус фари", "корпус фары"]:
-                    kw += [f"{part} {x}", f"{x} {part}", f"{part} на {x}"]
             if re.match(r"^[a-z0-9 .-]+$", x):
                 kw += [f"{x} {en}"]
     out = []
@@ -225,7 +248,8 @@ def main():
         analog = r["typ"] == "Аналог"
         key = (r["mk"], r["kind"], analog)
         if key not in groups:
-            nm = f"{r['b']} {r['mn']}" + ("" if r["kind"] == "Фара" else f" — {r['kind'].lower()}") + (" — аналог DEPO" if analog else "")
+            kind_name = PARTS[r["kind"]]["pl"] if r["kind"] in PARTS else r["kind"].lower()
+            nm = f"{r['b']} {r['mn']}" + ("" if r["kind"] == "Фара" else f" — {kind_name}") + (" — аналог" if r["kind"] in PARTS else (" — аналог DEPO" if analog else ""))
             groups[key] = dict(name=nm, mk=r["mk"], mn=r["mn"], b=r["b"], kind=r["kind"], analog=analog, items=[])
         groups[key]["items"].append(r)
 
@@ -261,7 +285,7 @@ def main():
         else:
             gurl = f"{SITE}/?model={g['mk']}"
         row(Campaign=CAMPAIGN, Ad_Group=g["name"], Ad_Group_Status="Enabled")
-        for n in group_negatives(g):
+        for n in group_negatives(g) + (PART_NEG if g["kind"] == "Фара" else []):
             row(Campaign=CAMPAIGN, Ad_Group=g["name"], Keyword=n, Criterion_Type="Negative Phrase")
         heads, descs = ad_texts(g)
         ad = dict(Campaign=CAMPAIGN, Ad_Group=g["name"], Ad_type="Responsive search ad", Final_URL=gurl,
