@@ -1,0 +1,10 @@
+[
+ {"id": "AB-0065", "why": "68606234AA = права (Premium/Summit)", "set": {"side": "Права", "key": "Jeep Grand Cherokee WL 21-25 PREMIUM RH"}},
+ {"id": "AB-0254", "why": "Forester пара: SL010 ліва, SL000 права", "set": {"side": "Пара", "pn": "84001SL010"}, "pn_alt_add": ["84001SL000"]},
+ {"id": "AB-0172", "why": "CX-50 VA40-51-040B = ліва", "set": {"side": "Ліва", "key": "Mazda CX-50 22-24 LED AFS LH", "pn": "VA4051040B"}, "pn_alt_remove": ["VA4151030C", "VA41-51-030C"]},
+ {"id": "AB-0242", "why": "Outback 84002AN10A = права", "set": {"pn": "84002AN10A"}, "pn_alt_remove": ["84002-AN25A", "84002AN25A"]},
+ {"id": "AB-0086", "why": "Sorento 92101-R5200 = ліва", "set": {"side": "Ліва", "key": "Kia Sorento 22-25 LED LH", "pn": "92101-R5200"}},
+ {"id": "AB-0127", "why": "Venza 81110-48J30 = права", "set": {"side": "Права", "key": "Toyota Venza 21-23 LED RH", "pn": "81110-48J30"}},
+ {"id": "AB-0041", "why": "Mach-E повний номер", "set": {"pn": "LJ8B-13E014-DG"}, "pn_alt_remove": ["LJ8B-13E014"]},
+ {"id": "AB-0271", "why": "Elantra повний номер", "set": {"pn": "92101-AA740"}, "pn_alt_remove": ["92101-AA"]}
+]
