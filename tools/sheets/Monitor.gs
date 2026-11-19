@@ -7,14 +7,15 @@
 // Аркуш «Запити»: A Увімк. | B Позиція DATA | C Макс. $ (з доставкою) | D Запит eBay | E Мінус-слова | F Примітка
 //   • однаковий запит у кількох рядках = один пошук (бот сам визначає позицію за назвою лота);
 //   • позиція не з DATA — бот перевіряє лише запит і ціну;
-//   • кожні 5 хвилин: нові оголошення з США (Buy It Now / Best Offer), ціна + доставка ≤ ліміту;
+//   • кожні 2–6 хвилин (залежить від кількості запитів): нові оголошення з США (Buy It Now / Best Offer), ціна + доставка ≤ ліміту;
 //   • кожен лот приходить один раз; повторно — лише якщо ціну знизили.
 // =====================================================
 
 const MON = {
   SHEET: 'Запити',
   SEEN: 'eBay бачені',
-  MAX_QUERIES: 17,          // 5 000 пошуків eBay на добу / 288 перевірок
+  DAY_BUDGET: 4800,         // пошуків eBay на добу (ліміт 5 000, запас 200)
+  MIN_INTERVAL: 2,          // хв — частіше не можна через ліміт часу роботи скриптів Google (90 хв/добу)
   MAX_MSG: 15,              // не більше повідомлень за одну перевірку
   // загальні мінус-слова: не фара в зборі / не оригінал
   MINUS: ['lens only', 'replacement lens', 'headlight lens', 'lens cover', 'lens replacement', 'housing only', 'headlight housing', 'back housing', 'bulb', 'ballast', 'bracket', 'tab repair', 'repair kit', 'module only',
@@ -27,7 +28,7 @@ function monitorSetup() {
   ScriptApp.getProjectTriggers()
     .filter(t => t.getHandlerFunction() === 'monitorRun')
     .forEach(t => ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger('monitorRun').timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger('monitorRun').timeBased().everyMinutes(1).create(); // сам вирішує, чи час перевіряти
   monitorSeenSheet_();
   monitorRun();
 }
@@ -65,18 +66,17 @@ function monitorRun_() {
   let queries = Object.keys(groups).sort();
   if (!queries.length) return;
 
-  // більше 17 запитів — по черзі (кожен рідше за 5 хв) + попередження раз на добу
+  // частота від кількості запитів: 3 запити — кожні 2 хв, 17 — кожні 6 хв (щоб уміститися в 5 000 пошуків/добу)
   const props = PropertiesService.getScriptProperties();
-  if (queries.length > MON.MAX_QUERIES) {
-    const day = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
-    if (props.getProperty('MON_WARN') !== day) {
-      props.setProperty('MON_WARN', day);
-      monitorSend_(key, '⚠️ У «Запитах» увімкнено ' + queries.length + ' різних запитів (ліміт ' + MON.MAX_QUERIES +
-        ' для перевірки кожні 5 хв). Перевіряю по черзі — кожен запит приблизно раз на ' + Math.ceil(queries.length / MON.MAX_QUERIES) * 5 + ' хв.');
+  const interval = Math.max(MON.MIN_INTERVAL, Math.ceil(queries.length * 1440 / MON.DAY_BUDGET));
+  const lastRun = Number(props.getProperty('MON_LAST')) || 0;
+  if (Date.now() - lastRun < interval * 60000 - 20000) return;
+  props.setProperty('MON_LAST', String(Date.now()));
+  if (props.getProperty('MON_INTERVAL') !== String(interval)) {
+    if (props.getProperty('MON_INTERVAL')) {
+      monitorSend_(key, '⏱ Увімкнено запитів: ' + queries.length + '. Перевіряю кожні ' + interval + ' хв.');
     }
-    const start = (Number(props.getProperty('MON_POS')) || 0) % queries.length;
-    queries = queries.concat(queries).slice(start, start + MON.MAX_QUERIES);
-    props.setProperty('MON_POS', String((start + MON.MAX_QUERIES) % Object.keys(groups).length));
+    props.setProperty('MON_INTERVAL', String(interval));
   }
 
   const seen = monitorSeenLoad_();
