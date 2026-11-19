@@ -140,7 +140,7 @@ function ebaySync_(days) {
     const claimed = {};
     cur.forEach((r, i) => {
       if (r[EB.C_ID - 1]) byId[r[EB.C_ID - 1]] = i + 2;
-      String(r[EB.C_ROW - 1]).split(',').filter(x => x.trim()).forEach(x => claimed[Number(x)] = true);
+      ebayRows_(r[EB.C_ROW - 1]).forEach(x => claimed[x] = true);
     });
 
     const hist = ebayMainIndex_(main);
@@ -175,7 +175,7 @@ function ebaySync_(days) {
       have.rows.forEach(x => claimed[x] = true);
       sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
       sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (' + have.label + ')');
-      sh.getRange(row, EB.C_ROW).setValue(have.rows.join(','));
+      sh.getRange(row, EB.C_ROW).setValue(have.rows.join(' + '));
       ebayPaintState_(sh, row, EB.S_HAVE);
     });
 
@@ -194,7 +194,7 @@ function ebaySync_(days) {
       const have = ebayFindInMain_(hist, claimed, f);
       if (have) {
         state = EB.S_HAVE + ' (' + have.label + ')';
-        mrow = have.rows.join(',');
+        mrow = have.rows.join(' + ');
         have.rows.forEach(x => claimed[x] = true);
         name = have.name;
       } else if (f.cancelled) {
@@ -298,7 +298,7 @@ function ebayTransfer_(sh, row, v) {
   if (have) {
     sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
     sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (' + have.label + ')');
-    sh.getRange(row, EB.C_ROW).setValue(have.rows.join(','));
+    sh.getRange(row, EB.C_ROW).setValue(have.rows.join(' + '));
     ebayPaintState_(sh, row, EB.S_HAVE);
     ss.toast('Ця покупка вже є в «Общей таблице» (' + have.label + '). Не переношу.', 'eBay', 8);
     return;
@@ -353,7 +353,7 @@ function ebayTargetRow_(main) {
 function ebaySetExtra_(main, rows, link, tracking, photo) {
   const col = ebayMainHeaders_(main);
   const item = (String(link).match(/itm\/(\d+)/) || [])[1];
-  String(rows).split(',').map(x => Number(x)).filter(x => x > 1).forEach(row => {
+  ebayRows_(rows).filter(x => x > 1).forEach(row => {
     if (!item || String(main.getRange(row, 4).getValue()).indexOf('/itm/' + item) < 0) return; // рядок зсунули/змінили — не чіпаємо
     const t = ebayTrackLink_(tracking);
     if (t) main.getRange(row, col.t).setRichTextValue(
@@ -364,6 +364,16 @@ function ebaySetExtra_(main, rows, link, tracking, photo) {
 }
 
 let EB_COLS_ = null;
+// «804 + 805» → [804, 805]. Старий запис «804,805» таблиця могла перетворити на дріб 804,805 — теж розбираємо.
+function ebayRows_(v) {
+  if (typeof v === 'number') {
+    if (Number.isInteger(v)) return [v];
+    const a = Math.floor(v), b = Math.round((v - a) * 1000);
+    return b > a ? [a, b] : [a];
+  }
+  return (String(v).match(/\d+/g) || []).map(Number);
+}
+
 function ebayMainHeaders_(main) {
   if (EB_COLS_) return EB_COLS_;
   const head = main.getRange(1, 1, 1, main.getLastColumn()).getValues()[0].map(x => String(x).trim());
@@ -411,11 +421,11 @@ function ebayBackfillMain_() {
   sh.getRange(2, 1, last - 1, EB.NCOL).getValues().forEach(r => {
     const st = String(r[EB.C_STATE - 1]);
     if (!r[EB.C_ROW - 1] || !(st.indexOf(EB.S_DONE) === 0 || st.indexOf(EB.S_HAVE) === 0)) return;
-    const rows = String(r[EB.C_ROW - 1]).split(',').map(Number).filter(x => x > 1 && x <= ml);
+    const rows = ebayRows_(r[EB.C_ROW - 1]).filter(x => x > 1 && x <= ml);
     const needT = r[EB.C_TRACK - 1] && rows.some(x => !(ty[x - 1] || [])[0]);
     const needP = /^https:/.test(String(r[EB.C_PHOTO - 1])) && rows.some(x => !(pz[x - 1] || [])[0]);
     if (needT || needP) {
-      try { ebaySetExtra_(main, rows.join(','), r[EB.C_LINK - 1], needT ? r[EB.C_TRACK - 1] : '', needP ? r[EB.C_PHOTO - 1] : ''); } catch (err) {}
+      try { ebaySetExtra_(main, rows.join(' + '), r[EB.C_LINK - 1], needT ? r[EB.C_TRACK - 1] : '', needP ? r[EB.C_PHOTO - 1] : ''); } catch (err) {}
     }
   });
 }
@@ -473,7 +483,7 @@ function ebayAlreadyInMain_(sh, main, row, v) {
   const claimed = {};
   const last = sh.getLastRow();
   if (last > 1) sh.getRange(2, EB.C_ROW, last - 1, 1).getValues().forEach((r, i) => {
-    if (i + 2 !== row) String(r[0]).split(',').filter(x => x.trim()).forEach(x => claimed[Number(x)] = true);
+    if (i + 2 !== row) ebayRows_(r[0]).forEach(x => claimed[x] = true);
   });
   return ebayFindInMain_(ebayMainIndex_(main), claimed, { item_id: m[1], date: iso, kab: String(v[EB.C_KAB - 1]).trim(), amount: v[EB.C_SUM - 1] });
 }
