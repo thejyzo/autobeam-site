@@ -307,9 +307,24 @@ def main():
                  related="\n".join(card(r, "../") for r in rel) or '<p class="muted">Зараз немає — привеземо під замовлення.</p>')
         (OUT / "fary" / f"{o['slug']}.html").write_text(p, encoding="utf-8")
 
+    # Service pages (delivery, warranty, contacts, privacy)
+    fop = CFG.get("fop_name", "")
+    seller_html = f'<p><b>Продавець:</b> ФОП {esc(fop)}</p>' if fop else ""
+    seller_inline = f" Власник сайту й оператор даних — ФОП {esc(fop)}." if fop else ""
+    INFO = [("dostavka-oplata", "Доставка й оплата", "Доставка Новою поштою по Україні, оплата при отриманні або на рахунок ФОП, строки відправки й під замовлення зі США."),
+            ("garantiia-povernennia", "Гарантія й повернення", "Гарантія 14 днів з дня отримання, безкоштовне повернення через «Легке повернення» Нової пошти у разі дефекту."),
+            ("kontakty", "Контакти", "Телефон, Telegram, Viber і графік роботи AutoBeam — оригінальні фари зі США."),
+            ("privacy", "Політика конфіденційності", "Які дані збирає сайт AutoBeam, навіщо й як їх видалити.")]
+    for slug, ttl, desc in INFO:
+        content = (SRC / "pages" / f"{slug}.html").read_text(encoding="utf-8")
+        content = content.replace("{{cta}}", contact_buttons("info")).replace("{{seller_html}}", seller_html).replace("{{seller_inline}}", seller_inline)
+        html = page("info.html", base="", title=f"{ttl} | AutoBeam", description=desc, canonical=f"{CFG['site_url']}/{slug}.html",
+                    og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld_org, crumb=esc(ttl), content=content)
+        (OUT / f"{slug}.html").write_text(html, encoding="utf-8")
+
     write_feeds(items + orders)
     today = datetime.date.today().isoformat()
-    urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items + orders]
+    urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/{s}.html" for s in ("dostavka-oplata", "garantiia-povernennia", "kontakty", "privacy")] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items + orders]
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
         "\n".join(f"<url><loc>{u}</loc><lastmod>{today}</lastmod></url>" for u in urls) + "\n</urlset>\n", encoding="utf-8")
     (OUT / "robots.txt").write_text(f"User-agent: *\nDisallow: /admin/\nAllow: /\nSitemap: {CFG['site_url']}/sitemap.xml\n", encoding="utf-8")
