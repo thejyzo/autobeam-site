@@ -160,6 +160,13 @@ def load_db():
         if not p.get("brand"): continue
         sm = p.get("status_manual") or ""
         s = stock.get(p.get("key") or "")
+        if (p.get("side") or "").startswith("Пара") and stock and p.get("key"):
+            # pair card: in stock if at least one side is (owner, 19.11) — DATA may hold "X LH + RH", "X LH", "X RH"
+            k = p["key"]
+            ks = {k, k.replace("LH + RH", "LH"), k.replace("LH + RH", "RH"), re.sub(r"\bLH\b", "RH", k), re.sub(r"\bRH\b", "LH", k)}
+            hits = [stock[x] for x in ks if x in stock]
+            if hits:
+                s = [sum(int(h[i]) for h in hits) for i in range(3)]
         if sm: st = {"В наявності": "in", "Незабаром у наявності": "soon"}.get(sm, "order")
         elif not stock: st = "in" if p.get("olx_active") else "order"          # stock feed not connected yet
         elif s and int(s[0]) > 0: st = "in"
