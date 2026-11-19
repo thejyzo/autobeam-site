@@ -165,8 +165,8 @@ def pn_side(brand, num):
         m = re.search(r"941(\d{3})", n)
         if m: return "L" if int(m.group(1)) % 2 else "R"
     elif brand in ("Ford", "Land Rover"):
-        if re.search(r"13(W029|E014|404)", n): return "R"
-        if re.search(r"13(W030|E015|405)", n): return "L"
+        if re.search(r"13(W029|E014|404)", n) or re.search(r"^PR3B13005", n): return "R"   # Mustang S650: 13005 = R, 13006 = L (owner)
+        if re.search(r"13(W030|E015|405)", n) or re.search(r"^PR3B13006", n): return "L"
     elif brand in ("Jeep", "Dodge", "Chrysler"):
         m = re.match(r"^(\d{8})", n)
         if m: return "L" if int(m.group(1)) % 2 else "R"
@@ -497,7 +497,9 @@ def main():
             f'<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="{CFG["site_url"]}/fary/{new}.html">'
             f'<meta http-equiv="refresh" content="0;url={new}.html"><script>location.replace("{new}.html"+location.search)</script>'
             f'<a href="{new}.html">Перейти</a>', encoding="utf-8")
-    if PAIR_REPORT: (OUT / "pairs_report.txt").write_text("\n".join(PAIR_REPORT) + "\n", encoding="utf-8")
+    if PAIR_REPORT:   # private: outside the web root on the server
+        rp = Path(os.environ.get("AB_REPORTS", Path.home() / "autobeam_data")) if (Path.home() / "autobeam_data").exists() else ROOT
+        (rp / "pairs_report.txt").write_text("\n".join(PAIR_REPORT) + "\n", encoding="utf-8")
     write_feeds(items + orders)
     today = datetime.date.today().isoformat()
     urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/{s}.html" for s in ("dostavka-oplata", "garantiia-povernennia", "kontakty", "privacy")] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items + orders]
