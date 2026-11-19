@@ -181,6 +181,28 @@ def pn_side(brand, num):
         if m: return "L" if int(m.group(1)) % 2 else "R"
     return None
 
+GENDER = {"Ліхтар": "m", "Повторювач": "m", "Корпус фари": "m", "Скло фари": "n"}   # Фара, ДХВ: feminine (default)
+SIDE_FORMS = {"m": {"Ліва": "Лівий", "Права": "Правий", "Пара": "Лівий / правий"},
+              "n": {"Ліва": "Ліве", "Права": "Праве", "Пара": "Ліве / праве"},
+              "f": {"Ліва": "Ліва", "Права": "Права", "Пара": "Ліва / права"}}
+
+def side_label(kind, side):
+    """Side as shown to people, in the right gender: ліхтар лівий, скло ліве, фара ліва."""
+    forms = SIDE_FORMS[GENDER.get(kind, "f")]
+    key = "Пара" if (side or "").startswith("Пара") else side
+    return forms.get(key, side or "")
+
+def gender_name(it):
+    """Fix the side word in the display name (the slug stays as it was, so links do not change)."""
+    g = GENDER.get(it["kind"])
+    if not g: return it["name"]
+    f = SIDE_FORMS[g]
+    n = it["name"].replace("ліва / права", f["Пара"].lower(), 1)
+    n = re.sub(r"(?<=^" + re.escape(it["kind"]) + r" )ліва\b", f["Ліва"].lower(), n)
+    n = re.sub(r"(?<=^" + re.escape(it["kind"]) + r" )права\b", f["Права"].lower(), n)
+    return n
+
+
 def split_pairs(items, stock, seen):
     """Site shows single-side cards only (owner, 19.11). A pair card is replaced by its left/right singles:
     an existing single card with that side's number is used; otherwise a card is generated from the pair
@@ -277,6 +299,9 @@ def load_db():
                           olx=(f'https://www.olx.ua/d/{p["olx_id"]}/' if p.get("olx_id") and p.get("olx_active") else ""), st=st,
                           avto_maker=p.get("avto_maker", ""), avto_code=p.get("avto_code", ""), qty=(int(s[0]) if s else 0), key=p.get("key") or "", status_manual_set=bool(sm)))
     items, REDIRECTS[:] = split_pairs(items, stock, seen)
+    for it in items:
+        it["name"] = gender_name(it)
+        it["sl"] = side_label(it["kind"], it["side"])
     order_rank = {"in": 0, "soon": 1, "order": 2}
     items.sort(key=lambda x: (order_rank[x["st"]], 0 if x["photos"] else 1, x["brand"], x["name"]))
     return [i for i in items if i["photos"]], [i for i in items if not i["photos"]], bool(stock)
@@ -384,13 +409,13 @@ def main():
     shutil.copytree(SRC / "admin", OUT / "admin")
 
     # catalog for client-side filtering
-    keys = ("id", "name", "price", "uah", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug", "st")
+    keys = ("id", "name", "price", "uah", "pn", "brand", "model", "kind", "side", "light", "years", "type", "slug", "st", "sl")
     def pnorm(x):
         x = re.sub(r"[^0-9a-z]", "", x.lower())
         return x[1:] if re.match(r"^p\d{8}", x) else x
     pns = lambda it: sorted({pnorm(x) for x in [it["pn"]] + list(it.get("pn_alt") or []) + [it.get("avto_code") or ""] if len(pnorm(x)) >= 5})
-    slim = [dict({k: it[k] for k in keys}, img=pimg(it["photos"][0], "400x300"), pns=pns(it)) for it in items]
-    slim += [dict({k: o[k] for k in keys}, order=1, pns=pns(o)) for o in orders]
+    slim = [dict({k: it.get(k, "") for k in keys}, img=pimg(it["photos"][0], "400x300"), pns=pns(it)) for it in items]
+    slim += [dict({k: o.get(k, "") for k in keys}, order=1, pns=pns(o)) for o in orders]
     (OUT / "assets" / "config.js").write_text("window.AB_CONFIG=" + json.dumps(CFG, ensure_ascii=False) + ";", encoding="utf-8")
 
     # left sidebar: all brands/models ever handled (data/models.json) with in-stock counts
@@ -410,7 +435,7 @@ def main():
 
     # SSR cards (SEO + no-JS), JS re-renders on filter
     def card(it, base=""):
-        meta = " · ".join(x for x in (("Ліва / права" if it["side"].startswith("Пара") else it["side"]), it["light"], it["years"]) if x)
+        meta = " · ".join(x for x in (it.get("sl") or it["side"], it["light"], it["years"]) if x)
         badge = f'<span class="badge badge-{it["st"]}">{ST_LABEL[it["st"]]}</span>' if it["st"] != "in" else ""
         return f'''<a class="card" href="{base}fary/{it['slug']}.html">
   <div class="card-img"><img loading="lazy" src="{pimg(it['photos'][0], '400x300')}" alt="{esc(it['name'])}">{badge}</div>
@@ -442,7 +467,7 @@ def main():
         rel = [x for x in items if x["brand"] == it["brand"] and x["id"] != it["id"] and x["st"] == "in"][:4]
         thumbs = "".join(f'<button class="thumb{" active" if n==0 else ""}" data-src="{pimg(p, "1200x900")}"><img src="{pimg(p, "200x150")}" alt=""></button>' for n, p in enumerate(it["photos"]))
         specs = [("Наявність", ST_LABEL[it["st"]]), *((("Номер " + (it["avto_maker"] or "аналога"), it["pn"]), ("Відповідник оригіналу", ", ".join(it["pn_alt"]))) if it["type"] == "Аналог" else
-                   (("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""),)), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", "ліва і права — ціна за 1 шт." if it["side"].startswith("Пара") else it["side"]),
+                   (("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""),)), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", (it.get("sl", "").lower() + " — ціна за 1 шт.") if it["side"].startswith("Пара") else it.get("sl") or it["side"]),
                  ("Світло", it["light"]), ("Роки", it["years"]), ("Стан", it["state"]), ("Походження", ("Аналог " + it["avto_maker"] + ", для авто з ринку США").replace("  ", " ") if it["type"] == "Аналог" else "Оригінал, США")]
         spec_html = "".join(f"<tr><th>{k}</th><td>{esc(v)}</td></tr>" for k, v in specs if v)
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": it["name"], "sku": it["pn"] or str(it["id"]),
