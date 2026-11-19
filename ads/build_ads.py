@@ -5,7 +5,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 SITE = "https://autobeam.com.ua"
-CAMPAIGN = "Пошук — Фари за номером і моделлю"
+CAMPAIGN = "AutoBeam"   # renamed by the owner in Google Ads (19.11)
 BUDGET = "300"
 
 CYR = {  # how people type the model in Cyrillic (UA / RU)
