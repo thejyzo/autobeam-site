@@ -22,10 +22,14 @@ fi
 [ -f "$DATA/data_keys.json" ] || cp "$REPO/data/data_keys.json" "$DATA/"
 php "$REPO/server/stock.php" || true
 [ -f "$DATA/publish" ] && NEED="$NEED publish"
+# rebuild when today's rate changes (prices in HTML and feeds must match what the browser shows)
+RATE_NOW=$(cat "$WWW/rate.json" 2>/dev/null | sed -n 's/.*"rate":\([0-9.]*\).*/\1/p')
+[ -n "$RATE_NOW" ] && [ "$RATE_NOW" != "$(cat "$DATA/built_rate" 2>/dev/null)" ] && NEED="$NEED rate"
 
 if [ -n "$NEED" ]; then
   rm -f "$DATA/publish" "$DATA/dirty"
   AB_OUT="$BUILD" AB_DB="$DATA/products.sqlite" AB_STOCK="$DATA/stock.json" AB_RATE="$WWW/rate.json" python3 "$REPO/build.py" > "$DATA/build.log" 2>&1
+  [ -n "$RATE_NOW" ] && echo "$RATE_NOW" > "$DATA/built_rate"
   rsync -a --delete --exclude '/.htaccess' --exclude '/.well-known' --exclude '/rate.json' --exclude '/media' "$BUILD/" "$WWW/"
   echo "$(date '+%F %T') built+deployed:$NEED | $(tail -1 "$DATA/build.log")" >> "$HOME/deploy.log"
 fi

@@ -206,6 +206,30 @@ def write_feeds(all_items):
     (OUT / "feeds" / f"avtopro-{tok}.csv").write_text("\ufeff" + buf.getvalue(), encoding="utf-8")
     (OUT / "feeds" / "index.html").write_text("", encoding="utf-8")
 
+    # Google Merchant Center feed (RSS 2.0 + g: namespace): only in-stock cards with a price, prices as on the page
+    from xml.sax.saxutils import escape as xe
+    rows = []
+    for it in all_items:
+        if it["st"] != "in" or not (it["price"] or it["uah"]) or not it.get("photos"): continue
+        price = it["uah"] or uah(it["price"])
+        imgs = [pimg(u, "1200x900") if u.startswith("http") else CFG["site_url"] + u for u in it["photos"][:11]]
+        desc = it["short"] or (f'{it["name"]}. {"Оригінал" if it["type"] == "Оригінал" else "Аналог"} зі США, '
+                               f'{"новий товар" if it["state"] == "Нове" else "вживаний, перевірений перед продажем"}. '
+                               + (f'Парт-номер {it["pn"]}. ' if it["pn"] else "") + "Гарантія 14 днів. Доставка Новою поштою по Україні.")
+        g = [("g:id", it["id"]), ("g:title", it["name"][:150]), ("g:description", desc[:5000]),
+             ("g:link", f'{CFG["site_url"]}/fary/{it["slug"]}.html'), ("g:image_link", imgs[0]),
+             *[("g:additional_image_link", u) for u in imgs[1:]],
+             ("g:availability", "in_stock"), ("g:price", f"{price} UAH"),
+             ("g:condition", "new" if it["state"] == "Нове" else "used"), ("g:brand", it["brand"]),
+             ("g:product_type", f'{it["kind"]} > {it["brand"]}')]
+        if it["pn"]: g.append(("g:mpn", it["pn"]))
+        else: g.append(("g:identifier_exists", "no"))
+        rows.append("<item>" + "".join(f"<{k}>{xe(str(v))}</{k}>" for k, v in g) + "</item>")
+    (OUT / "feeds" / "google-merchant.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0"><channel>'
+        f'<title>AutoBeam</title><link>{CFG["site_url"]}</link><description>Оригінальні фари зі США</description>\n'
+        + "\n".join(rows) + "\n</channel></rss>\n", encoding="utf-8")
+
 def main():
     items, orders, have_stock = load_db()
     for o in orders: o["order"] = 1
