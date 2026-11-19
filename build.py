@@ -70,9 +70,10 @@ def parse(row):
                 light=light, years=yrs, slug=slug, olx=f"https://www.olx.ua/d/uk/obyavlenie/{olx_slug}",
                 photos=photos.split(","))
 
-def contact_buttons(ctx, cls=""):
+def contact_buttons(ctx, cls="", part=""):
     c = CFG
-    return f'''<div class="cta-row {cls}">
+    req = (f'\n  <button class="btn btn-req" type="button" data-req="{ctx}" data-part="{esc(part)}"><svg><use href="#i-box"/></svg>Залишити заявку</button>' if part else "")
+    return f'''<div class="cta-row {cls}">{req}
   <a class="btn btn-tg" href="{c['telegram']}" target="_blank" rel="noopener" data-track="telegram" data-ctx="{ctx}"><svg><use href="#i-tg"/></svg>Telegram</a>
   <a class="btn btn-viber" href="{c['viber']}" data-track="viber" data-ctx="{ctx}"><svg><use href="#i-viber"/></svg>Viber</a>
   <a class="btn btn-call" href="tel:{c['phone_intl']}" data-track="call" data-ctx="{ctx}"><svg><use href="#i-phone"/></svg>{c['phone_display']}</a>
@@ -123,10 +124,20 @@ def page(tpl_name, **kw):
         out = out.replace("{{" + k + "}}", str(v))
     return out
 
+MEDIA_DIR = Path(os.environ.get("AB_MEDIA", Path.home() / "autobeam.com.ua/www/media"))
+
 def pimg(u, size="800x600"):
-    """Photo URL in the wanted size (OLX CDN supports resizing; own /media files are served as is)."""
+    """Photo URL in the wanted size. OLX CDN resizes on the fly; own /media files have an optional *_400.jpg thumbnail."""
     if "olxcdn.com" in u: return re.sub(r";s=\d+x\d+(;q=\d+)?", "", u) + f";s={size};q=80"
+    if u.startswith("/media/") and int(size.split("x")[0]) <= 400:
+        small = re.sub(r"\.(jpe?g|png|webp)$", r"_400.jpg", u)
+        if small != u and (MEDIA_DIR / small[len("/media/"):]).exists(): return small
     return u
+
+def aimg(u, size="1200x900"):
+    """Absolute photo URL (for og:image, JSON-LD, feeds)."""
+    p = pimg(u, size)
+    return p if p.startswith("http") else CFG["site_url"] + p
 
 ST_LABEL = {"in": "В наявності", "soon": "Незабаром у наявності", "order": "Під замовлення"}
 
@@ -214,7 +225,7 @@ def write_feeds(all_items):
     for it in all_items:
         if it["st"] != "in" or not (it["price"] or it["uah"]) or not it.get("photos"): continue
         price = it["uah"] or uah(it["price"])
-        imgs = [pimg(u, "1200x900") if u.startswith("http") else CFG["site_url"] + u for u in it["photos"][:11]]
+        imgs = [aimg(u) for u in it["photos"][:11]]
         desc = it["short"] or (f'{it["name"]}. {"Оригінал зі США" if it["type"] == "Оригінал" else "Аналог " + it["avto_maker"] + " (не оригінал)"}, '
                                f'стан: {"нове" if it["state"] == "Нове" else "вживане, перевірене перед продажем"}. '
                                + (f'Парт-номер {it["pn"]}. ' if it["pn"] else "") + "Гарантія 14 днів. Доставка Новою поштою по Україні.")
@@ -304,20 +315,20 @@ def main():
                  ("Світло", it["light"]), ("Роки", it["years"]), ("Стан", it["state"]), ("Походження", ("Аналог " + it["avto_maker"] + ", для авто з ринку США").replace("  ", " ") if it["type"] == "Аналог" else "Оригінал, США")]
         spec_html = "".join(f"<tr><th>{k}</th><td>{esc(v)}</td></tr>" for k, v in specs if v)
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": it["name"], "sku": it["pn"] or str(it["id"]),
-            "mpn": it["pn"] or None, "brand": {"@type": "Brand", "name": it["brand"]}, "image": [pimg(p, "1200x900") for p in it["photos"]],
+            "mpn": it["pn"] or None, "brand": {"@type": "Brand", "name": it["brand"]}, "image": [aimg(p) for p in it["photos"]],
             "offers": {"@type": "Offer", "priceCurrency": "UAH", "price": it["uah"] or uah(it["price"]) or None,
                        "availability": {"in": "https://schema.org/InStock", "soon": "https://schema.org/PreOrder", "order": "https://schema.org/BackOrder"}[it["st"]],
                        "itemCondition": "https://schema.org/UsedCondition" if it["state"] == "Вживане" else "https://schema.org/NewCondition",
                        "url": f"{CFG['site_url']}/fary/{it['slug']}.html"}}, ensure_ascii=False)
         p = page("product.html", base="../", title=f"{it['name']} — купити | AutoBeam",
                  description=f"{it['name']}. {('Парт-номер ' + it['pn'] + '. ') if it['pn'] else ''}{ST_LABEL[it['st']]}. {('Аналог ' + it['avto_maker'] + ' (не оригінал)') if it['type'] == 'Аналог' else 'Оригінал зі США'}, гарантія 14 днів. Доставка по Україні.",
-                 canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=pimg(it["photos"][0], "1200x900"), jsonld=ld,
+                 canonical=f"{CFG['site_url']}/fary/{it['slug']}.html", og_image=aimg(it["photos"][0]), jsonld=ld,
                  name=esc(it["name"]), brand=esc(it["brand"]), kind=esc(it["kind"]), price_usd=it["price"], price_html=pprice(it), model=it["model"],
                  price_attr=(f'data-usd="{it["price"]}"' if it["price"] else ""), status_html=f'<span class="p-status p-{it["st"]}">{ST_LABEL[it["st"]]}</span>',
                  olx_html=(f'<a class="olx-link" href="{it["olx"]}" target="_blank" rel="noopener" data-track="olx" data-ctx="product">Це оголошення на OLX →</a>' if it["olx"] else ""),
                  origin_tag=(f'аналог {esc(it["avto_maker"])}' if it["type"] == "Аналог" else "оригінал США"), model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=pimg(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
-                 cta=contact_buttons("product"), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
+                 cta=contact_buttons("product", part=it["name"] + (" (" + it["pn"] + ")" if it["pn"] else "")), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")
 
     for o in orders:
@@ -329,7 +340,7 @@ def main():
                  description=f"{o['name']} — оригінал зі США, {st_txt.lower()}. Підбір за VIN або парт-номером, гарантія 14 днів, доставка по Україні.", status=st_txt,
                  canonical=f"{CFG['site_url']}/fary/{o['slug']}.html", og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld,
                  name=esc(o["name"]), brand=esc(o["brand"]), mname=esc(o["mname"]), kind=esc(o["kind"]), years=esc(o["years"]), trim=esc(o["trim"]),
-                 side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order"), pid=o["id"],
+                 side=esc(o["side"] or "—"), model=o["model"], cta=contact_buttons("order", part=o["name"]), pid=o["id"],
                  related_title=("В наявності для " + esc(o["brand"] + " " + o["mname"])) if any(x["model"] == o["model"] and x["st"] == "in" for x in items) else ("В наявності для " + esc(o["brand"])),
                  related="\n".join(card(r, "../") for r in rel) or '<p class="muted">Зараз немає — привеземо під замовлення.</p>')
         (OUT / "fary" / f"{o['slug']}.html").write_text(p, encoding="utf-8")

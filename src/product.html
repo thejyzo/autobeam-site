@@ -1,7 +1,12 @@
 <div class="wrap crumbs"><a href="/">Головна</a> / <a href="/#catalog">Каталог</a> / <a href="/?model={{model}}#catalog">{{model_label}}</a></div>
 <section class="wrap product" data-pid="{{pid}}">
   <div class="gallery">
-    <div class="g-main"><img id="gmain" src="{{main_img}}" alt="{{name}}"></div>
+    <div class="g-main" id="gmainbox">
+      <img id="gmain" src="{{main_img}}" alt="{{name}}">
+      <button class="g-nav g-prev" type="button" aria-label="Попереднє фото"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="g-nav g-next" type="button" aria-label="Наступне фото"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="g-count" id="gcount"></span>
+    </div>
     <div class="g-thumbs">{{thumbs}}</div>
   </div>
   <div class="p-info">

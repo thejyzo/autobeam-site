@@ -67,11 +67,62 @@
     var c = e.target.closest('.copy');
     if (c) { copy(c.dataset.copy); c.textContent = 'скопійовано'; }
     var th = e.target.closest('.thumb');
-    if (th) {
-      document.getElementById('gmain').src = th.dataset.src;
-      document.querySelectorAll('.thumb').forEach(function (x) { x.classList.toggle('active', x === th); });
-    }
+    if (th) gShow([].indexOf.call(document.querySelectorAll('.thumb'), th));
   });
+
+  /* ---------- Product gallery: arrows, swipe, keyboard, counter, fullscreen ---------- */
+  var gThumbs = [].slice.call(document.querySelectorAll('.thumb')), gIdx = 0, gBox = document.getElementById('gmainbox');
+  function gShow(i) {
+    if (!gThumbs.length) return;
+    gIdx = (i + gThumbs.length) % gThumbs.length;
+    var src = gThumbs[gIdx].dataset.src;
+    document.getElementById('gmain').src = src;
+    var lb = document.getElementById('glb-img'); if (lb) lb.src = src;
+    gThumbs.forEach(function (x, n) { x.classList.toggle('active', n === gIdx); });
+    var row = gThumbs[gIdx].parentNode, t = gThumbs[gIdx];
+    row.scrollTo({ left: t.offsetLeft - row.clientWidth / 2 + t.clientWidth / 2, behavior: 'smooth' });
+    var txt = (gIdx + 1) + ' / ' + gThumbs.length;
+    document.getElementById('gcount').textContent = txt;
+    var lc = document.getElementById('glb-count'); if (lc) lc.textContent = txt;
+    var nx = gThumbs[(gIdx + 1) % gThumbs.length]; if (nx) (new Image()).src = nx.dataset.src;
+  }
+  function gSwipe(el) {
+    var x0 = null;
+    el.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener('touchend', function (e) {
+      if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) gShow(gIdx + (dx < 0 ? 1 : -1));
+    });
+  }
+  function gLightbox() {
+    var lb = document.createElement('div'); lb.className = 'glb'; lb.id = 'glb';
+    lb.innerHTML = '<button class="glb-x" type="button" aria-label="Закрити">✕</button><img id="glb-img" alt="">'
+      + '<button class="g-nav g-prev" type="button" aria-label="Попереднє фото">' + gBox.querySelector('.g-prev').innerHTML + '</button>'
+      + '<button class="g-nav g-next" type="button" aria-label="Наступне фото">' + gBox.querySelector('.g-next').innerHTML + '</button>'
+      + '<span class="g-count" id="glb-count"></span>';
+    document.body.appendChild(lb); gSwipe(lb);
+    lb.addEventListener('click', function (e) {
+      if (e.target.closest('.g-prev')) return gShow(gIdx - 1);
+      if (e.target.closest('.g-next')) return gShow(gIdx + 1);
+      if (e.target.id !== 'glb-img') { lb.remove(); document.body.style.overflow = ''; }
+    });
+    document.body.style.overflow = 'hidden'; gShow(gIdx);
+  }
+  if (gBox) {
+    if (gThumbs.length < 2) gBox.classList.add('single');
+    gShow(0); gSwipe(gBox);
+    gBox.addEventListener('click', function (e) {
+      if (e.target.closest('.g-prev')) return gShow(gIdx - 1);
+      if (e.target.closest('.g-next')) return gShow(gIdx + 1);
+      gLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!modal || modal.hidden === false) return;
+      if (e.key === 'ArrowLeft') gShow(gIdx - 1);
+      if (e.key === 'ArrowRight') gShow(gIdx + 1);
+      if (e.key === 'Escape') { var l = document.getElementById('glb'); if (l) { l.remove(); document.body.style.overflow = ''; } }
+    });
+  }
 
   /* ---------- Prices: USD in data, UAH shown at today's rate (/rate.json = bank sell rate + 1 UAH) ---------- */
   var RATE = C.rate_fallback || 46;
