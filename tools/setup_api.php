@@ -1,0 +1,64 @@
+<?php
+// AutoBeam: збереження ключів eBay і OLX на сервері (приховане введення, нічого не потрапляє в історію команд).
+// Запуск:  php ~/autobeam_repo/tools/setup_api.php olx     — OLX Partner API (client_id + client_secret) і посилання для авторизації
+//          php ~/autobeam_repo/tools/setup_api.php ebay    — eBay Trading API (App ID, Dev ID, Cert ID, User token) + перевірка
+// Ключі зберігаються в ~/autobeam_secrets.php (права 600), поза сайтом.
+
+if (PHP_SAPI !== 'cli') exit("Тільки з консолі\n");
+$home = getenv('HOME') ?: dirname(__DIR__, 2);
+$file = "$home/autobeam_secrets.php";
+$cfg = is_file($file) ? (include $file) : [];
+if (!is_array($cfg)) $cfg = [];
+
+function ask($label, $hidden = true) {
+  echo $label . ($hidden ? " (не відображається): " : ": ");
+  if ($hidden) system('stty -echo');
+  $v = trim((string) fgets(STDIN));
+  if ($hidden) { system('stty echo'); echo "\n"; }
+  return $v;
+}
+function save($file, $cfg) {
+  file_put_contents($file, "<?php\nreturn " . var_export($cfg, true) . ";\n", LOCK_EX);
+  chmod($file, 0600);
+}
+
+$what = $argv[1] ?? '';
+
+if ($what === 'olx') {
+  $id = ask('OLX client_id', false);
+  $secret = ask('OLX client_secret');
+  if (!preg_match('/^\d+$/', $id) || strlen($secret) < 10) exit("Не схоже на client_id / client_secret. Нічого не змінено.\n");
+  $cfg['olx_client_id'] = $id;
+  $cfg['olx_client_secret'] = $secret;
+  $cfg['olx_state'] = bin2hex(random_bytes(16));
+  save($file, $cfg);
+  $url = 'https://www.olx.ua/oauth/authorize/?' . http_build_query([
+    'client_id' => $id, 'response_type' => 'code', 'state' => $cfg['olx_state'], 'scope' => 'read write v2',
+    'redirect_uri' => 'https://autobeam.com.ua/admin/olx_callback.php']);
+  echo "Збережено. Тепер відкрийте в браузері (увійдіть в OLX-акаунт магазину і підтвердіть доступ):\n\n$url\n\n";
+  exit;
+}
+
+if ($what === 'ebay') {
+  $cfg['ebay_app_id'] = ask('eBay App ID (Client ID)', false);
+  $cfg['ebay_dev_id'] = ask('eBay Dev ID', false);
+  $cfg['ebay_cert_id'] = ask('eBay Cert ID (Client Secret)');
+  $cfg['ebay_token'] = ask('eBay User Token (Auth\'n\'Auth, довгий рядок)');
+  if (strlen($cfg['ebay_token']) < 100) exit("Токен закороткий — схоже, вставився не повністю. Нічого не змінено.\n");
+  save($file, $cfg);
+  $xml = '<?xml version="1.0" encoding="utf-8"?><GetUserRequest xmlns="urn:ebay:apis:eBLBaseComponents">'
+       . '<RequesterCredentials><eBayAuthToken>' . htmlspecialchars($cfg['ebay_token']) . '</eBayAuthToken></RequesterCredentials></GetUserRequest>';
+  $ctx = stream_context_create(['http' => ['method' => 'POST', 'timeout' => 30, 'ignore_errors' => true, 'content' => $xml,
+    'header' => "Content-Type: text/xml\r\nX-EBAY-API-COMPATIBILITY-LEVEL: 1193\r\nX-EBAY-API-CALL-NAME: GetUser\r\nX-EBAY-API-SITEID: 0\r\n"
+              . "X-EBAY-API-APP-NAME: {$cfg['ebay_app_id']}\r\nX-EBAY-API-DEV-NAME: {$cfg['ebay_dev_id']}\r\nX-EBAY-API-CERT-NAME: {$cfg['ebay_cert_id']}\r\n"]]);
+  $r = @file_get_contents('https://api.ebay.com/ws/api.dll', false, $ctx);
+  if ($r && preg_match('#<Ack>(Success|Warning)</Ack>#', $r) && preg_match('#<UserID>([^<]+)</UserID>#', $r, $m)) {
+    echo "Збережено. eBay відповів: акаунт {$m[1]}. Підключення працює.\n";
+  } else {
+    preg_match('#<LongMessage>([^<]+)</LongMessage>#', (string) $r, $e);
+    echo "Ключі збережено, але eBay не прийняв запит: " . ($e[1] ?? 'немає відповіді') . "\nНапишіть мені цей текст (без ключів).\n";
+  }
+  exit;
+}
+
+echo "Вкажіть: olx або ebay\n";
