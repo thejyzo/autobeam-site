@@ -64,7 +64,9 @@ if ($what === 'ebay') {
   $tok = preg_replace('/\s+/', '', $tok);
   echo "Отримано символів: " . strlen($tok) . "\n";
   $cfg['ebay_token'] = $tok;
-  if (strlen($tok) < 300) exit("Токен закороткий — схоже, вставився не повністю. Нічого не змінено.\nСпробуйте варіант з файлом ~/ebay_token.txt.\n");
+  // Two valid formats: new compact Auth'n'Auth "v^1.1#i^1#...#t^..." (~100 chars, ends with "=" or "==") and legacy "AgAAAA**..." (~800+).
+  $ok = (strpos($tok, 'v^1.1#') === 0 && strpos($tok, '#t^') !== false && strlen($tok) >= 60) || (strpos($tok, 'AgAAAA') === 0 && strlen($tok) >= 300);
+  if (!$ok) exit("Не схоже на токен eBay (має починатися з v^1.1# або AgAAAA). Нічого не змінено.\n");
   save($file, $cfg);
   $xml = '<?xml version="1.0" encoding="utf-8"?><GetUserRequest xmlns="urn:ebay:apis:eBLBaseComponents">'
        . '<RequesterCredentials><eBayAuthToken>' . htmlspecialchars($cfg['ebay_token']) . '</eBayAuthToken></RequesterCredentials></GetUserRequest>';
