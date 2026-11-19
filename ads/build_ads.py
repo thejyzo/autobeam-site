@@ -100,26 +100,46 @@ def ad_texts(g):
     return heads, descs
 
 
+def model_names(g):
+    """All the ways people name this model: Latin / Cyrillic, with or without the brand, mixed (форд escape)."""
+    m, b = g["mn"], g["b"]
+    lat = [x for x in LAT_EXTRA.get(m, [m.lower()]) if "/" not in x]
+    if "/" in m.lower() and not lat:
+        lat = [x.strip() for x in m.lower().split("/")]
+    cyr = [x for x in CYR.get(m, []) if "/" not in x]
+    bl = b.lower()
+    bc = (AL["brands"].get(b, []) if AL else [])[:2]
+    names = []
+    for x in lat:
+        names += [x, f"{bl} {x}"] + [f"{c} {x}" for c in bc]
+    for x in cyr:
+        if any(x.startswith(c) for c in bc):
+            names.append(x); continue
+        names += [x] + [f"{c} {x}" for c in bc] + [f"{bl} {x}"]
+    out = []
+    for n in names:
+        n = re.sub(r"\s+", " ", n).strip()
+        if n and n not in out:
+            out.append(n)
+    return out
+
+
 def model_keywords(g):
-    m, b, kind, analog = g["mn"], g["b"].lower(), g["kind"], g["analog"]
-    lat = LAT_EXTRA.get(m, [m.lower()])
-    cyr = CYR.get(m, [])
+    kind, analog = g["kind"], g["analog"]
+    names = model_names(g)
     kw = []
     if analog:
-        for x in lat[:2] + cyr[:1]:
+        for x in names[:4]:
             kw += [f"фара {x} аналог", f"фара {x} depo", f"depo {x}"]
-        return kw
-    if kind == "Фара":
-        for x in lat:
-            kw += [f"фара {x}", f"фари {x}", f"фары {x}", f"фара {b} {x}", f"headlight {x}"]
-        for x in cyr:
-            kw += [f"фара {x}", f"фари {x}", f"фары {x}"]
-    elif kind == "Ліхтар":
-        for x in lat + cyr:
-            kw += [f"ліхтар {x}", f"задній ліхтар {x}", f"фонарь {x}", f"стоп {x}"]
     else:
-        for x in lat + cyr:
-            kw += [f"ходові вогні {x}", f"дхв {x}", f"led смуга {x}"]
+        nouns = {"Фара": ["фара", "фари", "фары"], "Ліхтар": ["ліхтар", "фонарь", "задній ліхтар", "стоп"],
+                 "ДХВ": ["ходові вогні", "дхв", "led смуга"]}[kind]
+        en = {"Фара": "headlight", "Ліхтар": "tail light", "ДХВ": "drl"}[kind]
+        for x in names:
+            for n in nouns:
+                kw += [f"{n} {x}", f"{x} {n}"]        # phrase match keeps word order, so both orders
+            if re.match(r"^[a-z0-9 .-]+$", x):
+                kw += [f"{x} {en}"]
     out = []
     for k in kw:
         k = re.sub(r"\s+", " ", k).strip()
@@ -189,7 +209,7 @@ def main():
                 if r is not it:
                     continue
                 kws = [p]
-                disp = it["pn"].lower().lstrip("p") if re.sub(r"^p(?=\d{8})", "", re.sub(r"[^0-9a-z]", "", it["pn"].lower())) == p else ""
+                disp = re.sub(r"^p(?=\d{8})", "", it["pn"].lower()) if re.sub(r"^p(?=\d{8})", "", re.sub(r"[^0-9a-z]", "", it["pn"].lower())) == p else ""
                 if disp and disp != p:
                     kws.append(disp)
                 for k in kws:
