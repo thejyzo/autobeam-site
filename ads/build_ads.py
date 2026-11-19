@@ -27,10 +27,13 @@ LAT_EXTRA = {"Escape / Kuga": ["escape", "kuga"], "CX-70 / CX-90": ["cx-90", "cx
              "CR-V": ["cr-v", "crv"], "Mustang Mach-E": ["mach-e", "mach e"], "C-Class": ["c-class", "c class", "w206"],
              "Atlas Cross Sport": ["atlas cross sport"]}
 import json
+# spellings Google wrongly flags under its policies — kept for site search, not for ads
+ADS_SKIP = {"эскейп"}   # 19.11: flagged as "Guns" policy
 AL = json.loads((HERE.parent / "data" / "aliases.json").read_text(encoding="utf-8")) if (HERE.parent / "data" / "aliases.json").exists() else None
 if AL:  # single source of truth for model spellings (site search uses the same file)
     for key, v in AL["models"].items():
         b, m = key.split("|", 1)
+        v = [x for x in v if x not in ADS_SKIP]
         short = [x for x in v if len(x.replace(" ", "")) < 3]
         v = [x for x in v if len(x.replace(" ", "")) >= 3]  # "kl", "wl", "рх" are too ambiguous alone — only with the brand
         lat = [x for x in v if re.match(r"^[a-z0-9 .-]+$", x)]
