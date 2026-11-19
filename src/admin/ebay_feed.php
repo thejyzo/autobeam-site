@@ -15,7 +15,7 @@ if (empty($cfg['ebay_token'])) { http_response_code(500); echo '{"error":"no eBa
 require "$home/autobeam_repo/tools/ebay_lib.php";
 $data = "$home/autobeam_data";
 if (isset($_GET['search'])) { // монітор: ?search=запит&max=ціна
-  [$items, $err] = ebay_search($cfg, $data, (string) $_GET['search'], (float) ($_GET['max'] ?? 0), (string) ($cfg['monitor_zip'] ?? '19720'));
+  [$items, $err] = ebay_search($cfg, $data, (string) $_GET['search'], (float) ($_GET['max'] ?? 0), (string) ($cfg['monitor_zip'] ?? '19701'));
   if ($err) { http_response_code(502); echo json_encode(['error' => $err], JSON_UNESCAPED_UNICODE); exit; }
   echo json_encode(['items' => $items], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); exit;
 }

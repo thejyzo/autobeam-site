@@ -140,7 +140,7 @@ function ebay_app_token($cfg, $dataDir) {
 
 // Newest US listings for a query, Buy It Now / Best Offer, item price ≤ $max. Shipping is quoted to $zip (US forwarder warehouse).
 // Returned: lot id, title, price, shipping, condition, link, listed time, seller feedback % — no seller names.
-function ebay_search($cfg, $dataDir, $q, $max, $zip = '19720', $limit = 50) {
+function ebay_search($cfg, $dataDir, $q, $max, $zip = '19701', $limit = 50) {
   $tok = ebay_app_token($cfg, $dataDir);
   if (!$tok) return [null, 'eBay: не вдалося отримати токен застосунку'];
   $filter = 'buyingOptions:{FIXED_PRICE|BEST_OFFER},itemLocationCountry:US,deliveryCountry:US,priceCurrency:USD';
