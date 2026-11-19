@@ -27,7 +27,8 @@ const EB = {
   // колонки «Входящих»
   C_OK: 1, C_STATE: 2, C_KAB: 3, C_DATE: 4, C_TITLE: 5, C_NAME: 6, C_SUM: 7, C_LINK: 8, C_TRACK: 9, C_STATUS: 10, C_HINT: 11, C_ID: 12, C_ROW: 13, C_PHOTO: 14,
   // «Общая таблица»: колонки «Трек США» і «Фото» шукаються за заголовком у рядку 1 (можна переносити куди завгодно).
-  // Якщо їх немає — вставляються одразу після таблиці Headlights (після X); ваші нотатки з Y і далі зсуваються вправо, нічого не губиться.
+  // Якщо їх немає — додаються в самий кінець аркуша (зараз AE, AF): жодна наявна колонка не зсувається.
+  // Колонки можна потім перетягнути будь-куди ПРАВІШЕ від X — скрипт знайде їх за заголовком.
   M_TRACK_H: 'Трек США', M_PHOTO_H: 'Фото',
   NCOL: 14,
   HEAD: ['✔', 'Стан', 'Кабінет', 'Дата', 'Лот eBay', 'Позиція DATA', 'Сума, $', 'Посилання', 'Трек США', 'Статус eBay', 'Варіанти DATA', 'ID', 'Рядок', 'Фото (Google Диск)'],
@@ -354,16 +355,15 @@ function ebayMainHeaders_(main) {
   const head = main.getRange(1, 1, 1, main.getLastColumn()).getValues()[0].map(x => String(x).trim());
   let t = head.indexOf(EB.M_TRACK_H) + 1, p = head.indexOf(EB.M_PHOTO_H) + 1;
   if (!t || !p) {
-    main.insertColumnsAfter(24, (t ? 0 : 1) + (p ? 0 : 1)); // після X
-    let c = 25;
+    // нові колонки — в самому кінці аркуша (після всіх ваших нотаток), нічого не зсувається
+    const end = main.getMaxColumns();
+    const need = (t ? 0 : 1) + (p ? 0 : 1);
+    main.insertColumnsAfter(end, need);
+    let c = end + 1;
     if (!t) { t = c++; main.getRange(1, t).setValue(EB.M_TRACK_H); main.setColumnWidth(t, 190); }
     if (!p) { p = c++; main.getRange(1, p).setValue(EB.M_PHOTO_H); main.setColumnWidth(p, 80); }
     [t, p].forEach(x => main.getRange(1, x).setFontWeight('bold').setBackground('#ff9900').setFontColor('#000000')
       .setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true));
-    if (t > 25 || p > 25) { // якщо одна з колонок уже була правіше — номер зсунувся
-      const h2 = main.getRange(1, 1, 1, main.getLastColumn()).getValues()[0].map(x => String(x).trim());
-      t = h2.indexOf(EB.M_TRACK_H) + 1; p = h2.indexOf(EB.M_PHOTO_H) + 1;
-    }
   }
   EB_COLS_ = { t: t, p: p };
   return EB_COLS_;
