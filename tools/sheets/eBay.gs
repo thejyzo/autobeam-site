@@ -504,6 +504,11 @@ function ebayYears_(s) {
     else if (m[3]) { const y = +m[3]; if (y >= 2000 && y <= 2035) ys[y] = true; }
     else if (m[4]) add(full(+m[4]), 2030);
   }
+  // «12 13 14 15 16 17 18 VW TIGUAN», «13 14 SUBARU» — роки двома цифрами через пробіл
+  const run = /(?:^|\s)((?:(?:0[5-9]|[12]\d|3[0-2])\s+)+(?:0[5-9]|[12]\d|3[0-2]))(?=\s|$)/g;
+  while ((m = run.exec(s))) m[1].trim().split(/\s+/).forEach(y => ys[2000 + Number(y)] = true);
+  const lead = s.match(/^\s*(0[5-9]|[12]\d|3[0-2])\s+[a-z]/); // «18 Tiguan headlight»
+  if (lead) ys[2000 + Number(lead[1])] = true;
   return Object.keys(ys).map(Number);
 }
 

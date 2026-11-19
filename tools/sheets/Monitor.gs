@@ -114,6 +114,7 @@ function monitorRun_() {
         drop +
         '💵 $' + it.price.toFixed(2) + shipTxt + ' = <b>$' + total.toFixed(2) + '</b> (ліміт $' + hit.max + ')\n' +
         monitorEsc_(title) + '\n' +
+        (it.listed ? '🕒 виставлено ' + monitorAgo_(it.listed) + '\n' : '') +
         [it.condition, it.options.indexOf('BEST_OFFER') >= 0 ? 'можна торгуватись' : 'Buy It Now', it.fb !== null ? 'продавець ' + it.fb + '%' : '']
           .filter(x => x).join(' · ') + '\n' +
         '<a href="' + it.url + '">Відкрити лот</a>';
@@ -130,6 +131,12 @@ function monitorRun_() {
 
 // Яка увімкнена позиція підходить під назву лота. Повертає {label, max, minus} або null.
 function monitorWhich_(title, rows, dataNames) {
+  // окреме ДХВ / протитуманка: якщо в DATA-рядках запиту немає окремого ДХВ — шукаємо як фару, але з позначкою
+  const drlRows = rows.filter(r => r.data && ebayKind_(r.name, true) === 'drl');
+  if (ebayKind_(title) === 'drl' && !drlRows.length) {
+    const h = monitorWhich_(title + ' headlight', rows, dataNames);
+    return h ? Object.assign(h, { label: '💡 ДХВ / не фара — ' + h.label }) : null;
+  }
   const free = rows.filter(r => !r.data);
   const byName = {};
   rows.filter(r => r.data).forEach(r => byName[r.name] = r);
@@ -168,6 +175,13 @@ function monitorSend_(key, text, photo) {
     headers: { 'X-AB-Key': key }, muteHttpExceptions: true,
   });
   return r.getResponseCode() === 200 && /"ok":true/.test(r.getContentText());
+}
+
+function monitorAgo_(iso) {
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return min + ' хв тому';
+  if (min < 48 * 60) return Math.round(min / 60) + ' год тому';
+  return Math.round(min / 1440) + ' дн тому';
 }
 
 function monitorEsc_(s) {
