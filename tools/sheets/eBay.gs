@@ -26,6 +26,9 @@ const EB = {
   DATA: 'DATA',
   // колонки «Входящих»
   C_OK: 1, C_STATE: 2, C_KAB: 3, C_DATE: 4, C_TITLE: 5, C_NAME: 6, C_SUM: 7, C_LINK: 8, C_TRACK: 9, C_STATUS: 10, C_HINT: 11, C_ID: 12, C_ROW: 13, C_PHOTO: 14,
+  // «Общая таблица»: колонки «Трек США» і «Фото» шукаються за заголовком у рядку 1 (можна переносити куди завгодно).
+  // Якщо їх немає — вставляються одразу після таблиці Headlights (після X); ваші нотатки з Y і далі зсуваються вправо, нічого не губиться.
+  M_TRACK_H: 'Трек США', M_PHOTO_H: 'Фото',
   NCOL: 14,
   HEAD: ['✔', 'Стан', 'Кабінет', 'Дата', 'Лот eBay', 'Позиція DATA', 'Сума, $', 'Посилання', 'Трек США', 'Статус eBay', 'Варіанти DATA', 'ID', 'Рядок', 'Фото (Google Диск)'],
   // кольори кабінетів як в «Общей таблице»
@@ -135,8 +138,10 @@ function ebaySync_(days) {
       const r = cur[row - 2];
       if (String(r[EB.C_TRACK - 1]) !== f.tracking) {
         sh.getRange(row, EB.C_TRACK).setValue(f.tracking);
-        const mrow = Number(r[EB.C_ROW - 1]);
-        if (f.tracking && mrow && String(r[EB.C_STATE - 1]).indexOf(EB.S_DONE) === 0) ebaySetNote_(main, mrow, r[EB.C_LINK - 1], f.tracking, r[EB.C_PHOTO - 1]);
+        const st0 = String(r[EB.C_STATE - 1]);
+        if (f.tracking && r[EB.C_ROW - 1] && (st0.indexOf(EB.S_DONE) === 0 || st0.indexOf(EB.S_HAVE) === 0)) {
+          try { ebaySetExtra_(main, r[EB.C_ROW - 1], r[EB.C_LINK - 1], f.tracking, r[EB.C_PHOTO - 1]); } catch (err) {}
+        }
       }
       if (String(r[EB.C_STATUS - 1]) !== f.status) sh.getRange(row, EB.C_STATUS).setValue(f.status);
     }));
@@ -295,7 +300,7 @@ function ebayTransfer_(sh, row, v) {
   sh.getRange(row, EB.C_ROW).setValue(target);
   // G — стовпець таблиці з типом «Дата»: формат не чіпаємо (число дати й так показується як дд.мм.рррр)
   try { ebayPaintKab_(main.getRange(target, 5), kab); } catch (err) { console.warn('КАБ колір: ' + err); }
-  try { ebaySetNote_(main, target, link, v[EB.C_TRACK - 1], v[EB.C_PHOTO - 1]); } catch (err) { console.warn('примітка: ' + err); }
+  try { ebaySetExtra_(main, target, link, v[EB.C_TRACK - 1], v[EB.C_PHOTO - 1]); } catch (err) { console.warn('трек/фото: ' + err); }
 
   ebayPaintState_(sh, row, EB.S_DONE);
   SpreadsheetApp.flush();
@@ -320,25 +325,85 @@ function ebayTargetRow_(main) {
   if (target >= total) {
     main.insertRowsBefore(total, 1);
     target = total;
-    main.getRange(target - 1, 1, 1, 24).copyTo(main.getRange(target, 1, 1, 24), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
-    const n = target;
-    main.getRange(n, 3).setFormula('=HYPERLINK("https://novaposhtaglobal.ua/track/?Tracking_ID=" & B' + n + '; B' + n + ')');
-    main.getRange(n, 10).setFormula('=H' + n + '+I' + n + '+N' + n);
-    main.getRange(n, 14).setFormula('=M' + n + '/$X$3');
-    main.getRange(n, 21).setFormula('=T' + n + '/$X$3');
-    main.getRange(n, 22).setFormula('=IF(OR(U' + n + '=0; U' + n + '=""); ""; U' + n + ' - J' + n + ')');
+    // формат і формули — з рядка вище (посилання самі зсуваються на новий рядок), значення не копіюємо
+    const src = main.getRange(target - 1, 1, 1, 24), dst = main.getRange(target, 1, 1, 24);
+    src.copyTo(dst, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+    src.getFormulasR1C1()[0].forEach((x, i) => { if (x) main.getRange(target, i + 1).setFormulaR1C1(x); });
   }
   return target;
 }
 
-// Примітка на D в «Общей таблице»: трек США і папка з фото
-function ebaySetNote_(main, row, link, tracking, photo) {
-  const d = main.getRange(row, 4);
-  if (String(d.getValue()).indexOf(String(link).replace(/\?.*$/, '')) !== 0) return; // рядок зсунули/змінили — не чіпаємо
-  const lines = [];
-  if (tracking) lines.push('Трек США: ' + tracking);
-  if (photo && /^https:/.test(String(photo))) lines.push('Фото: ' + photo);
-  if (lines.length) d.setNote(lines.join('\n'));
+// «Общая таблица»: Y «Трек США» (клікабельне посилання на службу доставки) і Z «Фото» (папка на Google Диску).
+// rows — номер рядка або «804,805» (пара двома рядками). Пише лише якщо в D саме цей лот.
+function ebaySetExtra_(main, rows, link, tracking, photo) {
+  const col = ebayMainHeaders_(main);
+  const item = (String(link).match(/itm\/(\d+)/) || [])[1];
+  String(rows).split(',').map(x => Number(x)).filter(x => x > 1).forEach(row => {
+    if (!item || String(main.getRange(row, 4).getValue()).indexOf('/itm/' + item) < 0) return; // рядок зсунули/змінили — не чіпаємо
+    const t = ebayTrackLink_(tracking);
+    if (t) main.getRange(row, col.t).setRichTextValue(
+      SpreadsheetApp.newRichTextValue().setText(t.label).setLinkUrl(t.url).build());
+    if (photo && /^https:/.test(String(photo))) main.getRange(row, col.p).setRichTextValue(
+      SpreadsheetApp.newRichTextValue().setText('📷 Фото').setLinkUrl(String(photo)).build());
+  });
+}
+
+let EB_COLS_ = null;
+function ebayMainHeaders_(main) {
+  if (EB_COLS_) return EB_COLS_;
+  const head = main.getRange(1, 1, 1, main.getLastColumn()).getValues()[0].map(x => String(x).trim());
+  let t = head.indexOf(EB.M_TRACK_H) + 1, p = head.indexOf(EB.M_PHOTO_H) + 1;
+  if (!t || !p) {
+    main.insertColumnsAfter(24, (t ? 0 : 1) + (p ? 0 : 1)); // після X
+    let c = 25;
+    if (!t) { t = c++; main.getRange(1, t).setValue(EB.M_TRACK_H); main.setColumnWidth(t, 190); }
+    if (!p) { p = c++; main.getRange(1, p).setValue(EB.M_PHOTO_H); main.setColumnWidth(p, 80); }
+    [t, p].forEach(x => main.getRange(1, x).setFontWeight('bold').setBackground('#ff9900').setFontColor('#000000')
+      .setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true));
+    if (t > 25 || p > 25) { // якщо одна з колонок уже була правіше — номер зсунувся
+      const h2 = main.getRange(1, 1, 1, main.getLastColumn()).getValues()[0].map(x => String(x).trim());
+      t = h2.indexOf(EB.M_TRACK_H) + 1; p = h2.indexOf(EB.M_PHOTO_H) + 1;
+    }
+  }
+  EB_COLS_ = { t: t, p: p };
+  return EB_COLS_;
+}
+
+// «FedEx 385097502246, UPS 1Z…» → посилання на сайт перевізника (перший трек; «+1» якщо їх кілька)
+function ebayTrackLink_(tracking) {
+  const list = String(tracking || '').split(',').map(x => x.trim()).filter(x => x);
+  if (!list.length) return null;
+  const m = list[0].match(/^(.*?)\s*([A-Za-z0-9]{8,})$/);
+  if (!m) return null;
+  const carrier = m[1].toLowerCase(), num = m[2];
+  let url = 'https://parcelsapp.com/en/tracking/' + num;
+  if (/usps/.test(carrier) || /^9\d{21}$/.test(num)) url = 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + num;
+  else if (/fedex/.test(carrier)) url = 'https://www.fedex.com/fedextrack/?trknbr=' + num;
+  else if (/ups/.test(carrier) || /^1Z/i.test(num)) url = 'https://www.ups.com/track?tracknum=' + num;
+  else if (/dhl/.test(carrier)) url = 'https://www.dhl.com/us-en/home/tracking/tracking-express.html?tracking-id=' + num;
+  else if (/ontrac/.test(carrier)) url = 'https://www.ontrac.com/tracking/?number=' + num;
+  return { url: url, label: list[0] + (list.length > 1 ? ' (+' + (list.length - 1) + ')' : '') };
+}
+
+// Заповнити Y/Z для рядків «Общей таблицы», прив'язаних до «Входящих» (перенесені й «Вже в обліку»), де ще порожньо
+function ebayBackfillMain_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(EB.IN), main = ss.getSheetByName(EB.MAIN);
+  const last = sh.getLastRow();
+  if (last < 2) return;
+  const col = ebayMainHeaders_(main);
+  const ml = main.getLastRow();
+  const ty = main.getRange(1, col.t, ml, 1).getValues(), pz = main.getRange(1, col.p, ml, 1).getValues();
+  sh.getRange(2, 1, last - 1, EB.NCOL).getValues().forEach(r => {
+    const st = String(r[EB.C_STATE - 1]);
+    if (!r[EB.C_ROW - 1] || !(st.indexOf(EB.S_DONE) === 0 || st.indexOf(EB.S_HAVE) === 0)) return;
+    const rows = String(r[EB.C_ROW - 1]).split(',').map(Number).filter(x => x > 1 && x <= ml);
+    const needT = r[EB.C_TRACK - 1] && rows.some(x => !ty[x - 1][0]);
+    const needP = /^https:/.test(String(r[EB.C_PHOTO - 1])) && rows.some(x => !pz[x - 1][0]);
+    if (needT || needP) {
+      try { ebaySetExtra_(main, rows.join(','), r[EB.C_LINK - 1], needT ? r[EB.C_TRACK - 1] : '', needP ? r[EB.C_PHOTO - 1] : ''); } catch (err) {}
+    }
+  });
 }
 
 
@@ -656,7 +721,7 @@ function ebayPhotos_() {
     const ph = String(r[EB.C_PHOTO - 1]);
     if (ph) { if (/^https:/.test(ph)) have[id] = ph; return; }
     const st = String(r[EB.C_STATE - 1]);
-    if (!(st === EB.S_NEW || st.indexOf('⚠') === 0 || st.indexOf(EB.S_DONE) === 0)) return;
+    if (!(st === EB.S_NEW || st.indexOf('⚠') === 0 || st.indexOf(EB.S_DONE) === 0 || st.indexOf(EB.S_HAVE) === 0)) return;
     const d = r[EB.C_DATE - 1];
     const month = d instanceof Date ? Utilities.formatDate(d, tz, 'yyyy-MM') : 'без дати';
     const title = String(r[EB.C_TITLE - 1]).replace(/\s+\[.*\]$/, '');
@@ -696,16 +761,28 @@ function ebayPhotos_() {
         }
         have[id] = url;
       }
+      job.done = true;
       job.rows.forEach(row => {
         sh.getRange(row, EB.C_PHOTO).setValue(url);
         const v = vals[row - 2];
-        if (String(v[EB.C_STATE - 1]).indexOf(EB.S_DONE) === 0 && v[EB.C_ROW - 1]) {
-          try { ebaySetNote_(main, Number(v[EB.C_ROW - 1]), v[EB.C_LINK - 1], v[EB.C_TRACK - 1], url); } catch (err) {}
+        const st1 = String(v[EB.C_STATE - 1]);
+        if (v[EB.C_ROW - 1] && (st1.indexOf(EB.S_DONE) === 0 || st1.indexOf(EB.S_HAVE) === 0)) {
+          try { ebaySetExtra_(main, v[EB.C_ROW - 1], v[EB.C_LINK - 1], v[EB.C_TRACK - 1], url); } catch (err) {}
         }
       });
     });
   }
+  // не встигли за один запуск (багато старих лотів) — продовжимо через хвилину самі
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'ebayPhotosContinue').forEach(t => ScriptApp.deleteTrigger(t));
+  if (ids.some(id => !todo[id].done)) ScriptApp.newTrigger('ebayPhotosContinue').timeBased().after(60 * 1000).create();
+  try { ebayBackfillMain_(); } catch (err) { console.warn('Y/Z: ' + err); }
   return done;
+}
+
+function ebayPhotosContinue() {
+  const lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) return;
+  try { ebayPhotos_(); } finally { lock.releaseLock(); }
 }
 
 function ebayFolder_(parent, name) {
