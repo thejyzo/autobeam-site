@@ -286,7 +286,7 @@ def main():
 
     ld_org = json.dumps({"@context": "https://schema.org", "@type": "AutoPartsStore", "name": "AutoBeam",
         "url": CFG["site_url"], "telephone": CFG["phone_intl"], "areaServed": "UA",
-        "sameAs": [CFG["telegram"], CFG["olx"]]}, ensure_ascii=False)
+        "sameAs": [CFG["telegram"]]}, ensure_ascii=False)
 
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХВ зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
