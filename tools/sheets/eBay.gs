@@ -398,8 +398,8 @@ function ebayBackfillMain_() {
     const st = String(r[EB.C_STATE - 1]);
     if (!r[EB.C_ROW - 1] || !(st.indexOf(EB.S_DONE) === 0 || st.indexOf(EB.S_HAVE) === 0)) return;
     const rows = String(r[EB.C_ROW - 1]).split(',').map(Number).filter(x => x > 1 && x <= ml);
-    const needT = r[EB.C_TRACK - 1] && rows.some(x => !ty[x - 1][0]);
-    const needP = /^https:/.test(String(r[EB.C_PHOTO - 1])) && rows.some(x => !pz[x - 1][0]);
+    const needT = r[EB.C_TRACK - 1] && rows.some(x => !(ty[x - 1] || [])[0]);
+    const needP = /^https:/.test(String(r[EB.C_PHOTO - 1])) && rows.some(x => !(pz[x - 1] || [])[0]);
     if (needT || needP) {
       try { ebaySetExtra_(main, rows.join(','), r[EB.C_LINK - 1], needT ? r[EB.C_TRACK - 1] : '', needP ? r[EB.C_PHOTO - 1] : ''); } catch (err) {}
     }
