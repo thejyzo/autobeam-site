@@ -26,6 +26,19 @@ LAT_EXTRA = {"Escape / Kuga": ["escape", "kuga"], "CX-70 / CX-90": ["cx-90", "cx
              "Outback / Legacy": ["outback", "legacy"], "RAV4": ["rav4", "rav 4"], "CX-5": ["cx-5", "cx5"], "CX-50": ["cx-50", "cx50"],
              "CR-V": ["cr-v", "crv"], "Mustang Mach-E": ["mach-e", "mach e"], "C-Class": ["c-class", "c class", "w206"],
              "Atlas Cross Sport": ["atlas cross sport"]}
+import json
+AL = json.loads((HERE.parent / "data" / "aliases.json").read_text(encoding="utf-8")) if (HERE.parent / "data" / "aliases.json").exists() else None
+if AL:  # single source of truth for model spellings (site search uses the same file)
+    for key, v in AL["models"].items():
+        b, m = key.split("|", 1)
+        short = [x for x in v if len(x.replace(" ", "")) < 3]
+        v = [x for x in v if len(x.replace(" ", "")) >= 3]  # "kl", "wl", "рх" are too ambiguous alone — only with the brand
+        lat = [x for x in v if re.match(r"^[a-z0-9 .-]+$", x)]
+        cyr = [x for x in v if not re.match(r"^[a-z0-9 .-]+$", x)]
+        LAT_EXTRA[m] = list(dict.fromkeys([m.lower()] + LAT_EXTRA.get(m, []) + lat))
+        bc = AL["brands"].get(b, [""])[0]
+        CYR[m] = list(dict.fromkeys(cyr + ([f"{bc} {cyr[0]}"] if bc and cyr and not cyr[0].startswith(bc) else []) +
+                                    [f"{bc} {x}" for x in short if bc and not re.match(r"^[a-z0-9]+$", x)] + ([f"{bc} {m.lower()}"] if bc else [])))
 KOITO = re.compile(r"^10[01]008a")
 
 NEGATIVE = ["ремонт", "полірування", "полировка", "лампа", "лампи", "лампы", "лампочка", "заміна", "замена",
@@ -74,11 +87,11 @@ def ad_texts(g):
     else:
         heads = [f"{Pl} {m} з США", f"{Pl} {b} {m}", f"{m}: оригінал зі США", f"{Pl} {m} {years}",
                  "Оригінальна оптика зі США", "Гарантія 14 днів", "Доставка Новою поштою", "Відправка в день замовлення",
-                 "Підбір за парт-номером", "Ліва, права або пара", "Перевірено перед продажем", "AutoBeam — оптика зі США",
+                 "Підбір за парт-номером", "Ліва або права сторона", "Перевірено перед продажем", "AutoBeam — оптика зі США",
                  "Пишіть у Telegram або Viber", "Фото реального товару", "Вживані оригінали"]
         descs = [f"Оригінальні {pl} для {b} {m} з ринку США. Перевірені перед продажем, гарантія 14 днів.",
                  "Підберемо за парт-номером або VIN. Відправка Новою поштою в день замовлення.",
-                 "Ліва, права або пара — уточніть наявність у Telegram, Viber чи за телефоном.",
+                 "Ліва чи права — ціна за 1 шт. Уточніть наявність у Telegram, Viber чи за телефоном.",
                  f"Вживані оригінальні {pl} {b}. Реальні фото кожного товару на сайті AutoBeam."]
     heads = fit(heads, 30)[:15]
     descs = fit(descs, 90)[:4]
@@ -98,7 +111,7 @@ def model_keywords(g):
         return kw
     if kind == "Фара":
         for x in lat:
-            kw += [f"фара {x}", f"фари {x}", f"фары {x}", f"фара {b} {x}"]
+            kw += [f"фара {x}", f"фари {x}", f"фары {x}", f"фара {b} {x}", f"headlight {x}"]
         for x in cyr:
             kw += [f"фара {x}", f"фари {x}", f"фары {x}"]
     elif kind == "Ліхтар":

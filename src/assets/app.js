@@ -183,7 +183,9 @@
   var norm = function (s) { return (s || '').toLowerCase().replace(/[\s\-–—_.,:;#\/()]/g, ''); };
   // part numbers: ignore dashes/spaces/dots, Mopar "P" prefix, letter case
   var pnorm = function (s) { s = (s || '').toLowerCase().replace(/[^0-9a-zа-яії]/g, ''); return /^p\d{8}/.test(s) ? s.slice(1) : s; };
-  data.forEach(function (d, i) { d._i = i; d.pns = d.pns || []; d._s = norm(d.name + ' ' + d.pn + ' ' + d.pns.join(' ') + d.brand + d.years + d.light + d.side + d.kind + (MODELS[d.model] ? MODELS[d.model].name : '')); });
+  var SYN = window.SYN || {kinds: {}, sides: {}};
+  var syn = function (d) { var m = MODELS[d.model] || {}; return [m.name || '', m.aka || '', (SYN.kinds[d.kind] || []).join(' '), (SYN.sides[d.side] || []).join(' ')].join(' '); };
+  data.forEach(function (d, i) { d._i = i; d.pns = d.pns || []; d._s = norm(d.name + ' ' + d.pn + ' ' + d.pns.join(' ') + d.brand + d.years + d.light + d.side + d.kind + ' ' + syn(d)); });
   var prefix = function (a, b) { var n = 0; while (n < a.length && n < b.length && a[n] === b[n]) n++; return n; };
   // 2 = exact / contained part number, 1 = similar root (same beginning, different suffix), 0 = no
   function pnScore(d, q) {
@@ -224,8 +226,8 @@
     else list.sort(function (a, b) { return a._i - b._i; });
     grid.innerHTML = list.map(function (d) {
       if (d.order) return '<a class="card card-order" href="fary/' + d.slug + '.html"><div class="card-img ph"><span class="ph-brand">' + esc(d.brand) + '</span><span class="ph-model">' + esc((MODELS[d.model] || {}).name || '') + '</span><span class="badge">' + ({in: 'В наявності', soon: 'Незабаром у наявності'}[d.st] || 'Під замовлення') + '</span></div>' +
-        '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3><div class="card-meta">' + esc([d.side, d.years].filter(Boolean).join(' · ')) + '</div>' + (d.uah ? '<div class="card-price"><b class="uah">' + sp(d.uah) + ' грн</b></div>' : d.price ? '<div class="card-price" data-usd="' + d.price + '">' + fmt(d.price) + '</div>' : '<div class="card-price card-price-order">Ціна за запитом</div>') + '</div></a>';
-      var meta = [d.side, d.light, d.years].filter(Boolean).join(' · ');
+        '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3><div class="card-meta">' + esc([(d.side || '').indexOf('Пара') === 0 ? 'Ліва / права' : d.side, d.years].filter(Boolean).join(' · ')) + '</div>' + (d.uah ? '<div class="card-price"><b class="uah">' + sp(d.uah) + ' грн</b></div>' : d.price ? '<div class="card-price" data-usd="' + d.price + '">' + fmt(d.price) + '</div>' : '<div class="card-price card-price-order">Ціна за запитом</div>') + '</div></a>';
+      var meta = [(d.side || '').indexOf('Пара') === 0 ? 'Ліва / права' : d.side, d.light, d.years].filter(Boolean).join(' · ');
       var badge = d.st === 'soon' ? '<span class="badge badge-soon">Незабаром у наявності</span>' : d.st === 'order' ? '<span class="badge badge-order">Під замовлення</span>' : '';
       return '<a class="card" href="fary/' + d.slug + '.html"><div class="card-img"><img loading="lazy" src="' + d.img + '" alt="' + esc(d.name) + '">' + badge + '</div>' +
         '<div class="card-body"><div class="card-brand">' + esc(d.brand) + ' · ' + esc(d.kind) + '</div><h3>' + esc(d.name) + '</h3>' +

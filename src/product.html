@@ -15,7 +15,7 @@
     <div class="p-pn">Парт-номер: <b>{{pn}}</b> <button class="copy" data-copy="{{pn_raw}}" type="button">копіювати</button></div>
     {{status_html}}
     <div class="p-price" {{price_attr}}>{{price_html}}</div>
-    <p class="muted small">Ціна в гривнях за поточним курсом. Наявність уточнюйте перед оплатою.</p>
+    <p class="muted small">Ціна за 1 шт., у гривнях за поточним курсом. Наявність уточнюйте перед оплатою.</p>
     <p class="p-order-hint">Щоб замовити, напишіть нам парт-номер або посилання на цю сторінку:</p>
     {{cta}}
     <table class="specs">{{specs}}</table>
@@ -25,6 +25,10 @@
       <li>Допоможемо звірити сумісність за VIN</li>
     </ul>
   </div>
+</section>
+<section class="wrap p-desc">
+  <h2>Опис</h2>
+  {{desc}}
 </section>
 <section class="wrap related">
   <h2>Ще для {{brand}}</h2>

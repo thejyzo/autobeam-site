@@ -17,6 +17,7 @@ except Exception:
     pass
 
 MODELS = {k: v for k, v in json.loads((ROOT / "data" / "models.json").read_text(encoding="utf-8")).items() if not k.startswith("_")}
+ALIASES = json.loads((ROOT / "data" / "aliases.json").read_text(encoding="utf-8"))
 def mslug(brand, name):
     n = name[len(brand):] if name.lower().startswith(brand.lower()) else name
     return re.sub(r"[^a-z0-9]+", "-", (brand + " " + n).lower()).strip("-")
@@ -103,7 +104,7 @@ def load_orders():
         k = norm(r) + (r["side"],)
         if k in seen: continue
         seen.add(k)
-        side_txt = {"Ліва": "ліва", "Права": "права", PAIR: "ліва + права", "Центральна": "центральна"}.get(r["side"], "")
+        side_txt = {"Ліва": "ліва", "Права": "права", PAIR: "ліва / права", "Центральна": "центральна"}.get(r["side"], "")
         model_txt = r["mname"] if r["mname"].startswith(r["brand"]) else r["brand"] + " " + r["mname"]
         name = re.sub(r"\s+", " ", f'{r["kind"]} {side_txt} {model_txt} {r["body"]} {r["years"]} {r["trim"]}').strip()
         out.append(dict(order=1, id="o" + str(len(out)), name=name, brand=r["brand"], mname=r["mname"], model=mslug(r["brand"], r["mname"]),
@@ -152,7 +153,7 @@ def load_db():
         rows = json.loads((ROOT / "data" / "products.json").read_text(encoding="utf-8"))
     sf = Path(os.environ.get("AB_STOCK", Path.home() / "autobeam_data/stock.json"))
     stock = json.loads(sf.read_text(encoding="utf-8")) if sf.exists() else {}
-    SIDE_TXT = {"Ліва": "ліва", "Права": "права", "Пара (ліва + права)": "ліва + права", "Центральна": "центральна"}
+    SIDE_TXT = {"Ліва": "ліва", "Права": "права", "Пара (ліва + права)": "ліва / права", "Центральна": "центральна"}
     items, seen = [], set()
     for p in rows:
         if p.get("archived") or not p.get("show") or p.get("status_manual") == "Приховати": continue
@@ -194,6 +195,41 @@ MAKER = {"Toyota": "TOYOTA", "Lexus": "TOYOTA", "Volkswagen": "VAG", "Audi": "VA
          "Land Rover": "LAND ROVER", "Mazda": "MAZDA", "Ford": "FORD", "Subaru": "SUBARU", "Mercedes": "MERCEDES-BENZ",
          "Tesla": "TESLA", "Chevrolet": "GENERAL MOTORS"}
 
+def describe(it):
+    """Product description from card data: plain text paragraphs (for the page) — natural wording, model aliases once."""
+    m = it["mname"] or ""
+    full = m if m.lower().startswith(it["brand"].lower()) else f'{it["brand"]} {m}'.strip()
+    kind = it["kind"]
+    masc = kind == "Ліхтар"
+    side = {"Ліва": "лівий (з боку водія)" if masc else "ліва (з боку водія)", "Права": "правий (з боку пасажира)" if masc else "права (з боку пасажира)",
+            "Пара (ліва + права)": "ліва або права (є обидві сторони)", "Центральна": "центральна"}.get(it["side"], "")
+    kind_l = {"Фара": "Фара", "Ліхтар": "Задній ліхтар", "ДХВ": "Денні ходові вогні (ДХВ)"}.get(kind, kind)
+    light = it["light"] if it["light"] and it["light"] != "—" else ""
+    p1 = f'{kind_l} {side} для {full}' + (f' {it["years"]}' if it["years"] else "") + (f', {light}' if light else "") + "."
+    if it["type"] == "Аналог":
+        p1 += f' Це аналог {it["avto_maker"] or ""} (не оригінал) для авто з ринку США' + (f', відповідник оригіналу {", ".join(it["pn_alt"][:3])}' if it["pn_alt"] else "") + "."
+    else:
+        p1 += " Оригінал з авто для ринку США."
+    g = "m" if masc else ("pl" if kind == "ДХВ" else "f")
+    p1 += " Стан: " + ({"m": "новий.", "f": "нова.", "pl": "нові."}[g] if it["state"] == "Нове" else {"m": "вживаний, перевірений перед продажем.", "f": "вживана, перевірена перед продажем.", "pl": "вживані, перевірені перед продажем."}[g])
+    nums = [it["pn"]] + [x for x in it["pn_alt"] if x != it["pn"]] if it["pn"] else []
+    if it["type"] == "Аналог" and nums:
+        p2 = f'Номер {it["avto_maker"] or "аналога"}: {nums[0]}. '
+    else:
+        p2 = (f'Парт-номер: {nums[0]}' + (f' (також {", ".join(nums[1:4])})' if len(nums) > 1 else "") + ". ") if nums else ""
+    p2 += "Звірте номер з етикеткою на корпусі або надішліть нам VIN — перевіримо сумісність до оплати."
+    p3 = ("Ціна вказана за одну фару; якщо потрібна пара — повідомте, підготуємо обидві. " if it["side"].startswith("Пара") else "") + "Гарантія 14 днів на перевірку працездатності. Відправка Новою поштою по Україні, з наявності — в день замовлення."
+    aka = list(dict.fromkeys(ALIASES["brands"].get(it["brand"], [])[:1] + ALIASES["models"].get(it["brand"] + "|" + m, [])[:3]))
+    kw = ALIASES["kinds"].get(kind, [kind.lower()])
+    alt = []
+    if m:
+        bc = ALIASES["brands"].get(it["brand"], [""])[0]
+        alt = [f'{kw[0]} {m}', f'{kw[2] if len(kw) > 2 else kw[0]} {full}'] + [f'{kw[0]} {a}' for a in aka[1:]] + \
+              ([f'{kw[0]} {bc} {aka[1]}'] if bc and len(aka) > 1 else []) + ([f'{kw[-3]} {full}'] if len(kw) > 3 else [])
+    p4 = ("Також шукають як: " + ", ".join(dict.fromkeys(alt)) + ".") if alt else ""
+    return [x for x in (p1, p2, p3, p4) if x]
+
+
 def write_feeds(all_items):
     """avto.pro price list (auto-update by URL): Виробник; Код; Ціна; Кількість; Опис; Б/У; Фото.
     In stock -> real quantity; soon (on the way / repair) -> 1 with a note, like before. Prices in USD."""
@@ -227,9 +263,7 @@ def write_feeds(all_items):
         if not (it["pn"] or it.get("avto_code")): continue   # no part number anywhere -> no Google traffic (owner, 19.11)
         price = it["uah"] or uah(it["price"])
         imgs = [aimg(u) for u in it["photos"][:11]]
-        desc = it["short"] or (f'{it["name"]}. {"Оригінал зі США" if it["type"] == "Оригінал" else "Аналог " + it["avto_maker"] + " (не оригінал)"}, '
-                               f'стан: {"нове" if it["state"] == "Нове" else "вживане, перевірене перед продажем"}. '
-                               + (f'Парт-номер {it["pn"]}. ' if it["pn"] else "") + "Гарантія 14 днів. Доставка Новою поштою по Україні.")
+        desc = it["short"] or " ".join(describe(it)[:3])
         g = [("g:id", it["id"]), ("g:title", it["name"][:150]), ("g:description", desc[:5000]),
              ("g:link", f'{CFG["site_url"]}/fary/{it["slug"]}.html'), ("g:image_link", imgs[0]),
              *[("g:additional_image_link", u) for u in imgs[1:]],
@@ -271,16 +305,16 @@ def main():
         lis = []
         for mname, rx, yrs in MODELS[b]:
             sl = mslug(b, mname); c = sum(x["model"] == sl and x["st"] == "in" for x in items); oc = sum(o["model"] == sl for o in orders)
-            models_js[sl] = {"brand": b, "name": mname, "years": yrs}
+            models_js[sl] = {"brand": b, "name": mname, "years": yrs, "aka": " ".join(ALIASES["brands"].get(b, []) + ALIASES["models"].get(b + "|" + mname, []))}
             lis.append(f'<li><button class="side-model{"" if c else " none"}" data-brand="{esc(b)}" data-model="{sl}">'
                        f'<b>{esc(mname)}</b><small>{yrs}</small><span>{str(c) + " в наявн." if c else "під замовлення"}</span></button></li>')
         side.append(f'<details class="side-brand" data-brand="{esc(b)}"><summary><b>{esc(b)}</b><span>{bc or ""}</span></summary><ul>{"".join(lis)}</ul></details>')
     sidebar = "\n".join(side)
-    (OUT / "assets" / "catalog.js").write_text("window.CATALOG=" + json.dumps(slim, ensure_ascii=False) + ";window.MODELS=" + json.dumps(models_js, ensure_ascii=False) + ";", encoding="utf-8")
+    (OUT / "assets" / "catalog.js").write_text("window.CATALOG=" + json.dumps(slim, ensure_ascii=False) + ";window.MODELS=" + json.dumps(models_js, ensure_ascii=False) + ";window.SYN=" + json.dumps({"kinds": ALIASES["kinds"], "sides": ALIASES["sides"]}, ensure_ascii=False) + ";", encoding="utf-8")
 
     # SSR cards (SEO + no-JS), JS re-renders on filter
     def card(it, base=""):
-        meta = " · ".join(x for x in (it["side"], it["light"], it["years"]) if x)
+        meta = " · ".join(x for x in (("Ліва / права" if it["side"].startswith("Пара") else it["side"]), it["light"], it["years"]) if x)
         badge = f'<span class="badge badge-{it["st"]}">{ST_LABEL[it["st"]]}</span>' if it["st"] != "in" else ""
         return f'''<a class="card" href="{base}fary/{it['slug']}.html">
   <div class="card-img"><img loading="lazy" src="{pimg(it['photos'][0], '400x300')}" alt="{esc(it['name'])}">{badge}</div>
@@ -312,7 +346,7 @@ def main():
         rel = [x for x in items if x["brand"] == it["brand"] and x["id"] != it["id"] and x["st"] == "in"][:4]
         thumbs = "".join(f'<button class="thumb{" active" if n==0 else ""}" data-src="{pimg(p, "1200x900")}"><img src="{pimg(p, "200x150")}" alt=""></button>' for n, p in enumerate(it["photos"]))
         specs = [("Наявність", ST_LABEL[it["st"]]), *((("Номер " + (it["avto_maker"] or "аналога"), it["pn"]), ("Відповідник оригіналу", ", ".join(it["pn_alt"]))) if it["type"] == "Аналог" else
-                   (("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""),)), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", it["side"]),
+                   (("Парт-номер", ", ".join([it["pn"]] + it["pn_alt"]) if it["pn"] else ""),)), ("Марка", it["brand"]), ("Тип", it["kind"]), ("Сторона", "ліва і права — ціна за 1 шт." if it["side"].startswith("Пара") else it["side"]),
                  ("Світло", it["light"]), ("Роки", it["years"]), ("Стан", it["state"]), ("Походження", ("Аналог " + it["avto_maker"] + ", для авто з ринку США").replace("  ", " ") if it["type"] == "Аналог" else "Оригінал, США")]
         spec_html = "".join(f"<tr><th>{k}</th><td>{esc(v)}</td></tr>" for k, v in specs if v)
         ld = json.dumps({"@context": "https://schema.org", "@type": "Product", "name": it["name"], "sku": it["pn"] or str(it["id"]),
@@ -329,7 +363,8 @@ def main():
                  olx_html=(f'<a class="olx-link" href="{it["olx"]}" target="_blank" rel="noopener" data-track="olx" data-ctx="product">Це оголошення на OLX →</a>' if it["olx"] else ""),
                  origin_tag=(f'аналог {esc(it["avto_maker"])}' if it["type"] == "Аналог" else "оригінал США"), model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=pimg(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
-                 cta=contact_buttons("product", part=it["name"] + (" (" + it["pn"] + ")" if it["pn"] else "")), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"])
+                 cta=contact_buttons("product", part=it["name"] + (" (" + it["pn"] + ")" if it["pn"] else "")), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"],
+                 desc="".join(f'<p{" class=\"muted small\"" if t.startswith("Також шукають") else ""}>{esc(t)}</p>' for t in describe(it)))
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")
 
     for o in orders:
