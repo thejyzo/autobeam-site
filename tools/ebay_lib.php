@@ -184,3 +184,15 @@ function tg_send($token, $chat, $text) {
   $r = json_decode((string) @file_get_contents("https://api.telegram.org/bot$token/sendMessage", false, $ctx), true);
   return !empty($r['ok']);
 }
+
+// Photo with caption (≤1024 chars); falls back to a text message.
+function tg_send_photo($token, $chat, $photo, $caption) {
+  if ($photo && preg_match('#^https://i\.ebayimg\.com/#', $photo) && mb_strlen($caption) <= 1024) {
+    $ctx = stream_context_create(['http' => ['method' => 'POST', 'timeout' => 30, 'ignore_errors' => true,
+      'header' => "Content-Type: application/json\r\n",
+      'content' => json_encode(['chat_id' => $chat, 'photo' => $photo, 'caption' => $caption, 'parse_mode' => 'HTML'])]]);
+    $r = json_decode((string) @file_get_contents("https://api.telegram.org/bot$token/sendPhoto", false, $ctx), true);
+    if (!empty($r['ok'])) return true;
+  }
+  return tg_send($token, $chat, $caption);
+}

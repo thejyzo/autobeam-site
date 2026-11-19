@@ -24,7 +24,7 @@ if (isset($_GET['notify'])) { // монітор: POST {"text": "..."} → Telegr
   $in = json_decode((string) file_get_contents('php://input'), true);
   $text = mb_substr((string) ($in['text'] ?? ''), 0, 4000);
   if ($text === '') { http_response_code(400); echo '{"error":"empty"}'; exit; }
-  echo json_encode(['ok' => tg_send($cfg['tg_mon_token'], $cfg['tg_mon_chat'], $text)]); exit;
+  echo json_encode(['ok' => tg_send_photo($cfg['tg_mon_token'], $cfg['tg_mon_chat'], (string) ($in['photo'] ?? ''), $text)]); exit;
 }
 if (isset($_GET['pics'])) { // ?pics=itemId,itemId (до 10)
   echo json_encode(['pics' => ebay_pictures($cfg, explode(',', (string) $_GET['pics']))], JSON_UNESCAPED_SLASHES); exit;

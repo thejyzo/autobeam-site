@@ -459,9 +459,16 @@ function ebayMatch_(title, itemId, names, hist, side) {
   if (prevNames.length === 1) return { name: prevNames[0], hint: 'той самий лот купували раніше' };
 
   // 2) збіг за маркою / моделлю / роками / стороною / типом
+  const parsed = names.map(ebayParseName_);
+  if (!t.brand) { // «2025 Tiguan headlight» — марку беремо з моделі, якщо вона однозначна
+    const br = {};
+    parsed.forEach(c => { if (c.brand && c.model[0] && c.model[0].length >= 3 && t.words.indexOf(' ' + c.model[0] + ' ') >= 0) br[c.brand] = true; });
+    if (Object.keys(br).length === 1) t.brand = Object.keys(br)[0];
+  }
   const scored = [];
-  names.forEach(n => {
-    const s = ebayScore_(t, ebayParseName_(n));
+  parsed.forEach(c => {
+    const n = c.name;
+    const s = ebayScore_(t, c);
     if (s !== null) scored.push({ n: n, s: s });
   });
   scored.sort((a, b) => b.s - a.s);
@@ -508,9 +515,12 @@ function ebaySideOf_(s) {
   return l ? 'LH' : r ? 'RH' : '';
 }
 
-function ebayKind_(s) {
+function ebayKind_(s, isName) {
   const n = String(s).toLowerCase();
   if (/tail\s*light|taillight|tail\s*lamp|фонар/.test(n)) return 'tail';
+  // ДХВ / протитуманка окремо (не фара). У назвах DATA «LED + DRL» — це фара з ДХВ, а «… DRL LH» без «+» — окреме ДХВ.
+  if (isName ? (/\bdrl\b/.test(n) && !/\+\s*(led\s*)?drl/.test(n))
+             : (/daytime\s*running|\bdrl\b|fog\s*(light|lamp)/.test(n) && !/headl|head\s*lamp/.test(n))) return 'drl';
   if (/\blens\b|стекло|скло/.test(n)) return 'lens';
   if (/housing|корпус/.test(n)) return 'housing';
   if (/headl|head\s*lamp|фар/.test(n)) return 'head';
@@ -549,7 +559,7 @@ function ebayParseName_(name) {
   }
   // «CX-70 / CX-90», «Outback / Legacy» — достатньо будь-якої з назв
   const alt = (n.match(/([a-z0-9]+)\s*\/\s*([a-z0-9]+)/) || []).slice(1).filter(w => model.indexOf(w) >= 0);
-  return { name: name, brand: brand, model: model, alt: alt.length === 2 ? alt : [], years: yrs, side: ebaySideOf_(name.replace(/\s+\+\s+/g, ' and ')), pair: /lh\s*\+\s*rh/i.test(name), tech: tech, kind: ebayKind_(name) || 'head' };
+  return { name: name, brand: brand, model: model, alt: alt.length === 2 ? alt : [], years: yrs, side: ebaySideOf_(name.replace(/\s+\+\s+/g, ' and ')), pair: /lh\s*\+\s*rh/i.test(name), tech: tech, kind: ebayKind_(name, true) || 'head' };
 }
 
 // null = не підходить; інакше бал (більше — краще)

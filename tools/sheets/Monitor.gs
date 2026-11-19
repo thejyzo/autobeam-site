@@ -117,7 +117,7 @@ function monitorRun_() {
         [it.condition, it.options.indexOf('BEST_OFFER') >= 0 ? 'можна торгуватись' : 'Buy It Now', it.fb !== null ? 'продавець ' + it.fb + '%' : '']
           .filter(x => x).join(' · ') + '\n' +
         '<a href="' + it.url + '">Відкрити лот</a>';
-      if (monitorSend_(key, text)) {
+      if (monitorSend_(key, text, it.img)) {
         sent++;
         seen[it.id] = total;
         fresh.push([it.id, total, new Date()]);
@@ -160,9 +160,11 @@ function monitorPick_(m, byName) {
   return Object.assign({ maybe: true }, best, { name: cands.join(' / ') });
 }
 
-function monitorSend_(key, text) {
+// photo — фото лота: повідомлення приходить з картинкою (підпис = текст)
+function monitorSend_(key, text, photo) {
+  const img = photo ? String(photo).replace(/\/s-l\d+\./, '/s-l800.') : '';
   const r = UrlFetchApp.fetch(EB.FEED_URL + '?notify=1', {
-    method: 'post', contentType: 'application/json', payload: JSON.stringify({ text: text }),
+    method: 'post', contentType: 'application/json', payload: JSON.stringify({ text: text, photo: img }),
     headers: { 'X-AB-Key': key }, muteHttpExceptions: true,
   });
   return r.getResponseCode() === 200 && /"ok":true/.test(r.getContentText());
