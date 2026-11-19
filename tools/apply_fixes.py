@@ -26,6 +26,11 @@ def main():
             p[k] = v
         if fx.get("note_add") and fx["note_add"] not in (p.get("note") or ""):
             p["note"] = ((p.get("note") or "").rstrip() + "\n" + fx["note_add"]).strip()
+        for fld, a_old, a_new in fx.get("text_replace", []):
+            if a_old in (p.get(fld) or ""):
+                p[fld] = p[fld].replace(a_old, a_new)
+            else:
+                print("   !! {}: не знайдено «{}»".format(fld, a_old))
         alt = list(p.get("pn_alt") or [])
         rm = {norm(x) for x in fx.get("pn_alt_remove", [])} | {norm(p.get("pn"))}
         alt = [a for a in alt if norm(a) not in rm]
