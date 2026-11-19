@@ -142,6 +142,93 @@ def aimg(u, size="1200x900"):
 
 ST_LABEL = {"in": "В наявності", "soon": "Незабаром у наявності", "order": "Під замовлення"}
 
+REDIRECTS = []   # (old pair slug, new slug) — pair pages replaced by single-side cards
+PAIR_REPORT = []
+
+def pn_side(brand, num):
+    """'L' / 'R' / None from a part number, by the maker's numbering rules (see headlights-reference)."""
+    n = re.sub(r"[^0-9A-Z]", "", (num or "").upper())
+    n = n[1:] if re.match(r"^P\d{8}", n) else n
+    if brand in ("Toyota", "Lexus"):
+        if n[:5] in ("81110", "81130", "81140", "81145"): return "R"
+        if n[:5] in ("81150", "81170", "81160", "81070", "81185"): return "L"
+    elif brand in ("Honda", "Acura"):
+        if n.startswith("33100"): return "R"
+        if n.startswith("33150"): return "L"
+    elif brand in ("Hyundai", "Kia"):
+        if n.startswith("92101"): return "L"
+        if n.startswith("92102"): return "R"
+    elif brand in ("Nissan", "Infiniti"):
+        if n.startswith("26010") or n.startswith("26120"): return "R"
+        if n.startswith("26060") or n.startswith("26125"): return "L"
+    elif brand in ("Volkswagen", "Audi"):
+        m = re.search(r"941(\d{3})", n)
+        if m: return "L" if int(m.group(1)) % 2 else "R"
+    elif brand in ("Ford", "Land Rover"):
+        if re.search(r"13(W029|E014|404)", n): return "R"
+        if re.search(r"13(W030|E015|405)", n): return "L"
+    elif brand in ("Jeep", "Dodge", "Chrysler"):
+        m = re.match(r"^(\d{8})", n)
+        if m: return "L" if int(m.group(1)) % 2 else "R"
+    elif brand == "Mazda":
+        if re.search(r"51(030|031|0K0)", n): return "R"
+        if re.search(r"51(040|041|0L0)", n): return "L"
+    elif brand == "Subaru":
+        m = re.match(r"^\d{5}[A-Z]{2}(\d{2})", n)
+        if m: return "L" if int(m.group(1)) % 2 else "R"
+    elif brand == "Mercedes":
+        m = re.match(r"^A?\d{9}(\d)", n)
+        if m: return "L" if int(m.group(1)) % 2 else "R"
+    return None
+
+def split_pairs(items, stock, seen):
+    """Site shows single-side cards only (owner, 19.11). A pair card is replaced by its left/right singles:
+    an existing single card with that side's number is used; otherwise a card is generated from the pair
+    (that side's number, the pair's photos). Pairs stay in the admin DB and on OLX."""
+    nrm = lambda x: re.sub(r"[^0-9A-Z]", "", (x or "").upper()).lstrip("P") if re.match(r"^P\d{8}", re.sub(r"[^0-9A-Z]", "", (x or "").upper())) else re.sub(r"[^0-9A-Z]", "", (x or "").upper())
+    singles = [i for i in items if not i["side"].startswith("Пара")]
+    out, redirects = list(singles), []
+    for it in items:
+        if not it["side"].startswith("Пара"): continue
+        nums = [x for x in [it["pn"]] + list(it["pn_alt"]) if x]
+        by = {"L": [], "R": []}
+        for x in nums:
+            sd = pn_side(it["brand"], x)
+            if sd and nrm(x) not in [nrm(y) for y in by[sd]]: by[sd].append(x)
+        if not by["L"] or not by["R"]:
+            out.append(it); PAIR_REPORT.append(f'{it["id"]}: сторону номерів не визначено ({", ".join(nums) or "без номера"}) — лишається парою')
+            continue
+        target = None
+        for sd, label in (("L", "Ліва"), ("R", "Права")):
+            want = {nrm(x) for x in by[sd]}
+            ex = next((s for s in singles if s["brand"] == it["brand"] and s["model"] == it["model"] and s["kind"] == it["kind"]
+                       and want & {nrm(y) for y in [s["pn"]] + list(s["pn_alt"])}), None)
+            if ex:
+                if not ex["photos"] and it["photos"]: ex["photos"] = list(it["photos"])   # pair photos fit the single side too (owner)
+                if ex["st"] == "order" and it["st"] != "order" and not ex.get("status_manual_set"): ex["st"] = it["st"]
+                PAIR_REPORT.append(f'{it["id"]} {label.lower()}: вже є {ex["id"]}')
+                target = target or ex
+                continue
+            v = dict(it)
+            v["id"] = f'{it["id"]}-{sd}'
+            v["side"] = label
+            v["pn"], v["pn_alt"] = by[sd][0], by[sd][1:]
+            v["name"] = it["name"].replace("ліва / права", label.lower(), 1)
+            slug = slugify(v["name"])
+            if slug in seen: slug += "-" + v["id"].lower()
+            seen.add(slug); v["slug"] = slug
+            k = it.get("key") or ""
+            sk = re.sub(r"\bRH\b", "LH", k.replace("LH + RH", "LH")) if sd == "L" else re.sub(r"\bLH\b", "RH", k.replace("LH + RH", "RH"))
+            if stock and sk in stock and not it.get("status_manual_set"):
+                q = stock[sk]
+                v["st"] = "in" if int(q[0]) > 0 else ("soon" if int(q[1]) + int(q[2]) > 0 else it["st"])
+                v["qty"] = int(q[0])
+            v["pair_of"] = it["id"]
+            out.append(v); target = target or v
+            PAIR_REPORT.append(f'{it["id"]} {label.lower()}: створено {v["id"]} ({v["pn"]})')
+        if target: redirects.append((it["slug"], target["slug"]))
+    return out, redirects
+
 def load_db():
     """Cards from the admin DB (server) or data/products.json (local) + stock from accounting."""
     import sqlite3, os
@@ -187,7 +274,8 @@ def load_db():
                           light=p.get("trim", ""), trim=p.get("trim", "") or "—", years=p.get("years", ""), type=p.get("original", "Оригінал"),
                           state=p.get("state", "Вживане"), slug=slug, photos=p.get("photos", []), short=p.get("short", ""),
                           olx=(f'https://www.olx.ua/d/{p["olx_id"]}/' if p.get("olx_id") and p.get("olx_active") else ""), st=st,
-                          avto_maker=p.get("avto_maker", ""), avto_code=p.get("avto_code", ""), qty=(int(s[0]) if s else 0)))
+                          avto_maker=p.get("avto_maker", ""), avto_code=p.get("avto_code", ""), qty=(int(s[0]) if s else 0), key=p.get("key") or "", status_manual_set=bool(sm)))
+    items, REDIRECTS[:] = split_pairs(items, stock, seen)
     order_rank = {"in": 0, "soon": 1, "order": 2}
     items.sort(key=lambda x: (order_rank[x["st"]], 0 if x["photos"] else 1, x["brand"], x["name"]))
     return [i for i in items if i["photos"]], [i for i in items if not i["photos"]], bool(stock)
@@ -403,6 +491,13 @@ def main():
                     og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld_org, crumb=esc(ttl), content=content)
         (OUT / f"{slug}.html").write_text(html, encoding="utf-8")
 
+    for old, new in REDIRECTS:
+        if (OUT / "fary" / f"{old}.html").exists(): continue
+        (OUT / "fary" / f"{old}.html").write_text(
+            f'<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><link rel="canonical" href="{CFG["site_url"]}/fary/{new}.html">'
+            f'<meta http-equiv="refresh" content="0;url={new}.html"><script>location.replace("{new}.html"+location.search)</script>'
+            f'<a href="{new}.html">Перейти</a>', encoding="utf-8")
+    if PAIR_REPORT: (OUT / "pairs_report.txt").write_text("\n".join(PAIR_REPORT) + "\n", encoding="utf-8")
     write_feeds(items + orders)
     today = datetime.date.today().isoformat()
     urls = [CFG["site_url"] + "/"] + [f"{CFG['site_url']}/{s}.html" for s in ("dostavka-oplata", "garantiia-povernennia", "kontakty", "privacy")] + [f"{CFG['site_url']}/fary/{i['slug']}.html" for i in items + orders]
