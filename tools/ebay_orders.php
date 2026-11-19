@@ -2,13 +2,20 @@
 // AutoBeam: read-only eBay purchases (Trading API GetOrders, buyer role).
 // php ~/autobeam_repo/tools/ebay_orders.php [days=30] [--json]
 // Prints only what we need for accounting: order id, date, item, item id, qty, price, shipping, total, status, tracking.
-// Seller user IDs / addresses are NOT printed or stored (eBay exemption: "I do not persist eBay data").
+// Seller user IDs and addresses are NOT printed or stored; from the buyer's shipping address only the cabinet (КАБ1-4) is derived (eBay exemption: "I do not persist eBay data").
 if (PHP_SAPI !== 'cli') exit("CLI only\n");
 $home = getenv('HOME') ?: dirname(__DIR__, 2);
 $cfg = @include "$home/autobeam_secrets.php";
 if (!is_array($cfg) || empty($cfg['ebay_token'])) exit("Немає ключів eBay. Запустіть: php ~/autobeam_repo/tools/setup_api.php ebay\n");
 $days = (int) ($argv[1] ?? 30); if ($days < 1 || $days > 90) $days = 30;   // GetOrders: up to 90 days back
 $json = in_array('--json', $argv, true);
+// Recipient (first name on the US shipping address) -> Nova Poshta cabinet. Only the cabinet label is kept, never the address.
+$KAB = ['serhii' => 'КАБ1', 'anastasiia' => 'КАБ2', 'volodymyr' => 'КАБ3', 'larysa' => 'КАБ4'];
+function kab($name, $KAB) {
+  $n = strtolower(preg_replace('/[^a-z ]/i', ' ', $name));
+  foreach ($KAB as $k => $v) if (preg_match('/\\b' . $k . '\\b/', $n)) return $v;
+  return '?';
+}
 
 function call($cfg, $name, $body) {
   $xml = '<?xml version="1.0" encoding="utf-8"?><' . $name . 'Request xmlns="urn:ebay:apis:eBLBaseComponents">'
@@ -44,6 +51,7 @@ do {
         'total' => (float) $o->Total . ' ' . (string) $o->Total['currencyID'],
         'status' => (string) $o->OrderStatus . ((string) $o->ShippedTime ? ' / відправлено ' . substr((string) $o->ShippedTime, 0, 10) : ''),
         'tracking' => implode(', ', array_filter($trk)),
+        'kab' => kab((string) $o->ShippingAddress->Name, $KAB),
       ];
     }
   }
@@ -52,6 +60,8 @@ do {
 
 if ($json) { echo json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), "\n"; exit; }
 echo "Покупок за $days дн.: " . count($rows) . "\n";
+$byk = array_count_values(array_column($rows, 'kab')); ksort($byk);
+echo "За кабінетами: " . implode(', ', array_map(function ($k, $v) { return "$k: $v"; }, array_keys($byk), $byk)) . "\n";
 foreach ($rows as $r) {
-  echo "{$r['date']} | {$r['item']} | #{$r['item_id']} | {$r['qty']} шт | {$r['price']} + дост. {$r['shipping']} | разом {$r['total']} | {$r['status']}" . ($r['tracking'] ? " | трек {$r['tracking']}" : "") . "\n";
+  echo "{$r['kab']} | {$r['date']} | {$r['item']} | #{$r['item_id']} | {$r['qty']} шт | {$r['price']} + дост. {$r['shipping']} | разом {$r['total']} | {$r['status']}" . ($r['tracking'] ? " | трек {$r['tracking']}" : "") . "\n";
 }
