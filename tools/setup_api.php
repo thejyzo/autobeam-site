@@ -43,8 +43,28 @@ if ($what === 'ebay') {
   $cfg['ebay_app_id'] = ask('eBay App ID (Client ID)', false);
   $cfg['ebay_dev_id'] = ask('eBay Dev ID', false);
   $cfg['ebay_cert_id'] = ask('eBay Cert ID (Client Secret)');
-  $cfg['ebay_token'] = ask('eBay User Token (Auth\'n\'Auth, довгий рядок)');
-  if (strlen($cfg['ebay_token']) < 100) exit("Токен закороткий — схоже, вставився не повністю. Нічого не змінено.\n");
+  // The token is ~800–2000 chars; when copied from the eBay page it often contains line breaks.
+  // Read lines until an empty line and glue them together. Alternative: put the token into ~/ebay_token.txt and type: file
+  echo "eBay User Token: вставте токен і натисніть Enter ДВІЧІ (порожній рядок = кінець).\n"
+     . "Або збережіть токен у файл ~/ebay_token.txt (файловий менеджер хостингу) і введіть слово file.\n";
+  system('stty -echo');
+  $tok = '';
+  while (($line = fgets(STDIN)) !== false) {
+    $line = trim($line);
+    if ($line === '' && $tok !== '') break;
+    if ($line === 'file' && $tok === '') {
+      $f = "$GLOBALS[home]/ebay_token.txt";
+      $tok = is_file($f) ? (string) file_get_contents($f) : '';
+      if (is_file($f)) { @unlink($f); }
+      break;
+    }
+    $tok .= $line;
+  }
+  system('stty echo');
+  $tok = preg_replace('/\s+/', '', $tok);
+  echo "Отримано символів: " . strlen($tok) . "\n";
+  $cfg['ebay_token'] = $tok;
+  if (strlen($tok) < 300) exit("Токен закороткий — схоже, вставився не повністю. Нічого не змінено.\nСпробуйте варіант з файлом ~/ebay_token.txt.\n");
   save($file, $cfg);
   $xml = '<?xml version="1.0" encoding="utf-8"?><GetUserRequest xmlns="urn:ebay:apis:eBLBaseComponents">'
        . '<RequesterCredentials><eBayAuthToken>' . htmlspecialchars($cfg['ebay_token']) . '</eBayAuthToken></RequesterCredentials></GetUserRequest>';
