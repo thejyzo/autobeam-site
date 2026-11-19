@@ -45,7 +45,12 @@ NEGATIVE = ["ремонт", "полірування", "полировка", "л�
             "регулювання", "регулировка", "своїми руками", "своими руками", "як ", "как ", "тюнінг", "тюнинг",
             "лінза", "лінзи", "линзы", "скло фари", "стекло фары", "наклейка", "плівка", "пленка", "чохол",
             "протитуманні", "противотуманные", "птф", "запітніває", "потеет", "відео", "видео", "фото", "схема",
-            "lego", "gta", "игрушка", "іграшка", "кузовщина", "розборка повна"]
+            "lego", "gta", "игрушка", "іграшка", "кузовщина", "розборка повна",
+            "туманка", "противотуманка", "протитуманка", "противотуманная", "протитуманна", "стекло на фару", "скло на фару",
+            "корпус фары", "корпус фари", "ремкомплект", "кріплення фари", "крепление фары", "ушки фары", "вушка фари",
+            "блок розжига", "блок розжигу", "омыватель фар", "омивач фар", "led лампы", "led лампи", "ксенон лампы",
+            "реставрация", "реставрація", "чертеж", "креслення", "3d модель", "stl", "обои", "шпалери", "раскраска", "розмальовка",
+            "как снять", "як зняти", "как поменять", "як поміняти", "своими силами"]
 
 
 def ukside(s):
@@ -100,6 +105,31 @@ def ad_texts(g):
     return heads, descs
 
 
+
+# Generation / body names people type ("камри 70", "рав 4 50", "escape mk4"). (from_year, to_year, tokens)
+GENS = {
+ "Camry": [(2017, 2024, ["70", "75", "xv70", "v70"]), (2025, 2026, ["80", "xv80"])],
+ "RAV4": [(2019, 2025, ["50", "xa50", "5"]), (2026, 2026, ["60", "xa60", "6"])],
+ "Highlander": [(2020, 2024, ["xu70", "4"])], "Corolla": [(2017, 2019, ["e170", "11"])],
+ "Escape / Kuga": [(2020, 2026, ["mk4", "4", "3"])], "Edge": [(2015, 2024, ["2", "mk2"])],
+ "CR-V": [(2017, 2022, ["5", "rw"]), (2023, 2025, ["6"])], "Civic": [(2022, 2025, ["11"])],
+ "Accord": [(2018, 2022, ["10"]), (2023, 2025, ["11"])], "Kona": [(2023, 2025, ["2", "sx2"])],
+ "Grand Cherokee": [(2017, 2021, ["wk2"]), (2021, 2025, ["wl"])], "Cherokee": [(2019, 2023, ["kl"])],
+ "Compass": [(2017, 2026, ["mp", "2"])], "Sorento": [(2019, 2020, ["um", "prime", "прайм"]), (2022, 2025, ["mq4", "4"])],
+ "CX-5": [(2017, 2025, ["kf", "2"])], "RX": [(2023, 2025, ["350", "350h", "500h", "al30"])],
+ "C-Class": [(2022, 2026, ["w206"])], "Rogue": [(2021, 2023, ["t33", "3"])], "Sentra": [(2020, 2022, ["b18"])],
+ "Murano": [(2023, 2026, ["z52"])], "A4": [(2020, 2025, ["b9", "b9.5"])], "A3": [(2025, 2026, ["8y"])],
+ "Outback / Legacy": [(2020, 2025, ["bt", "6"]), (2026, 2026, ["7"])], "Forester": [(2025, 2026, ["6", "sl"])],
+ "Tiguan": [(2022, 2024, ["2", "ad1"])], "QX60": [(2022, 2025, ["2"])],
+}
+# older generations of the same model — negatives, so we do not pay for parts that will not fit
+OLD_GENS = {
+ "Camry": ["40", "45", "50", "55", "xv40", "xv50", "xv55"], "RAV4": ["xa40", "xa30", "xa20", "кузов 40", "кузов 30", "40 кузов", "30 кузов"],
+ "Highlander": ["xu50", "xu40"], "CR-V": ["rm", "re"], "Grand Cherokee": ["wk", "wj"], "Sorento": ["xm", "bl"],
+ "Escape / Kuga": ["mk3", "mk2", "mk1"], "Accord": ["cr", "cu"], "Civic": ["fc", "fk"], "C-Class": ["w205", "w204"],
+ "CX-5": ["ke"], "Rogue": ["t32"], "Outback / Legacy": ["bs", "br"], "Forester": ["sk", "sj"], "A4": ["b8", "b7"],
+}
+
 def model_names(g):
     """All the ways people name this model: Latin / Cyrillic, with or without the brand, mixed (форд escape)."""
     m, b = g["mn"], g["b"]
@@ -116,12 +146,32 @@ def model_names(g):
         if any(x.startswith(c) for c in bc):
             names.append(x); continue
         names += [x] + [f"{c} {x}" for c in bc] + [f"{bl} {x}"]
+    yrs = [int(y) for it in g["items"] for y in re.findall(r"\d{4}", it["y"])]
+    lo, hi = (min(yrs), max(yrs + [min(yrs)])) if yrs else (0, 0)
+    if any(it["y"].endswith("+") for it in g["items"]): hi = max(hi, 2026)
+    toks = [t for (a, z, ts) in GENS.get(m, []) if a <= hi and z >= lo for t in ts]
+    if toks:
+        base = (lat[:2] + cyr[:2]) or [m.lower()]
+        for x in base:
+            for t in toks:
+                names += [f"{x} {t}"] + ([f"{bl} {x} {t}"] if not x.startswith(bl) else [])
     out = []
     for n in names:
         n = re.sub(r"\s+", " ", n).strip()
         if n and n not in out:
             out.append(n)
     return out
+
+
+def group_negatives(g):
+    """Ad-group negatives: years of older generations (2+ years before what we have) and older body codes."""
+    m = g["mn"]
+    yrs = [int(y) for it in g["items"] for y in re.findall(r"\d{4}", it["y"])]
+    neg = [str(y) for y in range(2005, min(yrs) - 1)] if yrs else []
+    names = (LAT_EXTRA.get(m, [m.lower()])[:2] + CYR.get(m, [])[:2])
+    for t in OLD_GENS.get(m, []):
+        neg += [t] if (" " in t or len(t) > 2 and not t.isdigit()) else [f"{x} {t}" for x in names if "/" not in x]
+    return list(dict.fromkeys(neg))
 
 
 def model_keywords(g):
@@ -132,7 +182,7 @@ def model_keywords(g):
         for x in names[:4]:
             kw += [f"фара {x} аналог", f"фара {x} depo", f"depo {x}"]
     else:
-        nouns = {"Фара": ["фара", "фари", "фары"], "Ліхтар": ["ліхтар", "фонарь", "задній ліхтар", "стоп"],
+        nouns = {"Фара": ["фара", "фари", "фары", "фару"], "Ліхтар": ["ліхтар", "фонарь", "задній ліхтар", "стоп"],
                  "ДХВ": ["ходові вогні", "дхв", "led смуга"]}[kind]
         en = {"Фара": "headlight", "Ліхтар": "tail light", "ДХВ": "drl"}[kind]
         sides = {it["side"] for it in g["items"]}
@@ -140,11 +190,11 @@ def model_keywords(g):
         if kind == "Фара":
             if "Ліва" in sides: side_words += ["ліва", "левая"]
             if "Права" in sides: side_words += ["права", "правая"]
-            extra = ["передня", "передняя"]
+            extra = ["передня", "передняя", "led", "лед", "оригінал", "оригинал", "бу", "б/у"]
         elif kind == "Ліхтар":
             if "Ліва" in sides: side_words += ["лівий", "левый"]
             if "Права" in sides: side_words += ["правий", "правый"]
-            extra = ["задній", "задний"]
+            extra = ["задній", "задний", "led", "оригінал", "оригинал", "бу"]
         else:
             extra = []
         base = nouns[0]
@@ -154,7 +204,7 @@ def model_keywords(g):
             # phrase match does not allow words INSIDE the phrase: "фара ліва rav4" needs its own keyword
             for sw in side_words + extra:
                 kw += [f"{base} {sw} {x}", f"{sw} {base} {x}", f"{x} {base} {sw}"]
-            kw += [f"{base} на {x}", f"оптика {x}"] if kind == "Фара" else [f"{base} на {x}"]
+            kw += [f"{n} на {x}" for n in nouns[:3]] + ([f"оптика {x}", f"оптика на {x}"] if kind == "Фара" else [])
             if re.match(r"^[a-z0-9 .-]+$", x):
                 kw += [f"{x} {en}"]
     out = []
@@ -208,6 +258,8 @@ def main():
         else:
             gurl = f"{SITE}/?model={g['mk']}"
         row(Campaign=CAMPAIGN, Ad_Group=g["name"], Ad_Group_Status="Enabled")
+        for n in group_negatives(g):
+            row(Campaign=CAMPAIGN, Ad_Group=g["name"], Keyword=n, Criterion_Type="Negative Phrase")
         heads, descs = ad_texts(g)
         ad = dict(Campaign=CAMPAIGN, Ad_Group=g["name"], Ad_type="Responsive search ad", Final_URL=gurl,
                   Path_1="fary", Path_2=re.sub(r"[^a-z0-9-]", "", g["mk"].split("-", 1)[-1])[:15], Status="Enabled")
