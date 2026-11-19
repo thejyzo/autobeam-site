@@ -97,6 +97,7 @@ function monitorRun_() {
       const title = String(it.title);
       const tl = ' ' + title.toLowerCase() + ' ';
       if (MON.MINUS.some(w => tl.indexOf(w) >= 0)) return;
+      if (monitorAftermarket_(title, it.condition)) return; // аналог / Китай — не надсилаємо, лише OEM
       const total = Math.round((it.price + (it.ship || 0)) * 100) / 100;
 
       const hit = monitorWhich_(title, rows, dataNames);
@@ -168,6 +169,23 @@ function monitorPick_(m, byName) {
 }
 
 // photo — фото лота: повідомлення приходить з картинкою (підпис = текст)
+// Аналог (Китай, aftermarket): типові ознаки в назві + «новий» без слова OEM/Genuine/Factory.
+// Б/в і «на запчастини» майже завжди оригінал — їх пропускаємо, якщо в назві немає явних ознак аналога.
+const MON_AFTER_BRANDS = ['depo', 'tyc', 'spyder', 'anzo', 'morimoto', 'sockir', 'ecotric', 'partsam', 'labwork', 'kiwi master',
+  'dna motoring', 'auto dynasty', 'eagle eye', 'k-metal', 'akkon', 'winjet', 'xtune', 'x-tune', 'alpha owls', 'oracle', 'recon',
+  'goodyear', 'garage-pro', 'garage pro', 'keystone', 'replacement', 'aftermarket', 'non-oem', 'non oem', 'oe style', 'oem style',
+  'oe-style', 'oem-style', 'capa', 'nsf certified', 'brand new pair', 'smoked', 'black housing', 'sequential', 'demon eye', 'halo'];
+function monitorAftermarket_(title, condition) {
+  const t = ' ' + String(title).toLowerCase().replace(/[^a-z0-9 \-]+/g, ' ') + ' ';
+  const oem = /\b(oem|genuine|factory|original|oe)\b/.test(t) && !/\b(oem|oe)[\s-]style\b/.test(t);
+  if (/^\s*(for|fits|fit)\s/.test(t)) return true;                                  // «For 2022-2025 Mazda CX-5 …» — класика Китаю
+  if (/\b(fits|compatible with|replaces|replace for)\b/.test(t) && !oem) return true;
+  if (/\bpair\b.*\b(left|right|driver|passenger)\b.*\bnew\b/.test(t) && !oem) return true;
+  if (MON_AFTER_BRANDS.some(b => t.indexOf(' ' + b + ' ') >= 0 || t.indexOf(' ' + b) >= 0 && b.length > 5)) return true;
+  if (/^new\b/i.test(String(condition || '')) && !oem) return true;                 // новий без OEM у назві — найчастіше аналог
+  return false;
+}
+
 function monitorSend_(key, text, photo) {
   const img = photo ? String(photo).replace(/\/s-l\d+\./, '/s-l800.') : '';
   const r = UrlFetchApp.fetch(EB.FEED_URL + '?notify=1', {
