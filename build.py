@@ -213,6 +213,7 @@ def split_pairs(items, stock, seen):
             v["id"] = f'{it["id"]}-{sd}'
             v["side"] = label
             v["pn"], v["pn_alt"] = by[sd][0], by[sd][1:]
+            v["avto_code"] = ""   # the pair's avto.pro code may hold the other side's number
             v["name"] = it["name"].replace("ліва / права", label.lower(), 1)
             slug = slugify(v["name"])
             if slug in seen: slug += "-" + v["id"].lower()
