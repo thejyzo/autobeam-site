@@ -1,0 +1,6 @@
+[
+ {"id": "AB-0124", "why": "20: Camry 25-26 права Dual LED XSE — 81110-AQ040 (каталог Toyota: Dual LED, XSE)", "set": {"pn": "81110-AQ040"}},
+ {"id": "AB-0134", "why": "21: Grand Highlander ліва без DRL — 81150-0E760", "set": {"pn": "81150-0E760"}},
+ {"id": "AB-0144", "why": "22: Mazda 3 BM — парне оголошення", "set": {"side": "Пара (ліва + права)"}},
+ {"id": "AB-0159", "why": "24: CX-5 22+ AFS пара — права KPF3-51-030", "set": {"side": "Пара (ліва + права)"}, "pn_alt_add": ["KPF351030"]}
+]
