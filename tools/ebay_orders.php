@@ -11,6 +11,14 @@ if (!is_array($cfg) || empty($cfg['ebay_token'])) exit("Немає ключів 
 $days = (int) ($argv[1] ?? 30);
 [$rows, $err] = ebay_purchases($cfg, $days);
 if ($err) exit("$err\n");
+// Перевірка одного лота: php tools/ebay_orders.php 60 --item 860125949902
+$ix = array_search('--item', $argv, true);
+if ($ix !== false) {
+  foreach ($rows as $r) if ($r['item_id'] === ($argv[$ix + 1] ?? '')) {
+    echo "{$r['date']} | {$r['item']}\n  Total (без купона): {$r['order_total']} | AmountPaid: {$r['order_paid']} | Payments: {$r['order_payments']} | беремо: {$r['amount']}\n";
+  }
+  exit;
+}
 if (in_array('--json', $argv, true)) { echo json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), "\n"; exit; }
 echo "Покупок (одиниць) за $days дн.: " . count($rows) . "\n";
 $byk = array_count_values(array_column($rows, 'kab')); ksort($byk);
