@@ -182,10 +182,9 @@ function ebaySync_(days) {
     // нові: від старих до нових, щоб «Вже в обліку» розбиралися по порядку
     // лот «пара» (Pair / Left and Right / Both) = 2 рядки: ліва і права, сума навпіл — як ви ведете облік
     const fresh = [];
-    feed.filter(f => !byId[f.id] && !byId[f.id + 'L']).forEach(f => {
-      if (ebaySideOf_(f.item) === 'LR' && !f.cancelled) ebayHalves_(f).forEach(h => fresh.push(h));
-      else fresh.push(f);
-    });
+    // НЕ ділимо автоматично: «Left & Right» у назві часто означає лот з вибором сторони (1 фара).
+    // Справжню пару ділите самі: меню eBay → ✂️ Розділити (підказка в «Варіанти DATA»).
+    feed.filter(f => !byId[f.id] && !byId[f.id + 'L']).forEach(f => fresh.push(f));
     fresh.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
     const out = [];
     fresh.forEach(f => {
@@ -203,6 +202,9 @@ function ebaySync_(days) {
         const m = ebayMatch_(f.item, f.item_id, data, hist, f.side);
         name = m.name;
         hint = m.hint;
+        if (ebaySideOf_(f.item) === 'LR' && /\b(pair|set|both sides|set of 2)\b/i.test(f.item)) {
+          hint = '✂️ Схоже на пару — якщо так, меню eBay → Розділити' + (hint ? ' | ' + hint : '');
+        }
       }
       const tag = (f.unit !== '1/1' ? f.unit : '') + (f.side ? (f.unit !== '1/1' ? ', ' : '') + (f.side === 'LH' ? 'пара: ліва' : 'пара: права') : '');
       out.push({ f: f, v: ['', state, f.kab, ebaySerial_(f.date), f.item + (tag ? '  [' + tag + ']' : ''), name, f.amount, link, f.tracking, f.status, hint, f.id, mrow, ''] });
@@ -225,6 +227,7 @@ function ebaySync_(days) {
     out.forEach((o, i) => {
       const row = i + 2;
       ebayPaintKab_(sh.getRange(row, EB.C_KAB), o.f.kab);
+      o.done = true;
       const st = o.v[1];
       const ok = sh.getRange(row, EB.C_OK);
       if (st === EB.S_NEW) {
@@ -234,6 +237,9 @@ function ebaySync_(days) {
         ebayPaintState_(sh, row, st);
       }
     });
+    // усі рядки — від нових до старих (дані «за 90 днів» вставляються зверху, тому впорядковуємо)
+    const lr = sh.getLastRow();
+    if (lr > 2) sh.getRange(2, 1, lr - 1, EB.NCOL).sort([{ column: EB.C_DATE, ascending: false }]);
     SpreadsheetApp.flush();
     ebayPhotosSafe_();
   } finally {
