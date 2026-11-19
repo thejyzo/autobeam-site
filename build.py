@@ -364,7 +364,7 @@ def main():
                  origin_tag=(f'аналог {esc(it["avto_maker"])}' if it["type"] == "Аналог" else "оригінал США"), model_label=esc(it["brand"] + " " + next((m for m, rx, _ in MODELS.get(it["brand"], []) if mslug(it["brand"], m) == it["model"]), "")), pn=esc(it["pn"] or "—"),
                  main_img=pimg(it["photos"][0], "1200x900"), thumbs=thumbs, specs=spec_html, olx_url=it["olx"],
                  cta=contact_buttons("product", part=it["name"] + (" (" + it["pn"] + ")" if it["pn"] else "")), related="\n".join(card(r, "../") for r in rel), pn_raw=esc(it["pn"]), pid=it["id"],
-                 desc="".join(f'<p{" class=\"muted small\"" if t.startswith("Також шукають") else ""}>{esc(t)}</p>' for t in describe(it)))
+                 desc="".join(("<p class='muted small'>" if t.startswith("Також шукають") else "<p>") + esc(t) + "</p>" for t in describe(it)))
         (OUT / "fary" / f"{it['slug']}.html").write_text(p, encoding="utf-8")
 
     for o in orders:
