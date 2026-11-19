@@ -70,6 +70,7 @@ function ebayOnOpen() {
     .createMenu('eBay')
     .addItem('🔄 Оновити покупки зараз', 'ebaySync')
     .addItem('📥 Завантажити за 90 днів', 'ebaySync90')
+    .addItem('✂️ Розділити вибраний рядок на пару (ліва + права)', 'ebaySplitPair')
     .addToUi();
 }
 
@@ -127,8 +128,8 @@ function ebaySync_(days) {
     const data = ebayDataNames_(ss);
 
     // оновлення існуючих: трек і статус
-    feed.forEach(f => {
-      const row = byId[f.id];
+    feed.forEach(f => [f.id, f.id + 'L', f.id + 'R'].forEach(id => {
+      const row = byId[id];
       if (!row) return;
       const r = cur[row - 2];
       if (String(r[EB.C_TRACK - 1]) !== f.tracking) {
@@ -137,7 +138,7 @@ function ebaySync_(days) {
         if (f.tracking && mrow && String(r[EB.C_STATE - 1]).indexOf(EB.S_DONE) === 0) ebaySetTrackNote_(main, mrow, r[EB.C_LINK - 1], f.tracking);
       }
       if (String(r[EB.C_STATUS - 1]) !== f.status) sh.getRange(row, EB.C_STATUS).setValue(f.status);
-    });
+    }));
 
     // ще не перенесені рядки: якщо тим часом внесли вручну — «Вже в обліку»
     cur.forEach((r, i) => {
@@ -158,7 +159,13 @@ function ebaySync_(days) {
     });
 
     // нові: від старих до нових, щоб «Вже в обліку» розбиралися по порядку
-    const fresh = feed.filter(f => !byId[f.id]).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    // лот «пара» (Pair / Left and Right / Both) = 2 рядки: ліва і права, сума навпіл — як ви ведете облік
+    const fresh = [];
+    feed.filter(f => !byId[f.id] && !byId[f.id + 'L']).forEach(f => {
+      if (ebaySideOf_(f.item) === 'LR' && !f.cancelled) ebayHalves_(f).forEach(h => fresh.push(h));
+      else fresh.push(f);
+    });
+    fresh.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
     const out = [];
     fresh.forEach(f => {
       const link = 'https://www.ebay.com/itm/' + f.item_id;
@@ -172,11 +179,12 @@ function ebaySync_(days) {
       } else if (f.cancelled) {
         state = EB.S_CANCEL;
       } else {
-        const m = ebayMatch_(f.item, f.item_id, data, hist);
+        const m = ebayMatch_(f.item, f.item_id, data, hist, f.side);
         name = m.name;
         hint = m.hint;
       }
-      out.push({ f: f, v: ['', state, f.kab, ebaySerial_(f.date), f.item + (f.unit !== '1/1' ? '  [' + f.unit + ']' : ''), name, f.amount, link, f.tracking, f.status, hint, f.id, mrow] });
+      const tag = (f.unit !== '1/1' ? f.unit : '') + (f.side ? (f.unit !== '1/1' ? ', ' : '') + (f.side === 'LH' ? 'пара: ліва' : 'пара: права') : '');
+      out.push({ f: f, v: ['', state, f.kab, ebaySerial_(f.date), f.item + (tag ? '  [' + tag + ']' : ''), name, f.amount, link, f.tracking, f.status, hint, f.id, mrow] });
     });
     if (!out.length) return;
 
@@ -371,14 +379,57 @@ function ebayAlreadyInMain_(sh, main, row, v) {
   return ebayFindInMain_(ebayMainIndex_(main), claimed, { item_id: m[1], date: iso, kab: String(v[EB.C_KAB - 1]).trim() });
 }
 
+// одна покупка → ліва + права, сума навпіл до цента
+function ebayHalves_(f) {
+  const c = Math.round(Number(f.amount) * 100), a = Math.floor(c / 2);
+  return [
+    Object.assign({}, f, { id: f.id + 'L', side: 'LH', amount: a / 100 }),
+    Object.assign({}, f, { id: f.id + 'R', side: 'RH', amount: (c - a) / 100 }),
+  ];
+}
+
+// Меню: розділити вибраний «Новий» рядок на пару, якщо в назві лоту не було слова Pair
+function ebaySplitPair() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  if (sh.getName() !== EB.IN) return ss.toast('Відкрийте «Входящие операции» і виберіть рядок', 'eBay', 6);
+  const row = sh.getActiveRange().getRow();
+  if (row < 2) return;
+  const v = sh.getRange(row, 1, 1, EB.NCOL).getValues()[0];
+  const st = String(v[EB.C_STATE - 1]);
+  if ((st !== EB.S_NEW && st.indexOf('⚠') !== 0) || /[LR]$/.test(String(v[EB.C_ID - 1]))) {
+    return ss.toast('Розділити можна лише новий, ще не розділений рядок', 'eBay', 6);
+  }
+  const f = { id: String(v[EB.C_ID - 1]), amount: Number(v[EB.C_SUM - 1]) };
+  const h = ebayHalves_(f);
+  const hist = ebayMainIndex_(ss.getSheetByName(EB.MAIN));
+  const data = ebayDataNames_(ss);
+  const itemId = (String(v[EB.C_LINK - 1]).match(/itm\/(\d+)/) || [])[1] || '';
+  const title = String(v[EB.C_TITLE - 1]).replace(/\s+\[.*\]$/, '');
+  sh.insertRowsAfter(row, 1);
+  sh.getRange(row, 1, 1, EB.NCOL).copyTo(sh.getRange(row + 1, 1, 1, EB.NCOL));
+  h.forEach((x, i) => {
+    const r = row + i;
+    const m = ebayMatch_(title, itemId, data, hist, x.side);
+    sh.getRange(r, EB.C_OK).setValue(false);
+    sh.getRange(r, EB.C_STATE).setValue(EB.S_NEW);
+    sh.getRange(r, EB.C_TITLE).setValue(title + '  [пара: ' + (x.side === 'LH' ? 'ліва' : 'права') + ']');
+    sh.getRange(r, EB.C_NAME).setValue(m.name);
+    sh.getRange(r, EB.C_SUM).setValue(x.amount);
+    sh.getRange(r, EB.C_HINT).setValue(m.hint);
+    sh.getRange(r, EB.C_ID).setValue(x.id);
+  });
+}
+
 function ebayDataNames_(ss) {
   return ss.getSheetByName(EB.DATA).getRange('A1:A').getValues()
     .map(r => String(r[0]).trim()).filter(s => s);
 }
 
 // Підбір позиції DATA за назвою лоту. Повертає {name, hint}: name — лише якщо збіг однозначний.
-function ebayMatch_(title, itemId, names, hist) {
+function ebayMatch_(title, itemId, names, hist, side) {
   const t = ebayParseTitle_(title);
+  if (side) t.side = side;
 
   // 1) цей лот уже купували — та сама позиція (з урахуванням сторони)
   const prev = {};
