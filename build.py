@@ -224,6 +224,7 @@ def write_feeds(all_items):
     rows = []
     for it in all_items:
         if it["st"] != "in" or not (it["price"] or it["uah"]) or not it.get("photos"): continue
+        if not (it["pn"] or it.get("avto_code")): continue   # no part number anywhere -> no Google traffic (owner, 19.11)
         price = it["uah"] or uah(it["price"])
         imgs = [aimg(u) for u in it["photos"][:11]]
         desc = it["short"] or (f'{it["name"]}. {"Оригінал зі США" if it["type"] == "Оригінал" else "Аналог " + it["avto_maker"] + " (не оригінал)"}, '
