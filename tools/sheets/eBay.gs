@@ -121,7 +121,7 @@ function ebaySync_(days) {
     const claimed = {};
     cur.forEach((r, i) => {
       if (r[EB.C_ID - 1]) byId[r[EB.C_ID - 1]] = i + 2;
-      if (r[EB.C_ROW - 1]) claimed[r[EB.C_ROW - 1]] = true;
+      String(r[EB.C_ROW - 1]).split(',').filter(x => x.trim()).forEach(x => claimed[Number(x)] = true);
     });
 
     const hist = ebayMainIndex_(main);
@@ -149,12 +149,12 @@ function ebaySync_(days) {
       const d = r[EB.C_DATE - 1];
       if (!m || !(d instanceof Date)) return;
       const iso = Utilities.formatDate(d, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
-      const have = ebayFindInMain_(hist, claimed, { item_id: m[1], date: iso, kab: String(r[EB.C_KAB - 1]).trim() });
+      const have = ebayFindInMain_(hist, claimed, { item_id: m[1], date: iso, kab: String(r[EB.C_KAB - 1]).trim(), amount: r[EB.C_SUM - 1] });
       if (!have) return;
-      claimed[have.row] = true;
+      have.rows.forEach(x => claimed[x] = true);
       sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
-      sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (рядок ' + have.row + ')');
-      sh.getRange(row, EB.C_ROW).setValue(have.row);
+      sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (' + have.label + ')');
+      sh.getRange(row, EB.C_ROW).setValue(have.rows.join(','));
       ebayPaintState_(sh, row, EB.S_HAVE);
     });
 
@@ -172,9 +172,9 @@ function ebaySync_(days) {
       let state = EB.S_NEW, mrow = '', name = '', hint = '';
       const have = ebayFindInMain_(hist, claimed, f);
       if (have) {
-        state = EB.S_HAVE + ' (рядок ' + have.row + ')';
-        mrow = have.row;
-        claimed[have.row] = true;
+        state = EB.S_HAVE + ' (' + have.label + ')';
+        mrow = have.rows.join(',');
+        have.rows.forEach(x => claimed[x] = true);
         name = have.name;
       } else if (f.cancelled) {
         state = EB.S_CANCEL;
@@ -275,10 +275,10 @@ function ebayTransfer_(sh, row, v) {
   const have = ebayAlreadyInMain_(sh, main, row, v);
   if (have) {
     sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
-    sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (рядок ' + have.row + ')');
-    sh.getRange(row, EB.C_ROW).setValue(have.row);
+    sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (' + have.label + ')');
+    sh.getRange(row, EB.C_ROW).setValue(have.rows.join(','));
     ebayPaintState_(sh, row, EB.S_HAVE);
-    ss.toast('Ця покупка вже є в «Общей таблице», рядок ' + have.row + '. Не переношу.', 'eBay', 8);
+    ss.toast('Ця покупка вже є в «Общей таблице» (' + have.label + '). Не переношу.', 'eBay', 8);
     return;
   }
 
@@ -341,13 +341,13 @@ function ebaySetTrackNote_(main, row, link, tracking) {
 
 function ebayMainIndex_(main) {
   const last = main.getLastRow();
-  const v = main.getRange(2, 4, last - 1, 4).getValues(); // D E F G
+  const v = main.getRange(2, 4, last - 1, 5).getValues(); // D E F G H
   const out = [];
   v.forEach((r, i) => {
     const m = String(r[0]).match(/ebay\.com\/itm\/(\d+)/);
     if (!m) return;
     const d = r[3] instanceof Date ? r[3] : null;
-    out.push({ row: i + 2, item: m[1], kab: String(r[1]).trim(), name: String(r[2]).trim(), date: d });
+    out.push({ row: i + 2, item: m[1], kab: String(r[1]).trim(), name: String(r[2]).trim(), date: d, sum: Number(r[4]) || 0 });
   });
   return out;
 }
@@ -363,6 +363,17 @@ function ebayFindInMain_(hist, claimed, f) {
     const score = diff + (h.kab === f.kab ? 0 : 10);
     if (score < bestScore) { bestScore = score; best = h; }
   });
+  if (!best) return null;
+  best = Object.assign({}, best, { rows: [best.row] });
+  // пара одним лотом, внесена двома рядками: сума eBay = сума двох рядків
+  const amt = Number(f.amount) || 0;
+  const tol = Math.max(1, amt * 0.01); // вручну суму часто округлюють (329,75 → 2 × 165,00)
+  if (amt && Math.abs(best.sum - amt) > tol) {
+    const p = hist.find(h => h.item === String(f.item_id) && h.row !== best.row && !claimed[h.row] && h.date &&
+      Math.abs((h.date - fd) / 86400000) <= 3 && Math.abs(best.sum + h.sum - amt) <= tol);
+    if (p) best.rows = [best.row, p.row].sort((a, b) => a - b);
+  }
+  best.label = best.rows.length > 1 ? 'рядки ' + best.rows.join(', ') : 'рядок ' + best.row;
   return best;
 }
 
@@ -375,8 +386,10 @@ function ebayAlreadyInMain_(sh, main, row, v) {
   if (!iso) return null;
   const claimed = {};
   const last = sh.getLastRow();
-  if (last > 1) sh.getRange(2, EB.C_ROW, last - 1, 1).getValues().forEach((r, i) => { if (r[0] && i + 2 !== row) claimed[r[0]] = true; });
-  return ebayFindInMain_(ebayMainIndex_(main), claimed, { item_id: m[1], date: iso, kab: String(v[EB.C_KAB - 1]).trim() });
+  if (last > 1) sh.getRange(2, EB.C_ROW, last - 1, 1).getValues().forEach((r, i) => {
+    if (i + 2 !== row) String(r[0]).split(',').filter(x => x.trim()).forEach(x => claimed[Number(x)] = true);
+  });
+  return ebayFindInMain_(ebayMainIndex_(main), claimed, { item_id: m[1], date: iso, kab: String(v[EB.C_KAB - 1]).trim(), amount: v[EB.C_SUM - 1] });
 }
 
 // одна покупка → ліва + права, сума навпіл до цента
@@ -484,7 +497,7 @@ function ebaySideOf_(s) {
   const n = ' ' + String(s).toLowerCase() + ' ';
   const l = /\b(lh|left|driver|l\/h)\b|левая|ліва|лівий|левый/.test(n);
   const r = /\b(rh|right|passenger|r\/h)\b|правая|права|правий|правый/.test(n);
-  if ((l && r) || /\b(pair|both sides|set of 2)\b/.test(n)) return 'LR';
+  if ((l && r) || /\b(pair|both sides|set of 2|set|lh\s*&\s*rh)\b/.test(n)) return 'LR';
   return l ? 'LH' : r ? 'RH' : '';
 }
 
