@@ -288,12 +288,13 @@ function ebayTransfer_(sh, row, v) {
   const date = dateCell instanceof Date ? ebaySerialFromDate_(dateCell) : dateCell;
 
   main.getRange(target, 4, 1, 5).setValues([[link, kab, name, date, Number(v[EB.C_SUM - 1])]]);
-  main.getRange(target, 7).setNumberFormat('dd.mm.yyyy');
-  ebayPaintKab_(main.getRange(target, 5), kab);
-  if (v[EB.C_TRACK - 1]) ebaySetTrackNote_(main, target, link, String(v[EB.C_TRACK - 1]));
-
+  // одразу фіксуємо перенесення у «Входящих», щоб збій оформлення нижче не призвів до повтору
   sh.getRange(row, EB.C_STATE).setValue(EB.S_DONE + ' рядок ' + target);
   sh.getRange(row, EB.C_ROW).setValue(target);
+  // G — стовпець таблиці з типом «Дата»: формат не чіпаємо (число дати й так показується як дд.мм.рррр)
+  try { ebayPaintKab_(main.getRange(target, 5), kab); } catch (err) { console.warn('КАБ колір: ' + err); }
+  try { if (v[EB.C_TRACK - 1]) ebaySetTrackNote_(main, target, link, String(v[EB.C_TRACK - 1])); } catch (err) { console.warn('примітка: ' + err); }
+
   ebayPaintState_(sh, row, EB.S_DONE);
   SpreadsheetApp.flush();
   ss.toast(name + ' → рядок ' + target, 'eBay: перенесено', 5);
