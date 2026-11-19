@@ -502,8 +502,8 @@ function ebayYears_(s) {
 
 function ebaySideOf_(s) {
   const n = ' ' + String(s).toLowerCase() + ' ';
-  const l = /\b(lh|left|driver|l\/h)\b|левая|ліва|лівий|левый/.test(n);
-  const r = /\b(rh|right|passenger|r\/h)\b|правая|права|правий|правый/.test(n);
+  const l = /\b(lh|left|driver|l\/h)\b|\bl\s+head(light|lamp)|левая|ліва|лівий|левый/.test(n);
+  const r = /\b(rh|right|passenger|r\/h)\b|\br\s+head(light|lamp)|правая|права|правий|правый/.test(n);
   if ((l && r) || /\b(pair|both sides|set of 2|set|lh\s*&\s*rh)\b/.test(n)) return 'LR';
   return l ? 'LH' : r ? 'RH' : '';
 }

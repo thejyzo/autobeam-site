@@ -121,3 +121,66 @@ function ebay_pictures($cfg, $ids) {
   }
   return $out;
 }
+
+// ===== eBay monitor (Browse API: search of new listings) =====
+// Application token (client credentials) — no user data; cached outside the web root for its lifetime (~2 h).
+function ebay_app_token($cfg, $dataDir) {
+  $f = "$dataDir/ebay_app_token.json";
+  $c = is_file($f) ? json_decode((string) file_get_contents($f), true) : null;
+  if (is_array($c) && ($c['exp'] ?? 0) > time() + 120) return $c['token'];
+  $ctx = stream_context_create(['http' => ['method' => 'POST', 'timeout' => 30, 'ignore_errors' => true,
+    'header' => "Content-Type: application/x-www-form-urlencoded\r\nAuthorization: Basic " . base64_encode($cfg['ebay_app_id'] . ':' . $cfg['ebay_cert_id']) . "\r\n",
+    'content' => http_build_query(['grant_type' => 'client_credentials', 'scope' => 'https://api.ebay.com/oauth/api_scope'])]]);
+  $r = json_decode((string) @file_get_contents('https://api.ebay.com/identity/v1/oauth2/token', false, $ctx), true);
+  if (empty($r['access_token'])) return null;
+  @file_put_contents($f, json_encode(['token' => $r['access_token'], 'exp' => time() + (int) ($r['expires_in'] ?? 7200)]), LOCK_EX);
+  @chmod($f, 0600);
+  return $r['access_token'];
+}
+
+// Newest US listings for a query, Buy It Now / Best Offer, item price ≤ $max. Shipping is quoted to $zip (US forwarder warehouse).
+// Returned: lot id, title, price, shipping, condition, link, listed time, seller feedback % — no seller names.
+function ebay_search($cfg, $dataDir, $q, $max, $zip = '19720', $limit = 50) {
+  $tok = ebay_app_token($cfg, $dataDir);
+  if (!$tok) return [null, 'eBay: не вдалося отримати токен застосунку'];
+  $filter = 'buyingOptions:{FIXED_PRICE|BEST_OFFER},itemLocationCountry:US,deliveryCountry:US,priceCurrency:USD';
+  if ($max > 0) $filter .= ',price:[..' . round($max, 2) . ']';
+  $url = 'https://api.ebay.com/buy/browse/v1/item_summary/search?' . http_build_query([
+    'q' => $q, 'filter' => $filter, 'sort' => 'newlyListed', 'limit' => max(1, min(200, (int) $limit))]);
+  $ctx = stream_context_create(['http' => ['method' => 'GET', 'timeout' => 30, 'ignore_errors' => true,
+    'header' => "Authorization: Bearer $tok\r\nX-EBAY-C-MARKETPLACE-ID: EBAY_US\r\n"
+              . 'X-EBAY-C-ENDUSERCTX: contextualLocation=' . rawurlencode("country=US,zip=$zip") . "\r\n"]]);
+  $r = json_decode((string) @file_get_contents($url, false, $ctx), true);
+  if (!is_array($r)) return [null, 'eBay не відповів'];
+  if (!empty($r['errors'])) return [null, 'eBay: ' . ($r['errors'][0]['message'] ?? 'помилка')];
+  $out = [];
+  foreach ($r['itemSummaries'] ?? [] as $it) {
+    $ship = null; $shipType = '';
+    foreach ($it['shippingOptions'] ?? [] as $so) {
+      if (isset($so['shippingCost']['value'])) { $v = (float) $so['shippingCost']['value']; if ($ship === null || $v < $ship) $ship = $v; }
+      $shipType = $so['shippingCostType'] ?? $shipType;
+    }
+    $out[] = [
+      'id' => (string) ($it['legacyItemId'] ?? preg_replace('/^v1\|(\d+)\|.*$/', '$1', (string) ($it['itemId'] ?? ''))),
+      'title' => (string) ($it['title'] ?? ''),
+      'price' => (float) ($it['price']['value'] ?? 0),
+      'ship' => $ship,
+      'ship_type' => $shipType,
+      'condition' => (string) ($it['condition'] ?? ''),
+      'options' => implode('/', $it['buyingOptions'] ?? []),
+      'url' => 'https://www.ebay.com/itm/' . (string) ($it['legacyItemId'] ?? ''),
+      'listed' => (string) ($it['itemCreationDate'] ?? ''),
+      'fb' => isset($it['seller']['feedbackPercentage']) ? (float) $it['seller']['feedbackPercentage'] : null,
+      'img' => (string) ($it['image']['imageUrl'] ?? ''),
+    ];
+  }
+  return [$out, null];
+}
+
+function tg_send($token, $chat, $text) {
+  $ctx = stream_context_create(['http' => ['method' => 'POST', 'timeout' => 20, 'ignore_errors' => true,
+    'header' => "Content-Type: application/json\r\n",
+    'content' => json_encode(['chat_id' => $chat, 'text' => $text, 'parse_mode' => 'HTML', 'disable_web_page_preview' => false])]]);
+  $r = json_decode((string) @file_get_contents("https://api.telegram.org/bot$token/sendMessage", false, $ctx), true);
+  return !empty($r['ok']);
+}

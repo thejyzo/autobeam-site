@@ -3,6 +3,7 @@
 // Запуск:  php ~/autobeam_repo/tools/setup_api.php olx     — OLX Partner API (client_id + client_secret) і посилання для авторизації
 //          php ~/autobeam_repo/tools/setup_api.php ebay    — eBay Trading API (App ID, Dev ID, Cert ID, User token) + перевірка
 //          php ~/autobeam_repo/tools/setup_api.php sheets  — ключ для Google-таблиці («Входящие операции» читає покупки eBay)
+//          php ~/autobeam_repo/tools/setup_api.php monitor — Telegram-бот монітора нових лотів eBay
 // Ключі зберігаються в ~/autobeam_secrets.php (права 600), поза сайтом.
 
 if (PHP_SAPI !== 'cli') exit("Тільки з консолі\n");
@@ -92,4 +93,24 @@ if ($what === 'sheets') {
   exit;
 }
 
-echo "Вкажіть: olx, ebay або sheets\n";
+if ($what === 'monitor') {
+  // Telegram-бот монітора eBay (@autobeam_monitor_bot): токен від @BotFather + чат, куди слати
+  $tok = ask('Токен бота монітора від @BotFather');
+  if (!preg_match('/^\d+:[A-Za-z0-9_-]{30,}$/', $tok)) exit("Не схоже на токен бота. Нічого не змінено.\n");
+  $me = json_decode((string) @file_get_contents("https://api.telegram.org/bot$tok/getMe"), true);
+  if (empty($me['ok'])) exit("Telegram не прийняв токен. Нічого не змінено.\n");
+  echo "Бот @{$me['result']['username']} знайдено.\nВідкрийте його в Telegram, натисніть «Start» (або напишіть будь-що), потім поверніться сюди і натисніть Enter.";
+  fgets(STDIN);
+  $up = json_decode((string) @file_get_contents("https://api.telegram.org/bot$tok/getUpdates"), true);
+  $chat = null;
+  foreach (array_reverse($up['result'] ?? []) as $u) { $c = $u['message']['chat']['id'] ?? ($u['my_chat_member']['chat']['id'] ?? null); if ($c) { $chat = $c; break; } }
+  if (!$chat) exit("Не бачу повідомлення боту. Натисніть Start у боті і запустіть команду ще раз.\n");
+  $cfg['tg_mon_token'] = $tok; $cfg['tg_mon_chat'] = $chat;
+  save($file, $cfg);
+  require __DIR__ . '/ebay_lib.php';
+  tg_send($tok, $chat, '✅ AutoBeam монітор eBay підключено. Сюди приходитимуть нові лоти за аркушем «Запити».');
+  echo "Збережено. У бот надіслано тестове повідомлення.\n";
+  exit;
+}
+
+echo "Вкажіть: olx, ebay, sheets або monitor\n";
