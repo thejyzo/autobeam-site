@@ -405,6 +405,7 @@ def main():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT / "fary").mkdir(parents=True)
     shutil.copytree(SRC / "assets", OUT / "assets")
+    shutil.copy(SRC / "assets" / "favicon.ico", OUT / "favicon.ico")   # Google looks for /favicon.ico (48px multiple)
     shutil.copytree(SRC / "api", OUT / "api")
     shutil.copytree(SRC / "admin", OUT / "admin")
 
