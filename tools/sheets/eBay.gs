@@ -139,6 +139,24 @@ function ebaySync_(days) {
       if (String(r[EB.C_STATUS - 1]) !== f.status) sh.getRange(row, EB.C_STATUS).setValue(f.status);
     });
 
+    // ще не перенесені рядки: якщо тим часом внесли вручну — «Вже в обліку»
+    cur.forEach((r, i) => {
+      const st = String(r[EB.C_STATE - 1]);
+      if (st !== EB.S_NEW && st.indexOf('⚠') !== 0) return;
+      const row = i + 2;
+      const m = String(r[EB.C_LINK - 1]).match(/itm\/(\d+)/);
+      const d = r[EB.C_DATE - 1];
+      if (!m || !(d instanceof Date)) return;
+      const iso = Utilities.formatDate(d, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+      const have = ebayFindInMain_(hist, claimed, { item_id: m[1], date: iso, kab: String(r[EB.C_KAB - 1]).trim() });
+      if (!have) return;
+      claimed[have.row] = true;
+      sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
+      sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (рядок ' + have.row + ')');
+      sh.getRange(row, EB.C_ROW).setValue(have.row);
+      ebayPaintState_(sh, row, EB.S_HAVE);
+    });
+
     // нові: від старих до нових, щоб «Вже в обліку» розбиралися по порядку
     const fresh = feed.filter(f => !byId[f.id]).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
     const out = [];
@@ -244,6 +262,18 @@ function ebayTransfer_(sh, row, v) {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const main = ss.getSheetByName(EB.MAIN);
+
+  // повторна перевірка саме зараз: раптом цю покупку вже внесли вручну після завантаження
+  const have = ebayAlreadyInMain_(sh, main, row, v);
+  if (have) {
+    sh.getRange(row, EB.C_OK).clearDataValidations().setValue('');
+    sh.getRange(row, EB.C_STATE).setValue(EB.S_HAVE + ' (рядок ' + have.row + ')');
+    sh.getRange(row, EB.C_ROW).setValue(have.row);
+    ebayPaintState_(sh, row, EB.S_HAVE);
+    ss.toast('Ця покупка вже є в «Общей таблице», рядок ' + have.row + '. Не переношу.', 'eBay', 8);
+    return;
+  }
+
   const target = ebayTargetRow_(main);
   const link = String(v[EB.C_LINK - 1]);
   const dateCell = v[EB.C_DATE - 1];
@@ -326,6 +356,19 @@ function ebayFindInMain_(hist, claimed, f) {
     if (score < bestScore) { bestScore = score; best = h; }
   });
   return best;
+}
+
+// Чи є ця покупка (рядок «Входящих») уже в «Общей таблице»: той самий лот, ±3 дні, рядок ще не зайнятий іншою покупкою.
+function ebayAlreadyInMain_(sh, main, row, v) {
+  const m = String(v[EB.C_LINK - 1]).match(/itm\/(\d+)/);
+  if (!m) return null;
+  const d = v[EB.C_DATE - 1];
+  const iso = d instanceof Date ? Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), 'yyyy-MM-dd') : '';
+  if (!iso) return null;
+  const claimed = {};
+  const last = sh.getLastRow();
+  if (last > 1) sh.getRange(2, EB.C_ROW, last - 1, 1).getValues().forEach((r, i) => { if (r[0] && i + 2 !== row) claimed[r[0]] = true; });
+  return ebayFindInMain_(ebayMainIndex_(main), claimed, { item_id: m[1], date: iso, kab: String(v[EB.C_KAB - 1]).trim() });
 }
 
 function ebayDataNames_(ss) {
