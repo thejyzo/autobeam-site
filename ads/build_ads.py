@@ -135,9 +135,26 @@ def model_keywords(g):
         nouns = {"Фара": ["фара", "фари", "фары"], "Ліхтар": ["ліхтар", "фонарь", "задній ліхтар", "стоп"],
                  "ДХВ": ["ходові вогні", "дхв", "led смуга"]}[kind]
         en = {"Фара": "headlight", "Ліхтар": "tail light", "ДХВ": "drl"}[kind]
+        sides = {it["side"] for it in g["items"]}
+        side_words = []
+        if kind == "Фара":
+            if "Ліва" in sides: side_words += ["ліва", "левая"]
+            if "Права" in sides: side_words += ["права", "правая"]
+            extra = ["передня", "передняя"]
+        elif kind == "Ліхтар":
+            if "Ліва" in sides: side_words += ["лівий", "левый"]
+            if "Права" in sides: side_words += ["правий", "правый"]
+            extra = ["задній", "задний"]
+        else:
+            extra = []
+        base = nouns[0]
         for x in names:
             for n in nouns:
                 kw += [f"{n} {x}", f"{x} {n}"]        # phrase match keeps word order, so both orders
+            # phrase match does not allow words INSIDE the phrase: "фара ліва rav4" needs its own keyword
+            for sw in side_words + extra:
+                kw += [f"{base} {sw} {x}", f"{sw} {base} {x}", f"{x} {base} {sw}"]
+            kw += [f"{base} на {x}", f"оптика {x}"] if kind == "Фара" else [f"{base} на {x}"]
             if re.match(r"^[a-z0-9 .-]+$", x):
                 kw += [f"{x} {en}"]
     out = []
