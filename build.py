@@ -214,7 +214,7 @@ def write_feeds(all_items):
         price = it["uah"] or uah(it["price"])
         imgs = [pimg(u, "1200x900") if u.startswith("http") else CFG["site_url"] + u for u in it["photos"][:11]]
         desc = it["short"] or (f'{it["name"]}. {"Оригінал" if it["type"] == "Оригінал" else "Аналог"} зі США, '
-                               f'{"новий товар" if it["state"] == "Нове" else "вживаний, перевірений перед продажем"}. '
+                               f'стан: {"нове" if it["state"] == "Нове" else "вживане, перевірене перед продажем"}. '
                                + (f'Парт-номер {it["pn"]}. ' if it["pn"] else "") + "Гарантія 14 днів. Доставка Новою поштою по Україні.")
         g = [("g:id", it["id"]), ("g:title", it["name"][:150]), ("g:description", desc[:5000]),
              ("g:link", f'{CFG["site_url"]}/fary/{it["slug"]}.html'), ("g:image_link", imgs[0]),
