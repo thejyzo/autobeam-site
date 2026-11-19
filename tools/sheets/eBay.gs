@@ -99,11 +99,25 @@ function ebayPrepareSheet_() {
 // =====================================================
 
 function ebaySync90() { ebaySync_(90); }
+function ebaySyncPending() {
+  const props = PropertiesService.getScriptProperties();
+  const d = Number(props.getProperty('EB_PENDING_DAYS')) || 30;
+  props.deleteProperty('EB_PENDING_DAYS');
+  ebaySync_(d);
+}
 function ebaySync() { ebaySync_(30); }
 
 function ebaySync_(days) {
   const lock = LockService.getDocumentLock();
-  if (!lock.tryLock(30000)) return;
+  if (!lock.tryLock(30000)) {
+    // зайнято (напр. качаються фото) — не губимо запит: повторимо самі за 2 хв
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty('EB_PENDING_DAYS', String(Math.max(days, Number(props.getProperty('EB_PENDING_DAYS')) || 0)));
+    ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'ebaySyncPending').forEach(t => ScriptApp.deleteTrigger(t));
+    ScriptApp.newTrigger('ebaySyncPending').timeBased().after(2 * 60 * 1000).create();
+    try { SpreadsheetApp.getActive().toast('Зараз завантажуються фото. Покупки за ' + days + ' дн. підтягнуться автоматично за кілька хвилин.', 'eBay', 8); } catch (e) {}
+    return;
+  }
   try {
     const key = PropertiesService.getScriptProperties().getProperty('EBAY_FEED_KEY');
     if (!key) throw new Error('Немає EBAY_FEED_KEY у Властивостях скрипта');
