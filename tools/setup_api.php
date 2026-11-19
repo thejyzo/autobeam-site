@@ -2,6 +2,7 @@
 // AutoBeam: збереження ключів eBay і OLX на сервері (приховане введення, нічого не потрапляє в історію команд).
 // Запуск:  php ~/autobeam_repo/tools/setup_api.php olx     — OLX Partner API (client_id + client_secret) і посилання для авторизації
 //          php ~/autobeam_repo/tools/setup_api.php ebay    — eBay Trading API (App ID, Dev ID, Cert ID, User token) + перевірка
+//          php ~/autobeam_repo/tools/setup_api.php sheets  — ключ для Google-таблиці («Входящие операции» читає покупки eBay)
 // Ключі зберігаються в ~/autobeam_secrets.php (права 600), поза сайтом.
 
 if (PHP_SAPI !== 'cli') exit("Тільки з консолі\n");
@@ -83,4 +84,12 @@ if ($what === 'ebay') {
   exit;
 }
 
-echo "Вкажіть: olx або ebay\n";
+if ($what === 'sheets') {
+  // Key for the Google Sheet script to read eBay purchases from https://autobeam.com.ua/admin/ebay_feed.php
+  if (empty($cfg['sheets_key']) || in_array('new', $argv, true)) { $cfg['sheets_key'] = bin2hex(random_bytes(24)); save($file, $cfg); }
+  echo "Ключ для таблиці (скопіюйте у Apps Script → Налаштування проєкту → Властивості скрипта, назва EBAY_FEED_KEY):\n\n"
+     . $cfg['sheets_key'] . "\n\nНовий ключ (старий перестане працювати): php ~/autobeam_repo/tools/setup_api.php sheets new\n";
+  exit;
+}
+
+echo "Вкажіть: olx, ebay або sheets\n";
