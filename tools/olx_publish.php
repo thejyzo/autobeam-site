@@ -42,7 +42,7 @@ if ($cat === '') $err[] = 'невідома категорія OLX';
 if (!empty($p['archived'])) $err[] = 'картка в архіві';
 if ($err) exit("❌ $id: " . implode('; ', $err) . "\n");
 
-$imgs = array_map(function ($u) use ($SITE) { return ['url' => strpos($u, 'http') === 0 ? $u : $SITE . $u]; }, array_slice($p['photos'], 0, 8));
+$imgs = array_map(function ($u) use ($SITE) { return ['url' => strpos($u, 'http') === 0 ? $u : $SITE . $u]; }, array_slice($p['photos'], 0, 40));
 $pns = trim(implode(' ', array_unique(array_filter(array_merge([$p['pn'] ?? ''], $p['pn_alt'] ?? [])))));
 $compat = array_values(array_filter(array_map('trim', preg_split('/[|,;\s]+/', (string) ($p['olx_compat'] ?? '')))));
 $brand = $p['olx_brand'] ?: strtolower(str_replace([' ', '-'], '_', $p['brand'] ?? ''));

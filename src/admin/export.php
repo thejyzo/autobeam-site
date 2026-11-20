@@ -26,7 +26,7 @@ foreach (all_products() as $p) {
   if ($only === '' && $mode === 'new' && !($avail && empty($p['olx_id']))) continue;
   if ($only === '' && $mode === 'all' && !( (!empty($p['olx_id']) && !empty($p['olx_active'])) || ($avail && empty($p['olx_id'])) )) continue;
   if (empty($p['title']) || empty($p['photos'])) continue;
-  $img = implode('|', array_map(function ($u) use ($site) { return strpos($u, 'http') === 0 ? $u : $site . $u; }, array_slice($p['photos'], 0, 8)));
+  $img = implode('|', array_map(function ($u) use ($site) { return strpos($u, 'http') === 0 ? $u : $site . $u; }, array_slice($p['photos'], 0, 40)));
   $pns = trim(implode(' ', array_merge([$p['pn'] ?? ''], $p['pn_alt'] ?? [])));
   fputcsv($out, [$p['olx_id'] ?? '', $p['title'], $p['description'] ?? '', $p['id'], '280', '67', $img, $p['price'], $p['currency'] ?: 'USD',
     ($p['state'] ?? '') === 'Нове' ? 'new' : 'used', $pns, ($p['original'] ?? '') === 'Аналог' ? 'analog' : 'original',
