@@ -50,7 +50,8 @@ $brand = $p['olx_brand'] ?: strtolower(str_replace([' ', '-'], '_', $p['brand'] 
 $attrs = [['code' => 'state', 'value' => ($p['state'] ?? '') === 'Нове' ? 'new' : 'used'],
           ['code' => 'parts_type', 'value' => ($p['original'] ?? '') === 'Аналог' ? 'analog' : 'original']];
 if ($brand !== '') $attrs[] = ['code' => 'car_brand', 'values' => [$brand]];
-if ($pns !== '') { $attrs[] = ['code' => 'part_num', 'value' => $pns]; $attrs[] = ['code' => 'part_number', 'value' => $pns]; }
+// part_number через API валить OLX (HTTP 500, перевірено 20.11.2026) — надсилаємо лише part_num («Код запчастини»)
+if ($pns !== '') $attrs[] = ['code' => 'part_num', 'value' => $pns];
 if ($compat) { $attrs[] = ['code' => 'compatibility_list_source', 'value' => 'auto']; $attrs[] = ['code' => 'compatibility_list', 'values' => $compat]; }
 
 try { $tok = olx_token(); } catch (Exception $e) { exit('❌ ' . $e->getMessage() . "\n"); }
@@ -143,7 +144,6 @@ if (in_array('--step', $argv, true)) {
     'тип запчастини (оригінал)' => ['attributes' => $byCode(['parts_type'])],
     'марка (car_brand)'         => ['attributes' => $byCode(['car_brand'])],
     'код (part_num)'            => ['attributes' => $byCode(['part_num'])],
-    'номер (part_number)'       => ['attributes' => $byCode(['part_number'])],
     'сумісність'                => ['attributes' => $byCode(['compatibility_list_source', 'compatibility_list'])],
     'телефон'                   => ['contact' => $body['contact']],
     'фото'                      => ['images' => $body['images']],
