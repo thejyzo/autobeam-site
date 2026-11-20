@@ -132,7 +132,49 @@ $send = function ($body) use ($olx, $tok) {
   return $olx ? olx_http('PUT', '/api/partner/adverts/' . rawurlencode($olx), $tok, $body)
               : olx_http('POST', '/api/partner/adverts', $tok, $body);
 };
-[$c, $res, $raw] = $send($body);
+if (in_array('--step', $argv, true)) {
+  // Покроково: базове оголошення (назва, опис, ціна, стан, локація, ім'я), далі додаємо по одному шматку через PUT.
+  // Шматок, на якому OLX дає 5xx, пропускаємо і називаємо.
+  $byCode = function ($codes) use ($attrs) { return array_values(array_filter($attrs, function ($a) use ($codes) { return in_array($a['code'], $codes, true); })); };
+  $cur = ['title' => $title, 'description' => $desc, 'category_id' => (int) $cat, 'advertiser_type' => $body['advertiser_type'],
+          'contact' => ['name' => $body['contact']['name']], 'location' => $body['location'], 'price' => $body['price'],
+          'attributes' => $byCode(['state'])];
+  $pieces = [
+    'тип запчастини (оригінал)' => ['attributes' => $byCode(['parts_type'])],
+    'марка (car_brand)'         => ['attributes' => $byCode(['car_brand'])],
+    'код (part_num)'            => ['attributes' => $byCode(['part_num'])],
+    'номер (part_number)'       => ['attributes' => $byCode(['part_number'])],
+    'сумісність'                => ['attributes' => $byCode(['compatibility_list_source', 'compatibility_list'])],
+    'телефон'                   => ['contact' => $body['contact']],
+    'фото'                      => ['images' => $body['images']],
+    'ID картки (external_id)'   => ['external_id' => $id],
+  ];
+  $bad = [];
+  $sendStep = function ($b) use (&$olx, $tok) {
+    return $olx !== '' ? olx_http('PUT', '/api/partner/adverts/' . rawurlencode($olx), $tok, $b) : olx_http('POST', '/api/partner/adverts', $tok, $b);
+  };
+  [$c, $res, $raw] = $sendStep($cur);
+  echo "\n▶ базове (назва, опис, ціна {$body['price']['value']} {$body['price']['currency']}, стан) → HTTP $c\n";
+  if ($c >= 500 && $body['price']['currency'] !== 'UAH') {
+    exit("❌ OLX падає вже на базовому оголошенні (ймовірно, ціна в {$body['price']['currency']}). Оголошення не створено.\n");
+  }
+  if ($c < 200 || $c >= 300 || empty($res['data']['id'])) exit("❌ " . short_err((string) $raw) . "\n");
+  $olx = (string) $res['data']['id'];
+  echo "  ✅ створено оголошення $olx\n";
+  foreach ($pieces as $name => $add) {
+    $try = $cur;
+    foreach ($add as $k => $v) $try[$k] = $k === 'attributes' ? array_merge($cur['attributes'], $v) : $v;
+    [$c2, $r2, $raw2] = $sendStep($try);
+    echo "▶ + $name → HTTP $c2" . ($c2 >= 200 && $c2 < 300 ? " ✅\n" : '  ❌ ' . short_err((string) $raw2) . "\n");
+    if ($c2 >= 200 && $c2 < 300) { $cur = $try; $res = $r2; } else $bad[] = $name;
+  }
+  echo $bad ? "\n⚠️ OLX не прийняв: " . implode(', ', $bad) . " — ці поля пропущено (можна дописати в кабінеті OLX).\n" : "\n✅ Усі поля прийнято.\n";
+  [$c, $one] = olx_http('GET', '/api/partner/adverts/' . $olx, $tok);
+  $res = ['data' => $one['data'] ?? ($res['data'] ?? ['id' => $olx])];
+  $c = 200;
+} else {
+  [$c, $res, $raw] = $send($body);
+}
 if (($c < 200 || $c >= 300) && $olx === '' && ($ex = find_ours($tok, $cat, $id))) {   // помилка, але оголошення створилось
   $c = 200; $res = ['data' => $ex];
 }
