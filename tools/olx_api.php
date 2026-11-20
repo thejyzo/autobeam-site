@@ -10,7 +10,7 @@ const OLX = 'https://www.olx.ua';
 function olx_cfg() { global $home; $c = @include "$home/autobeam_secrets.php"; return is_array($c) ? $c : []; }
 
 function olx_http($method, $path, $token = null, $body = null) {
-  $h = "Version: 2.0\r\nAccept: application/json\r\n";
+  $h = "Version: 2.0\r\nAccept: application/json\r\nUser-Agent: AutoBeamSync/1.0 (+https://autobeam.com.ua)\r\n";
   if ($token) $h .= "Authorization: Bearer $token\r\n";
   if ($body !== null) $h .= "Content-Type: application/json\r\n";
   $ctx = stream_context_create(['http' => ['method' => $method, 'timeout' => 30, 'ignore_errors' => true, 'header' => $h,

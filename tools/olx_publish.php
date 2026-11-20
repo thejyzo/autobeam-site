@@ -87,6 +87,25 @@ echo ($olx ? "ОНОВИТИ оголошення $olx" : 'СТВОРИТИ но
    . "  Назва: $title\n  Ціна: {$p['price']} " . ($p['currency'] ?: 'USD') . " · категорія $cat · фото " . count($imgs)
    . " · опис " . mb_strlen($desc) . " симв.\n  Поля: " . json_encode($attrs, JSON_UNESCAPED_UNICODE) . "\n"
    . "  Контакт/локація — як у оголошенні {$ref['id']}\n";
+if (in_array('--probe', $argv, true)) {
+  // Діагностика без створення: назва навмисно закоротка (OLX вимагає 16–70 символів), тож оголошення не створиться.
+  $short = function ($r) { $j = json_decode($r, true); return $j ? json_encode($j, JSON_UNESCAPED_UNICODE) : 'HTML: ' . (preg_match('#<title>(.*?)</title>#s', $r, $m) ? $m[1] : mb_substr(strip_tags($r), 0, 200)); };
+  $tests = [
+    'порожній запит' => [],
+    'повний, назва "x"' => ['title' => 'x'] + $body,
+    'без сумісності, назва "x"' => ['title' => 'x', 'attributes' => array_values(array_filter($attrs, function ($a) { return strpos($a['code'], 'compatibility') !== 0; }))] + $body,
+    'без фото, назва "x"' => ['title' => 'x', 'images' => []] + $body,
+    'без телефону, назва "x"' => ['title' => 'x', 'contact' => ['name' => $body['contact']['name']]] + $body,
+    'мінімальний, назва "x"' => ['title' => 'x', 'description' => $desc, 'category_id' => (int) $cat, 'advertiser_type' => $body['advertiser_type'],
+                                  'contact' => ['name' => $body['contact']['name']], 'location' => $body['location'], 'attributes' => [['code' => 'state', 'value' => 'used']]],
+  ];
+  echo "\nКонтакт (як надсилається): ім'я «{$body['contact']['name']}», телефон " . (isset($body['contact']['phone']) ? '«' . $body['contact']['phone'] . '»' : 'немає') . "\n";
+  foreach ($tests as $name => $b) {
+    [$c, , $r] = olx_http('POST', '/api/partner/adverts', $tok, (object) $b);
+    echo "\n▶ $name → HTTP $c\n  " . mb_substr($short((string) $r), 0, 600) . "\n";
+  }
+  exit("\nДіагностика завершена, оголошень не створено.\n");
+}
 if (!$yes) exit("\nНічого не надіслано. Щоб опублікувати, додайте --yes\n");
 
 // наше оголошення з цим external_id вже є на OLX (напр. попередня спроба створила його, хоч і повернула помилку)?
