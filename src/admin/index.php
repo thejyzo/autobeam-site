@@ -56,7 +56,7 @@ $v = @filemtime(__DIR__ . '/admin.js');
     <button id="b-new" class="ghost">+ Нова</button>
     <select id="b-exp" title="CSV для імпорту на OLX">
       <option value="">OLX CSV…</option>
-      <option value="2544:active">Фари передні — активні</option><option value="2544:all">Фари передні — активні + нові</option>
+      <option value="2544:active">Фари передні — активні</option><option value="2544:all">Фари передні — активні + нові</option><option value="2544:new">Фари передні — лише нові</option>
       <option value="2545:active">Ліхтарі — активні</option><option value="2545:all">Ліхтарі — активні + нові</option>
       <option value="2550:active">Корпуси — активні</option><option value="2550:all">Корпуси — активні + нові</option>
     </select>

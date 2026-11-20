@@ -6,7 +6,8 @@ require __DIR__ . '/_lib.php';
 start_session();
 if (empty($_SESSION['ok'])) { http_response_code(401); exit('auth'); }
 $cat = preg_replace('/\D/', '', $_GET['cat'] ?? '2544');
-$mode = $_GET['mode'] ?? 'active';            // active = лише картки з активним оголошенням; all = + в наявності без оголошення
+$mode = $_GET['mode'] ?? 'active';            // active = лише картки з активним оголошенням; all = + в наявності без оголошення; new = лише в наявності без оголошення
+$only = preg_replace('/[^A-Z0-9\-]/', '', strtoupper($_GET['id'] ?? ''));   // ?id=AB-0148 — один рядок для однієї картки
 $KCAT = ['Фара' => '2544', 'ДХО' => '2544', 'ДХВ' => '2544', 'Скло фари' => '2544', 'Ліхтар' => '2545', 'Повторювач' => '2545', 'Корпус фари' => '2550'];
 $site = 'https://autobeam.com.ua';
 $stock = stock_map();
@@ -17,11 +18,13 @@ fputcsv($out, ['id','title','description','external_id','location_city','locatio
 foreach (all_products() as $p) {
   if (!empty($p['archived']) || empty($p['show'])) continue;
   $pc = $p['olx_category'] ?: ($KCAT[$p['kind'] ?? ''] ?? '');
-  if ($pc !== $cat) continue;
+  if ($only !== '' && ($p['id'] ?? '') !== $only) continue;
+  if ($only === '' && $pc !== $cat) continue;
   $s = $stock[$p['key'] ?? ''] ?? null;
   $avail = $s ? ($s[0] + $s[1] + $s[2] > 0) : !empty($p['olx_active']);
-  if ($mode === 'active' && !(!empty($p['olx_id']) && !empty($p['olx_active']))) continue;
-  if ($mode === 'all' && !( (!empty($p['olx_id']) && !empty($p['olx_active'])) || ($avail && empty($p['olx_id'])) )) continue;
+  if ($only === '' && $mode === 'active' && !(!empty($p['olx_id']) && !empty($p['olx_active']))) continue;
+  if ($only === '' && $mode === 'new' && !($avail && empty($p['olx_id']))) continue;
+  if ($only === '' && $mode === 'all' && !( (!empty($p['olx_id']) && !empty($p['olx_active'])) || ($avail && empty($p['olx_id'])) )) continue;
   if (empty($p['title']) || empty($p['photos'])) continue;
   $img = implode('|', array_map(function ($u) use ($site) { return strpos($u, 'http') === 0 ? $u : $site . $u; }, array_slice($p['photos'], 0, 8)));
   $pns = trim(implode(' ', array_merge([$p['pn'] ?? ''], $p['pn_alt'] ?? [])));
