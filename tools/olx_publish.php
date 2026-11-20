@@ -89,9 +89,43 @@ echo ($olx ? "ОНОВИТИ оголошення $olx" : 'СТВОРИТИ но
    . "  Контакт/локація — як у оголошенні {$ref['id']}\n";
 if (!$yes) exit("\nНічого не надіслано. Щоб опублікувати, додайте --yes\n");
 
-[$c, $res, $raw] = $olx ? olx_http('PUT', '/api/partner/adverts/' . rawurlencode($olx), $tok, $body)
-                        : olx_http('POST', '/api/partner/adverts', $tok, $body);
-if ($c < 200 || $c >= 300 || empty($res['data']['id'])) exit("❌ OLX відхилив (HTTP $c): " . mb_substr($raw, 0, 1500) . "\n");
+// наше оголошення з цим external_id вже є на OLX (напр. попередня спроба створила його, хоч і повернула помилку)?
+function find_ours($tok, $cat, $id) {
+  for ($off = 0; $off < 2000; $off += 100) {
+    [$c, $l] = olx_http('GET', "/api/partner/adverts?category_ids=$cat&limit=100&offset=$off", $tok);
+    foreach ($l['data'] ?? [] as $a) if (($a['external_id'] ?? '') === $id) return $a;
+    if (count($l['data'] ?? []) < 100) break;
+  }
+  return null;
+}
+function short_err($raw) {
+  $j = json_decode($raw, true);
+  if ($j) return json_encode($j['error'] ?? $j, JSON_UNESCAPED_UNICODE);
+  return preg_match('#<title>(.*?)</title>#s', $raw, $m) ? 'сторінка «' . trim($m[1]) . '»' : mb_substr(trim(strip_tags($raw)), 0, 300);
+}
+@file_put_contents("$home/autobeam_data/olx_last_request.json", json_encode($body, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+if ($olx === '' && ($ex = find_ours($tok, $cat, $id))) {
+  $olx = (string) $ex['id'];
+  echo "ℹ️ На OLX уже є оголошення $olx для $id — оновлюю його, а не створюю дубль.\n";
+}
+$send = function ($body) use ($olx, $tok) {
+  return $olx ? olx_http('PUT', '/api/partner/adverts/' . rawurlencode($olx), $tok, $body)
+              : olx_http('POST', '/api/partner/adverts', $tok, $body);
+};
+[$c, $res, $raw] = $send($body);
+if (($c < 200 || $c >= 300) && $olx === '' && ($ex = find_ours($tok, $cat, $id))) {   // помилка, але оголошення створилось
+  $c = 200; $res = ['data' => $ex];
+}
+if ($c >= 500 && count($body['images']) > 8) {
+  echo "⚠️ OLX: помилка HTTP $c з " . count($body['images']) . " фото. Пробую з 8 фото…\n";
+  $body['images'] = array_slice($body['images'], 0, 8);
+  [$c, $res, $raw] = $send($body);
+  if ($c >= 200 && $c < 300) echo "✅ З 8 фото пройшло — отже API приймає максимум 8 (решту можна додати в кабінеті OLX).\n";
+}
+if ($c < 200 || $c >= 300 || empty($res['data']['id'])) {
+  exit("❌ OLX відхилив (HTTP $c): " . short_err((string) $raw) . "\nЗапит збережено: ~/autobeam_data/olx_last_request.json\n");
+}
 
 $d = $res['data'];
 $status = $d['status'] ?? '?';
