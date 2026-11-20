@@ -265,6 +265,7 @@ function ebayOnEdit(e) {
     return;
   }
   try {
+    let moved = false;
     for (let row = Math.max(2, e.range.getRow()); row <= e.range.getLastRow(); row++) {
       const v = sh.getRange(row, 1, 1, EB.NCOL).getValues()[0];
       const ticked = v[EB.C_OK - 1] === true;
@@ -279,7 +280,9 @@ function ebayOnEdit(e) {
       if (!ticked) continue;
       if (state !== EB.S_NEW && state.indexOf('⚠') !== 0) { sh.getRange(row, EB.C_OK).setValue(false); continue; }
       ebayTransfer_(sh, row, v);
+      moved = true;
     }
+    if (moved) { try { ebayBackfillMain_(); } catch (err) { console.warn('дофарбування: ' + err); } }
   } finally {
     lock.releaseLock();
   }
@@ -320,7 +323,7 @@ function ebayTransfer_(sh, row, v) {
   sh.getRange(row, EB.C_STATE).setValue(EB.S_DONE + ' рядок ' + target);
   sh.getRange(row, EB.C_ROW).setValue(target);
   // G — стовпець таблиці з типом «Дата»: формат не чіпаємо (число дати й так показується як дд.мм.рррр)
-  try { ebayPaintKab_(main.getRange(target, 5), kab); } catch (err) { console.warn('КАБ колір: ' + err); }
+  try { ebayPaintKab_(main.getRange(target, 5), kab); SpreadsheetApp.flush(); } catch (err) { console.warn('КАБ колір: ' + err); }
   try { ebaySetExtra_(main, target, link, v[EB.C_TRACK - 1], v[EB.C_PHOTO - 1]); } catch (err) { console.warn('трек/фото: ' + err); }
 
   ebayPaintState_(sh, row, EB.S_DONE);
@@ -424,10 +427,18 @@ function ebayBackfillMain_() {
   const col = ebayMainHeaders_(main);
   const ml = main.getLastRow();
   const ty = main.getRange(1, col.t, ml, 1).getValues(), pz = main.getRange(1, col.p, ml, 1).getValues();
+  const eVals = main.getRange(1, 5, ml, 1).getValues(), eBg = main.getRange(1, 5, ml, 1).getBackgrounds();
   sh.getRange(2, 1, last - 1, EB.NCOL).getValues().forEach(r => {
     const st = String(r[EB.C_STATE - 1]);
     if (!r[EB.C_ROW - 1] || !(st.indexOf(EB.S_DONE) === 0 || st.indexOf(EB.S_HAVE) === 0)) return;
     const rows = ebayRows_(r[EB.C_ROW - 1]).filter(x => x > 1 && x <= ml);
+    // колір кабінету: якщо після ✔ не зафарбувався — дофарбовуємо (лише перенесені нами рядки)
+    if (st.indexOf(EB.S_DONE) === 0) rows.forEach(x => {
+      const kab = String(eVals[x - 1][0]).trim(), k = EB.KAB[kab];
+      if (k && String(eBg[x - 1][0]).toLowerCase() !== k.bg) {
+        try { ebayPaintKab_(main.getRange(x, 5), kab); } catch (err) { console.warn('КАБ дофарбування ' + x + ': ' + err); }
+      }
+    });
     const needT = r[EB.C_TRACK - 1] && rows.some(x => !(ty[x - 1] || [])[0]);
     const needP = /^https:/.test(String(r[EB.C_PHOTO - 1])) && rows.some(x => !(pz[x - 1] || [])[0]);
     if (needT || needP) {
