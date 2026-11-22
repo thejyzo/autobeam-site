@@ -456,9 +456,17 @@ def main():
         "url": CFG["site_url"], "telephone": CFG["phone_intl"], "areaServed": "UA",
         "sameAs": [CFG["telegram"]]}, ensure_ascii=False)
 
+    # site name in Google results ("AutoBeam" instead of the bare domain): WebSite markup on the home page only
+    ld_home = json.dumps({"@context": "https://schema.org", "@graph": [
+        {"@type": "WebSite", "@id": CFG["site_url"] + "/#website", "name": "AutoBeam", "alternateName": ["Auto Beam", "АвтоБім"],
+         "url": CFG["site_url"] + "/", "inLanguage": "uk"},
+        {"@type": "AutoPartsStore", "@id": CFG["site_url"] + "/#store", "name": "AutoBeam", "url": CFG["site_url"] + "/",
+         "logo": CFG["site_url"] + "/assets/icon-512.png", "image": CFG["site_url"] + "/assets/og.png?v=2",
+         "telephone": CFG["phone_intl"], "areaServed": "UA", "sameAs": [CFG["telegram"]]}]}, ensure_ascii=False)
+
     idx = page("index.html", base="", title="AutoBeam — оригінальна оптика зі США для вашого авто",
                description=f"Оригінальні фари, ліхтарі та ДХВ зі США для Toyota, Mazda, Ford, Jeep, Nissan, VW та інших. Великий вибір в наявності, підбір за VIN і привезення під замовлення. Пошук за парт-номером, доставка по Україні.",
-               canonical=CFG["site_url"] + "/", og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld_org,
+               canonical=CFG["site_url"] + "/", og_image=CFG["site_url"] + "/assets/og.png?v=2", jsonld=ld_home,
                count=len(items), sidebar=sidebar, model_count=len(models_js), brand_count=len(MODELS), cards="\n".join([card(i) for i in items] + [ocard(o) for o in orders]), order_count=sum(i["st"] == "order" for i in items + orders),
                stock_count=sum(i["st"] == "in" for i in items), soon_count=sum(i["st"] == "soon" for i in items + orders),
                cta_hero=contact_buttons("hero"), cta_request=contact_buttons("request", "center"), cta_contacts=contact_buttons("contacts"))
