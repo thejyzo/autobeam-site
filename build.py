@@ -458,7 +458,7 @@ def main():
 
     # site name in Google results ("AutoBeam" instead of the bare domain): WebSite markup on the home page only
     ld_home = json.dumps({"@context": "https://schema.org", "@graph": [
-        {"@type": "WebSite", "@id": CFG["site_url"] + "/#website", "name": "AutoBeam", "alternateName": ["Auto Beam", "АвтоБім"],
+        {"@type": "WebSite", "@id": CFG["site_url"] + "/#website", "name": "AutoBeam", "alternateName": ["Auto Beam"],
          "url": CFG["site_url"] + "/", "inLanguage": "uk"},
         {"@type": "AutoPartsStore", "@id": CFG["site_url"] + "/#store", "name": "AutoBeam", "url": CFG["site_url"] + "/",
          "logo": CFG["site_url"] + "/assets/icon-512.png", "image": CFG["site_url"] + "/assets/og.png?v=2",
