@@ -139,6 +139,12 @@ function monitorWhich_(title, rows, dataNames) {
     return h ? Object.assign(h, { label: '💡 ДХВ / не фара — ' + h.label }) : null;
   }
   const free = rows.filter(r => !r.data);
+  // без року в назві лота не відрізнити старе покоління від потрібного (Escape 17–19 vs 23+) — такі лоти не шлемо,
+  // якщо позиція з роками (власник 23.11: «старі ескейпи, не потрібно»). Рядки без позиції DATA — як і раніше.
+  if (!ebayYears_(title).length && rows.some(r => r.data && ebayYears_(r.name).length)) {
+    if (!free.length) return null;
+    rows = free;
+  }
   const byName = {};
   rows.filter(r => r.data).forEach(r => byName[r.name] = r);
 
