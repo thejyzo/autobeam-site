@@ -25,13 +25,13 @@ const EB = {
   MAIN: 'Общая таблица',
   DATA: 'DATA',
   // колонки «Входящих»
-  C_OK: 1, C_STATE: 2, C_KAB: 3, C_DATE: 4, C_TITLE: 5, C_NAME: 6, C_SUM: 7, C_LINK: 8, C_TRACK: 9, C_STATUS: 10, C_HINT: 11, C_ID: 12, C_ROW: 13, C_PHOTO: 14,
+  C_OK: 1, C_STATE: 2, C_KAB: 3, C_DATE: 4, C_TITLE: 5, C_NAME: 6, C_SUM: 7, C_LINK: 8, C_TRACK: 9, C_STATUS: 10, C_HINT: 11, C_ID: 12, C_ROW: 13, C_PHOTO: 14, C_NP: 15,
   // «Общая таблица»: колонки «Трек США» і «Фото» шукаються за заголовком у рядку 1 (можна переносити куди завгодно).
   // Якщо їх немає — додаються в самий кінець аркуша (зараз AE, AF): жодна наявна колонка не зсувається.
   // Колонки можна потім перетягнути будь-куди ПРАВІШЕ від X — скрипт знайде їх за заголовком.
   M_TRACK_H: 'Трек США', M_PHOTO_H: 'Фото',
-  NCOL: 14,
-  HEAD: ['✔', 'Стан', 'Кабінет', 'Дата', 'Лот eBay', 'Позиція DATA', 'Сума, $', 'Посилання', 'Трек США', 'Статус eBay', 'Варіанти DATA', 'ID', 'Рядок', 'Фото (Google Диск)'],
+  NCOL: 15,
+  HEAD: ['✔', 'Стан', 'Кабінет', 'Дата', 'Лот eBay', 'Позиція DATA', 'Сума, $', 'Посилання', 'Трек США', 'Статус eBay', 'Варіанти DATA', 'ID', 'Рядок', 'Фото (Google Диск)', 'Для NP: лот + такса, $'],
   // кольори кабінетів як в «Общей таблице»
   KAB: {
     'КАБ1': { bg: '#00ff00', fg: '#434343' },
@@ -87,7 +87,7 @@ function ebayPrepareSheet_() {
     head.setValues([EB.HEAD]).setFontWeight('bold').setBackground('#ff9900').setFontColor('#000000')
       .setVerticalAlignment('middle').setWrap(true);
     sh.setFrozenRows(1);
-    const widths = [34, 150, 60, 82, 330, 260, 70, 70, 190, 160, 330, 60, 50, 120];
+    const widths = [34, 150, 60, 82, 330, 260, 70, 70, 190, 160, 330, 60, 50, 120, 95];
     widths.forEach((w, i) => sh.setColumnWidth(i + 1, w));
     sh.hideColumns(EB.C_ID, 2);
   }
@@ -159,6 +159,8 @@ function ebaySync_(days) {
         }
       }
       if (String(r[EB.C_STATUS - 1]) !== f.status) sh.getRange(row, EB.C_STATUS).setValue(f.status);
+      const np = ebayNpOf_(f, id);
+      if (np.v !== '' && Number(r[EB.C_NP - 1]) !== np.v) sh.getRange(row, EB.C_NP).setValue(np.v).setNumberFormat('0.00').setNote(np.note);
     }));
 
     // ще не перенесені рядки: якщо тим часом внесли вручну — «Вже в обліку»
@@ -207,7 +209,7 @@ function ebaySync_(days) {
         }
       }
       const tag = (f.unit !== '1/1' ? f.unit : '') + (f.side ? (f.unit !== '1/1' ? ', ' : '') + (f.side === 'LH' ? 'пара: ліва' : 'пара: права') : '');
-      out.push({ f: f, v: ['', state, f.kab, ebaySerial_(f.date), f.item + (tag ? '  [' + tag + ']' : ''), name, f.amount, link, f.tracking, f.status, hint, f.id, mrow, ''] });
+      out.push({ f: f, v: ['', state, f.kab, ebaySerial_(f.date), f.item + (tag ? '  [' + tag + ']' : ''), name, f.amount, link, f.tracking, f.status, hint, f.id, mrow, '', ebayNpOf_(f, f.id).v] });
     });
     if (!out.length) { ebayPhotosSafe_(); return; }
 
@@ -219,6 +221,8 @@ function ebaySync_(days) {
       .setFontWeight('normal').setWrap(false);
     sh.getRange(2, EB.C_DATE, out.length, 1).setNumberFormat('dd.mm.yyyy');
     sh.getRange(2, EB.C_SUM, out.length, 1).setNumberFormat('0.00');
+    sh.getRange(2, EB.C_NP, out.length, 1).setNumberFormat('0.00');
+    sh.getRange(2, EB.C_NP, out.length, 1).setNotes(out.map(o => [ebayNpOf_(o.f, o.f.id).note]));
     sh.getRange(2, EB.C_NAME, out.length, 1).setDataValidation(
       SpreadsheetApp.newDataValidation().requireValueInRange(ss.getSheetByName(EB.DATA).getRange('A1:A'), true).setAllowInvalid(false).build());
     sh.getRange(2, EB.C_KAB, out.length, 1).setDataValidation(
@@ -527,6 +531,7 @@ function ebaySplitPair() {
     return ss.toast('Розділити можна лише новий, ще не розділений рядок', 'eBay', 6);
   }
   const f = { id: String(v[EB.C_ID - 1]), amount: Number(v[EB.C_SUM - 1]) };
+  const npC = Math.round(Number(v[EB.C_NP - 1]) * 100) || 0, npA = Math.floor(npC / 2);
   const h = ebayHalves_(f);
   const hist = ebayMainIndex_(ss.getSheetByName(EB.MAIN));
   const data = ebayDataNames_(ss);
@@ -542,6 +547,7 @@ function ebaySplitPair() {
     sh.getRange(r, EB.C_TITLE).setValue(title + '  [пара: ' + (x.side === 'LH' ? 'ліва' : 'права') + ']');
     sh.getRange(r, EB.C_NAME).setValue(m.name);
     sh.getRange(r, EB.C_SUM).setValue(x.amount);
+    if (npC) sh.getRange(r, EB.C_NP).setValue((i === 0 ? npA : npC - npA) / 100);
     sh.getRange(r, EB.C_HINT).setValue(m.hint);
     sh.getRange(r, EB.C_ID).setValue(x.id);
   });
@@ -861,4 +867,19 @@ function ebaySerialFromDate_(d) {
 function ebayDateFromIso_(iso) {
   const p = String(iso).split('-').map(Number);
   return new Date(p[0], p[1] - 1, p[2]);
+}
+
+
+// Сума для декларації NP Shopping: ціна лота + такса, БЕЗ доставки (з фіду np_value).
+// Для пари, розділеної на ліву/праву (id …L / …R), — навпіл до цента. Примітка: з чого складається.
+function ebayNpOf_(f, id) {
+  if (f.np_value === undefined || f.np_value === null) return { v: '', note: '' };
+  const c = Math.round(Number(f.np_value) * 100), a = Math.floor(c / 2);
+  const half = /L$/.test(id) ? a : /R$/.test(id) ? c - a : null;
+  const v = (half === null ? c : half) / 100;
+  let note = 'Лот $' + Number(f.lot_price).toFixed(2) + ' + такса $' + Number(f.tax).toFixed(2) +
+    ' (доставка $' + Number(f.ship).toFixed(2) + ' не входить)';
+  if (Number(f.discount) > 0) note += '\n⚠ Купон/знижка eBay $' + Number(f.discount).toFixed(2) + ' на замовлення — сума вже з урахуванням знижки';
+  if (half !== null) note += '\nПара: половина від $' + (c / 100).toFixed(2);
+  return { v: v, note: note };
 }

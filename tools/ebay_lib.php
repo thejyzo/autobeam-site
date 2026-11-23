@@ -67,6 +67,22 @@ function ebay_purchases($cfg, $days = 30) {
       $charged = $paid > 0 ? $paid : ($payments > 0 ? $payments : (float) $o->Total);
       $totalC = (int) round($charged * 100);
       $lineC = ebay_split($totalC, $weights);
+      // Для декларації NP Shopping: ціна лота + такса, БЕЗ доставки (= списано − доставка; купон eBay теж враховано).
+      $shipC = (int) round((float) $o->ShippingServiceSelected->ShippingServiceCost * 100);
+      $taxL = []; $taxSum = 0;
+      foreach ($lines as $t) {
+        $tx = (float) $t->Taxes->TotalTaxAmount;
+        if ($tx <= 0) $tx = (float) $t->eBayCollectAndRemitTaxes->TotalTaxAmount;
+        $taxL[] = (int) round($tx * 100); $taxSum += end($taxL);
+      }
+      $itemsC = array_sum($weights);
+      if ($taxSum <= 0) { // запасний варіант: Total = Subtotal + доставка + такса
+        $t0 = (int) round(((float) $o->Total - (float) $o->Subtotal) * 100) - $shipC;
+        if ($t0 > 0) { $taxL = ebay_split($t0, $weights); $taxSum = $t0; }
+      }
+      $discC = max(0, $itemsC + $shipC + $taxSum - $totalC); // купон/знижка eBay
+      $npL = ebay_split(max(0, $totalC - $shipC), $weights);
+      $shipL = ebay_split($shipC, $weights);
       $status = (string) $o->OrderStatus;
       if ((string) $o->ShippedTime) $status .= ' / відправлено ' . ebay_kyiv_date((string) $o->ShippedTime);
       foreach ($lines as $li => $t) {
@@ -74,6 +90,8 @@ function ebay_purchases($cfg, $days = 30) {
         foreach ($t->ShippingDetails->ShipmentTrackingDetails ?? [] as $d) $trk[] = trim((string) $d->ShippingCarrierUsed . ' ' . (string) $d->ShipmentTrackingNumber);
         $qty = max(1, (int) $t->QuantityPurchased);
         $unitC = ebay_split($lineC[$li], array_fill(0, $qty, 1));
+        $ones = array_fill(0, $qty, 1);
+        $npU = ebay_split($npL[$li], $ones); $taxU = ebay_split($taxL[$li] ?? 0, $ones); $shipU = ebay_split($shipL[$li], $ones);
         $lineId = (string) $t->OrderLineItemID ?: ((string) $t->Item->ItemID . '-' . (string) $t->TransactionID);
         for ($u = 0; $u < $qty; $u++) {
           $rows[] = [
@@ -84,6 +102,11 @@ function ebay_purchases($cfg, $days = 30) {
             'item_id' => (string) $t->Item->ItemID,
             'unit' => ($u + 1) . '/' . $qty,
             'amount' => $unitC[$u] / 100,
+            'np_value' => $npU[$u] / 100,           // лот + такса, без доставки
+            'lot_price' => round((float) $t->TransactionPrice, 2),
+            'tax' => $taxU[$u] / 100,
+            'ship' => $shipU[$u] / 100,
+            'discount' => round($discC / 100, 2),   // на все замовлення
             'order_total' => (float) $o->Total,
             'order_paid' => $paid,
             'order_payments' => round($payments, 2),
