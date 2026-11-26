@@ -18,7 +18,7 @@
 //   • вписуєте номер рядка «Общей таблицы» → підставляється позиція (F) і передоплата (Q);
 //     ставите ✔ → у рядок пишуться O (дата відправки), P (ТТН), R (наложка), Q (передоплата, якщо була порожня).
 //     L не чіпаємо;
-//   • якщо увімкнено Checkbox (Checkbox.gs) — одразу після ✔ створюється чек аванса й прив'язка наложки до ЕН;
+//   • чек Checkbox — вручну: стати на рядок з ТТН і меню «Нова пошта → 🧾 Створити чек» (Checkbox.gs);
 //   • статуси відстежуються для ВСІХ ТТН з колонки P (і внесених вручну) за останні 45 днів:
 //       посилку отримано → L = «Продана» через ваш onEdit;
 //       відмова / повернення / припинено зберігання → повідомлення в Telegram (бот моніторингу), L не змінюється.
@@ -68,7 +68,9 @@ function npOnOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Нова пошта')
     .addItem('🔄 Оновити ТТН і статуси', 'npSync')
-    .addItem('🧾 Checkbox: перевірити підключення', 'cbCheck') // з Checkbox.gs
+    .addSeparator()
+    .addItem('🧾 Створити чек (вибраний рядок)', 'cbCreateForSelection') // з Checkbox.gs
+    .addItem('🔌 Checkbox: перевірити підключення', 'cbCheck')
     .addToUi();
 }
 
@@ -323,16 +325,8 @@ function npTransfer_(ss, sh, main, row, v) {
   sh.getRange(row, NP.C_NAME).setValue(String(m[NP.M_F - 1]));
   npPaint_(sh, row, NP.S_DONE);
   SpreadsheetApp.flush();
-
-  // Checkbox: аванс + прив'язка наложки до ЕН
-  let cbNote = '';
-  try {
-    cbNote = cbForShipment_({ ttn: ttn, name: String(m[NP.M_F - 1]).trim(), row: r, prepay: pre, cod: cod });
-  } catch (err) {
-    cbNote = '⚠ ' + String(err.message || err).slice(0, 300);
-  }
-  if (cbNote) sh.getRange(row, NP.C_CB).setValue(cbNote);
-  ss.toast(String(m[NP.M_F - 1]) + ' → рядок ' + r + (cbNote ? '\nCheckbox: ' + cbNote : ''), 'НП: перенесено', 8);
+  // чек Checkbox — лише вручну: меню «Нова пошта → 🧾 Створити чек» (Checkbox.gs)
+  ss.toast(String(m[NP.M_F - 1]) + ' → рядок ' + r + '\nЧек: меню «Нова пошта → 🧾 Створити чек»', 'НП: перенесено', 8);
 }
 
 

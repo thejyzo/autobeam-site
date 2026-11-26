@@ -1,15 +1,18 @@
 // =====================================================
 // Checkbox: чек аванса (оплата на IBAN) + прив'язка залишку наложки до ЕН Нової пошти
 //
-// Викликається з NovaPoshta.gs після ✔ на аркуші «Відправки НП».
+// ЛИШЕ ВРУЧНУ: стати на будь-яку клітинку рядка з ТТН («Общая таблица» або «Відправки НП») →
+// меню «Нова пошта → 🧾 Створити чек» → вікно з сумами → «Так».
 // Те саме, що ви робите вручну: аванс (передоплата на рахунок ФОП) → чек одразу;
 // залишок наложки прив'язується до ЕН → Checkbox сам видає чек, коли клієнт забере посилку.
+// Створювати ДО того, як клієнт забере посилку. Одна ТТН = один чек (повтор не створюється).
 //
 // Властивості скрипта (вводите самі):
 //   CHECKBOX_LICENSE_KEY = ключ ліцензії каси (my.checkbox.ua → Каси → каса → «Ключ ліцензії»)
 //   CHECKBOX_LOGIN / CHECKBOX_PASSWORD = логін і пароль касира  (або CHECKBOX_PIN = PIN-код касира)
-//   CB_ENABLED = 1      ← поки немає, чеки НЕ створюються (лише перевірка cbCheck)
 //   CB_IBAN_LABEL       ← назва оплати для аванса (необов'язково), за замовчуванням «Переказ з поточного рахунку»
+//
+// Суми: аванс = Q рядка «Общей таблицы»; наложка = з ТТН (аркуш «Відправки НП»), якщо там є, інакше R.
 //
 // Сума товару в чеку = передоплата + наложка (= T у «Общей таблице»). Назва товару = позиція (F).
 //   • є передоплата і наложка → чек передоплати (CASHLESS) + /ettn/prepayment (наложка на ЕН);
@@ -23,9 +26,84 @@ const CB = {
   VERSION: '1.0',
 };
 
+// Меню «Нова пошта → 🧾 Створити чек (вибраний рядок)»
+function cbCreateForSelection() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getActiveSheet();
+  const cur = sheet.getActiveRange().getRow();
+  const main = ss.getSheetByName(NP.MAIN);
+  const np = ss.getSheetByName(NP.SHEET);
+
+  // ТТН і рядок «Общей таблицы»
+  let ttn = '', mainRow = 0;
+  if (sheet.getName() === NP.MAIN && cur > 1) {
+    mainRow = cur;
+    ttn = String(main.getRange(cur, NP.M_P).getValue()).replace(/\s/g, '');
+  } else if (sheet.getName() === NP.SHEET && cur > 1) {
+    ttn = String(np.getRange(cur, NP.C_TTN).getValue()).replace(/\s/g, '');
+    mainRow = npMainIndex_(main).byTtn[ttn] || Number(np.getRange(cur, NP.C_ROW).getValue()) || 0;
+  } else {
+    ui.alert('Станьте на рядок з ТТН в «Общей таблице» або на аркуші «Відправки НП».');
+    return;
+  }
+  if (!/^\d{14}$/.test(ttn)) { ui.alert('У цьому рядку немає ТТН (14 цифр).'); return; }
+  if (!mainRow) { ui.alert('ТТН ' + ttn + ' ще не прив\'язана до рядка «Общей таблицы». Впишіть рядок і поставте ✔ на «Відправки НП».'); return; }
+
+  const props = PropertiesService.getScriptProperties();
+  const done = JSON.parse(props.getProperty('CB_DONE') || '{}');
+  if (done[ttn]) { ui.alert('Чек для ТТН ' + ttn + ' вже створено:\n' + done[ttn]); return; }
+
+  const m = main.getRange(mainRow, 1, 1, NP.M_R).getValues()[0];
+  const name = String(m[NP.M_F - 1]).trim();
+  const prepay = Number(m[NP.M_Q - 1]) || 0;
+  const rTable = Number(m[NP.M_R - 1]) || 0;
+  // наложка з ТТН (аркуш «Відправки НП»)
+  let npRow = 0, codTtn = 0;
+  if (np && np.getLastRow() > 1) {
+    const col = np.getRange(2, NP.C_TTN, np.getLastRow() - 1, 1).getValues();
+    for (let i = 0; i < col.length; i++) if (String(col[i][0]).trim() === ttn) { npRow = i + 2; break; }
+    if (npRow) codTtn = Number(np.getRange(npRow, NP.C_COD).getValue()) || 0;
+  }
+  const cod = codTtn || rTable;
+  if (!name) { ui.alert('Рядок ' + mainRow + ': порожня позиція (F).'); return; }
+  if (!(cod > 0)) { ui.alert('Немає наложки (ні в ТТН, ні в R) — чек на ЕН не потрібен.'); return; }
+
+  const lines = [
+    'Рядок ' + mainRow + ': ' + name,
+    'ТТН ' + ttn,
+    '',
+    'Аванс (IBAN, чек зараз): ' + cbMoney_(prepay),
+    'Наложка на ЕН (чек при отриманні): ' + cbMoney_(cod),
+    'Разом у чеку: ' + cbMoney_(prepay + cod),
+  ];
+  if (codTtn && rTable && codTtn !== rTable) lines.push('', '⚠ У ТТН наложка ' + cbMoney_(codTtn) + ', а в R — ' + cbMoney_(rTable) + '. У чек іде сума з ТТН.');
+  if (!prepay) lines.push('', 'Q порожня → без аванса, уся сума на ЕН.');
+  lines.push('', 'Створити чек?');
+  if (ui.alert('🧾 Checkbox', lines.join('\n'), ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  const lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) { ui.alert('Зайнято, спробуйте ще раз за кілька секунд.'); return; }
+  let note;
+  try {
+    note = cbForShipment_({ ttn: ttn, name: name, row: mainRow, prepay: prepay, cod: cod });
+    done[ttn] = Utilities.formatDate(new Date(), 'Europe/Kyiv', 'dd.MM.yyyy HH:mm') + ' — ' + note;
+    props.setProperty('CB_DONE', JSON.stringify(done));
+  } catch (e) {
+    note = '⚠ ' + String(e.message || e).slice(0, 300);
+  } finally {
+    lock.releaseLock();
+  }
+  if (npRow) np.getRange(npRow, NP.C_CB).setValue(note);
+  ui.alert(note.indexOf('⚠') === 0 ? 'Checkbox ⚠' : 'Checkbox ✓', note, ui.ButtonSet.OK);
+}
+
+function cbMoney_(x) {
+  return Number(x || 0).toLocaleString('uk-UA') + ' грн';
+}
+
 function cbForShipment_(o) {
   const props = PropertiesService.getScriptProperties();
-  if (props.getProperty('CB_ENABLED') !== '1') return '';
   if (!(o.cod > 0)) return 'без наложки — чек не створюю';
   const total = Math.round((o.prepay + o.cod) * 100);
   const pre = Math.round(o.prepay * 100), cod = Math.round(o.cod * 100);
@@ -69,7 +147,7 @@ function cbCheck() {
     const me = cbCall_(token, 'get', '/cashier/me');
     ui.alert('Checkbox ✓', 'Касир: ' + (me.full_name || me.username || '—') +
       '\nЗміна: ' + (shift && shift.status ? shift.status : 'закрита (відкриється сама при першому чеку)') +
-      '\nСтворення чеків: ' + (PropertiesService.getScriptProperties().getProperty('CB_ENABLED') === '1' ? 'УВІМКНЕНО' : 'вимкнено (CB_ENABLED ≠ 1)'),
+      '\nЧеки: вручну — меню «Нова пошта → 🧾 Створити чек»',
       ui.ButtonSet.OK);
   } catch (e) {
     ui.alert('Checkbox ⚠', String(e.message || e), ui.ButtonSet.OK);
