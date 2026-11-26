@@ -11,7 +11,7 @@
 //   CHECKBOX_LICENSE_KEY = ключ ліцензії каси (my.checkbox.ua → Каси → каса → «Ключ ліцензії»)
 //   CHECKBOX_LOGIN / CHECKBOX_PASSWORD = логін і пароль касира  (або CHECKBOX_PIN = PIN-код касира)
 //   Товар у чеку — за каталогом Checkbox (CB_GOODS нижче): фара=1, ліхтар=2, блок=23, скло=24, маска=25, корпус=33
-//   CB_IBAN_LABEL       ← назва оплати для аванса (необов'язково), за замовчуванням «Переказ з поточного рахунку»
+//   CB_IBAN_LABEL       ← назва оплати для аванса (необов'язково), за замовчуванням «За реквізитами (IBAN)»
 //
 // Суми: аванс = Q рядка «Общей таблицы»; наложка = з ТТН (аркуш «Відправки НП»), якщо там є, інакше R.
 //
@@ -137,7 +137,7 @@ function cbForShipment_(o) {
 
   if (pre > 0) {
     const relation = 'AB-' + o.ttn;
-    const label = props.getProperty('CB_IBAN_LABEL') || 'Переказ з поточного рахунку';
+    const label = props.getProperty('CB_IBAN_LABEL') || 'За реквізитами (IBAN)';
     const rec = cbCall_(token, 'post', '/prepayment-receipts', {
       goods: [good],
       payments: [{ type: 'CASHLESS', value: pre, label: label }],
