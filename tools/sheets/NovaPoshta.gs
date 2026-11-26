@@ -105,10 +105,30 @@ function npSync() {
     const main = ss.getSheetByName(NP.MAIN);
     const inMain = npMainIndex_(main);
     npLoadNew_(sh, inMain);
+    npFillPre_(sh, inMain);
     npTrack_(ss, sh, main, inMain);
   } finally {
     lock.releaseLock();
   }
+}
+
+// Передоплата (J) = Q «Общей таблицы» для всіх рядків, прив'язаних до рядка (оновлюється при кожній синхронізації)
+function npFillPre_(sh, inMain) {
+  const last = sh.getLastRow();
+  if (last < 2) return;
+  const rows = sh.getRange(2, NP.C_ROW, last - 1, 1).getValues();
+  const pre = sh.getRange(2, NP.C_PRE, last - 1, 1).getValues();
+  const st = sh.getRange(2, NP.C_STATE, last - 1, 1).getValues();
+  let changed = false;
+  rows.forEach((r, i) => {
+    const m = Number(r[0]);
+    if (!m || !(m in inMain.name)) return;
+    const want = inMain.pre[m] || '';
+    // у ще не перенесеному рядку не стираємо передоплату, яку ви вписали вручну (вона піде в Q при ✔)
+    if (want === '' && String(st[i][0]).indexOf(NP.S_HAVE) !== 0 && String(st[i][0]).indexOf(NP.S_DONE) !== 0) return;
+    if (String(pre[i][0]) !== String(want)) { pre[i][0] = want; changed = true; }
+  });
+  if (changed) sh.getRange(2, NP.C_PRE, last - 1, 1).setValues(pre);
 }
 
 // Нові ТТН з кабінету(ів) → вгору аркуша
