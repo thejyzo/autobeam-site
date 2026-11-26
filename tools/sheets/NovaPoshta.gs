@@ -73,6 +73,7 @@ function npOnOpen() {
     .addItem('↩️ Повернути пропущені (вибрані)', 'npUnskip')
     .addSeparator()
     .addItem('🧾 Створити чек (вибраний рядок)', 'cbCreateForSelection') // з Checkbox.gs
+    .addItem('↩️ Дозволити повторний чек (вибраний рядок)', 'cbForgetSelected')
     .addItem('🔌 Checkbox: перевірити підключення', 'cbCheck')
     .addToUi();
 }

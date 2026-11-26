@@ -120,6 +120,28 @@ function cbGood_(position) {
   return { code: '1', name: 'автомобільна фара (вживана)' };
 }
 
+// Меню «Нова пошта → ↩️ Дозволити повторний чек (вибраний рядок)»:
+// забуває, що для ТТН вибраного рядка чек уже створено (після повернення/скасування в Checkbox).
+// У самому Checkbox нічого не змінює.
+function cbForgetSelected() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  const row = sh.getActiveRange().getRow();
+  let ttn = '';
+  if (sh.getName() === NP.MAIN && row > 1) ttn = String(sh.getRange(row, NP.M_P).getValue());
+  else if (sh.getName() === NP.SHEET && row > 1) ttn = String(sh.getRange(row, NP.C_TTN).getValue());
+  ttn = ttn.replace(/\s/g, '');
+  const props = PropertiesService.getScriptProperties();
+  const done = JSON.parse(props.getProperty('CB_DONE') || '{}');
+  if (!done[ttn]) { ui.alert('Для ТТН «' + ttn + '» чек скриптом не створювався — нічого скидати.'); return; }
+  if (ui.alert('Дозволити повторний чек?', 'ТТН ' + ttn + '\nБуло: ' + done[ttn] +
+      '\n\nСпершу скасуйте прив\'язку наложки до ЕН і зробіть повернення аванса в Checkbox. Скрипт у Checkbox нічого не змінює.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  delete done[ttn];
+  props.setProperty('CB_DONE', JSON.stringify(done));
+  ss.toast('Для ТТН ' + ttn + ' можна створити чек знову', 'Checkbox', 6);
+}
+
 function cbMoney_(x) {
   return Number(x || 0).toLocaleString('uk-UA') + ' грн';
 }
