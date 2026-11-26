@@ -195,6 +195,33 @@
   {
    "model": "CX-30",
    "gen": "DM",
+   "years": "2023-2026 (US)",
+   "variant": "DRVR = LED з adaptive (AFS); DRVP = LED без adaptive",
+   "right": [
+    "DRVR-51-030B",
+    "DRVR-51-030A",
+    "DRVP-51-030B",
+    "DRVP-51-030A"
+   ],
+   "left": [
+    "DRVR-51-040B",
+    "DRVR-51-040",
+    "DRVP-51-040B",
+    "DRVP-51-040A"
+   ],
+   "keys": [
+    "Mazda CX-30 23-26 LED RH",
+    "Mazda CX-30 23-26 LED LH"
+   ],
+   "confidence": "high",
+   "sources": [
+    "каталог Mazda — скрін від власника 26.11.2026: DRVR-51-040 With Adaptive Driver Side → DRVR-51-040B; DRVP-51-040A Without Adaptive Driver → DRVP-51-040B; DRVR-51-030A With Adaptive Passenger → B; DRVP-51-030A Without Adaptive Passenger → B"
+   ],
+   "note": "Сервісний номер (DRVR/DRVP-51-0x0) — основний; на корпусі може бути відлитий заводський DGJ1-51040 (AB-0168). Блок керування того ж префікса: DRVR-67890 / DRVP-67890."
+  },
+  {
+   "model": "CX-30",
+   "gen": "DM",
    "years": "2020-2025",
    "variant": "LED з adaptive (AFS)",
    "right": [
