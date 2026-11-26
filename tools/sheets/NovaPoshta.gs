@@ -147,7 +147,7 @@ function npLoadNew_(sh, inMain) {
     return {
       v: [false, mainRow ? NP.S_HAVE + ' (рядок ' + mainRow + ')' : NP.S_NEW, date, ttn,
           String(d.CityRecipientDescription || d.CityRecipient || d.RecipientCityName || ''),
-          String(d.Description || ''), cod || '', mainRow || '', mainRow ? inMain.name[mainRow] || '' : '', '',
+          String(d.Description || ''), cod || '', mainRow || '', mainRow ? inMain.name[mainRow] || '' : '', mainRow ? inMain.pre[mainRow] || '' : '',
           String(d.StateName || ''), '', '', ''],
       have: !!mainRow,
     };
@@ -385,11 +385,12 @@ function npTransfer_(ss, sh, main, row, v) {
 function npMainIndex_(main) {
   const last = main.getLastRow();
   const vals = main.getRange(1, 1, last, NP.M_R).getValues();
-  const idx = { byTtn: {}, name: {}, sold: {}, sent: {} };
+  const idx = { byTtn: {}, name: {}, sold: {}, sent: {}, pre: {} };
   for (let i = 1; i < vals.length; i++) {
     const row = i + 1, v = vals[i];
     const ttn = String(v[NP.M_P - 1]).replace(/\s/g, '');
     idx.name[row] = String(v[NP.M_F - 1]);
+    idx.pre[row] = Number(v[NP.M_Q - 1]) || '';
     if (String(v[NP.M_L - 1]).trim() === NP.SOLD) idx.sold[row] = true;
     if (v[NP.M_O - 1] instanceof Date) idx.sent[row] = v[NP.M_O - 1];
     if (/^\d{14}$/.test(ttn)) idx.byTtn[ttn] = row;
