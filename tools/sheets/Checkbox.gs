@@ -10,7 +10,7 @@
 // Властивості скрипта (вводите самі):
 //   CHECKBOX_LICENSE_KEY = ключ ліцензії каси (my.checkbox.ua → Каси → каса → «Ключ ліцензії»)
 //   CHECKBOX_LOGIN / CHECKBOX_PASSWORD = логін і пароль касира  (або CHECKBOX_PIN = PIN-код касира)
-//   CB_GOOD_NAME / CB_GOOD_CODE ← товар у чеку, як у каталозі Checkbox (за замовчуванням «Автомобільна фара (вживана)»)
+//   Товар у чеку — за каталогом Checkbox (CB_GOODS нижче): фара=1, ліхтар=2, блок=23, скло=24, маска=25, корпус=33
 //   CB_IBAN_LABEL       ← назва оплати для аванса (необов'язково), за замовчуванням «Переказ з поточного рахунку»
 //
 // Суми: аванс = Q рядка «Общей таблицы»; наложка = з ТТН (аркуш «Відправки НП»), якщо там є, інакше R.
@@ -72,7 +72,7 @@ function cbCreateForSelection() {
 
   const lines = [
     'Рядок ' + mainRow + ': ' + name,
-    'Товар у чеку: «' + cbGood_().name + '» (код ' + cbGood_().code + ')',
+    'Товар у чеку: «' + cbGood_(name).name + '» (код ' + cbGood_(name).code + ')',
     'ТТН ' + ttn,
     '',
     'Аванс (IBAN, чек зараз): ' + cbMoney_(prepay),
@@ -100,13 +100,24 @@ function cbCreateForSelection() {
   ui.alert(note.indexOf('⚠') === 0 ? 'Checkbox ⚠' : 'Checkbox ✓', note, ui.ButtonSet.OK);
 }
 
-// Товар у чеку — як у вашому каталозі Checkbox (Властивості скрипта CB_GOOD_NAME / CB_GOOD_CODE)
-function cbGood_() {
-  const pr = PropertiesService.getScriptProperties();
-  return {
-    name: pr.getProperty('CB_GOOD_NAME') || 'Автомобільна фара (вживана)',
-    code: pr.getProperty('CB_GOOD_CODE') || 'HEADLIGHT-USED',
-  };
+// Товар у чеку — з каталогу Checkbox власника (26.11.2026), за назвою позиції (F):
+//   1  автомобільна фара (вживана)   — за замовчуванням
+//   23 Блок для фари (вживаний)      — «блок»
+//   24 Скло для фари                 — «скло» / «стекло»
+//   25 Маска декоративна для фари    — «маска»
+//   2  Ліхтар автомобільний (вживаний) — «ліхтар» / «фонарь» / «фонар»
+//   33 Корпус для фари               — «корпус»
+const CB_GOODS = [
+  { re: /блок/i, code: '23', name: 'Блок для фари (вживаний)' },
+  { re: /скло|стекло/i, code: '24', name: 'Скло для фари' },
+  { re: /маск/i, code: '25', name: 'Маска декоративна для фари' },
+  { re: /ліхтар|фонар/i, code: '2', name: 'Ліхтар автомобільний (вживаний)' },
+  { re: /корпус/i, code: '33', name: 'Корпус для фари' },
+];
+function cbGood_(position) {
+  const p = String(position || '');
+  for (let i = 0; i < CB_GOODS.length; i++) if (CB_GOODS[i].re.test(p)) return CB_GOODS[i];
+  return { code: '1', name: 'автомобільна фара (вживана)' };
 }
 
 function cbMoney_(x) {
@@ -118,7 +129,7 @@ function cbForShipment_(o) {
   if (!(o.cod > 0)) return 'без наложки — чек не створюю';
   const total = Math.round((o.prepay + o.cod) * 100);
   const pre = Math.round(o.prepay * 100), cod = Math.round(o.cod * 100);
-  const g = cbGood_();
+  const g = cbGood_(o.name);
   const good = { good: { code: g.code, name: g.name, price: total }, quantity: 1000, is_return: false };
 
   const token = cbToken_();
