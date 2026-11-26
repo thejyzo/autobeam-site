@@ -68,7 +68,7 @@ function npOnOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Нова пошта')
     .addItem('🔄 Оновити ТТН і статуси', 'npSync')
-    .addItem('🧾 Checkbox: перевірити підключення', 'cbCheck')
+    .addItem('🧾 Checkbox: перевірити підключення', 'cbCheck') // з Checkbox.gs
     .addToUi();
 }
 
