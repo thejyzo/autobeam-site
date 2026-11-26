@@ -40,6 +40,7 @@ const NP = {
   S_NEW: 'Новий',
   S_DONE: 'Перенесено ✓',
   S_HAVE: 'Вже в обліку',
+  S_SKIP: 'Пропущено',
   // коди статусів НП
   RECEIVED: [9, 10, 11, 106],
   PROBLEM: [102, 103, 105, 108, 111],
@@ -68,6 +69,8 @@ function npOnOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Нова пошта')
     .addItem('🔄 Оновити ТТН і статуси', 'npSync')
+    .addItem('🙈 Пропустити вибрані рядки', 'npSkip')
+    .addItem('↩️ Повернути пропущені (вибрані)', 'npUnskip')
     .addSeparator()
     .addItem('🧾 Створити чек (вибраний рядок)', 'cbCreateForSelection') // з Checkbox.gs
     .addItem('🔌 Checkbox: перевірити підключення', 'cbCheck')
@@ -182,6 +185,7 @@ function npTrack_(ss, sh, main, inMain) {
     const ttn = String(v[NP.C_TTN - 1]).trim();
     const code = Number(v[NP.C_CODE - 1]);
     if (!ttn || NP.FINAL.indexOf(code) >= 0) return;
+    if (String(v[NP.C_STATE - 1]).indexOf(NP.S_SKIP) === 0) return; // пропущені не відстежуємо
     const d = v[NP.C_DATE - 1];
     if (d instanceof Date && Date.now() - d.getTime() > NP.DAYS_TRACK * 86400000) return;
     want[ttn] = want[ttn] || {};
@@ -269,6 +273,10 @@ function npOnEdit(e) {
     for (let row = Math.max(2, e.range.getRow()); row <= e.range.getLastRow(); row++) {
       const v = sh.getRange(row, 1, 1, NP.NCOL).getValues()[0];
       const state = String(v[NP.C_STATE - 1]);
+      if (state.indexOf(NP.S_SKIP) === 0) {
+        if (touchesOk && v[NP.C_OK - 1] === true) sh.getRange(row, NP.C_OK).setValue(false);
+        continue;
+      }
       if (state.indexOf(NP.S_DONE) === 0 || state.indexOf(NP.S_HAVE) === 0) {
         if (touchesOk && state.indexOf(NP.S_DONE) === 0 && v[NP.C_OK - 1] !== true) sh.getRange(row, NP.C_OK).setValue(true);
         continue;
@@ -281,6 +289,45 @@ function npOnEdit(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// Меню: «Пропустити» / «Повернути» для виділених рядків аркуша «Відправки НП» (можна кілька рядків)
+function npSkip() { npSkipToggle_(true); }
+function npUnskip() { npSkipToggle_(false); }
+
+function npSkipToggle_(skip) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getActiveSheet();
+  if (sh.getName() !== NP.SHEET) {
+    SpreadsheetApp.getUi().alert('Виділіть рядки на аркуші «' + NP.SHEET + '».');
+    return;
+  }
+  const lock = LockService.getDocumentLock();
+  if (!lock.tryLock(30000)) return;
+  let n = 0;
+  try {
+    const ranges = sh.getActiveRangeList() ? sh.getActiveRangeList().getRanges() : [sh.getActiveRange()];
+    ranges.forEach(rg => {
+      for (let row = Math.max(2, rg.getRow()); row <= rg.getLastRow(); row++) {
+        const state = String(sh.getRange(row, NP.C_STATE).getValue());
+        if (!sh.getRange(row, NP.C_TTN).getValue()) continue;
+        if (skip && (state === NP.S_NEW || state.indexOf('⚠') === 0)) {
+          sh.getRange(row, NP.C_OK).clearDataValidations().setValue('');
+          sh.getRange(row, NP.C_STATE).setValue(NP.S_SKIP);
+          npPaint_(sh, row, NP.S_SKIP);
+          n++;
+        } else if (!skip && state.indexOf(NP.S_SKIP) === 0) {
+          sh.getRange(row, NP.C_STATE).setValue(NP.S_NEW);
+          sh.getRange(row, 1, 1, NP.NCOL - 2).setBackground(null).setFontColor('#000000');
+          sh.getRange(row, NP.C_OK).insertCheckboxes();
+          n++;
+        }
+      }
+    });
+  } finally {
+    lock.releaseLock();
+  }
+  ss.toast((skip ? 'Пропущено: ' : 'Повернуто: ') + n + (n ? '' : ' (пропустити можна лише «Новий»; перенесені й «Вже в обліку» не змінюються)'), 'Нова пошта', 6);
 }
 
 // вписали номер рядка → позиція (F) і передоплата (Q) з «Общей таблицы»
@@ -388,7 +435,7 @@ function npDate_(s) {
 function npPaint_(sh, row, state) {
   const r = sh.getRange(row, 1, 1, NP.NCOL - 2);
   if (String(state).indexOf(NP.S_DONE) === 0) r.setBackground('#d9ead3');
-  else if (String(state).indexOf(NP.S_HAVE) === 0) r.setBackground('#eeeeee').setFontColor('#777777');
+  else if (String(state).indexOf(NP.S_HAVE) === 0 || String(state).indexOf(NP.S_SKIP) === 0) r.setBackground('#eeeeee').setFontColor('#777777');
   else if (String(state).indexOf('⚠') === 0) sh.getRange(row, NP.C_STATE).setBackground('#f4cccc');
   else r.setBackground(null);
 }
