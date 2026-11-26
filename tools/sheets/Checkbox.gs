@@ -10,6 +10,7 @@
 // Властивості скрипта (вводите самі):
 //   CHECKBOX_LICENSE_KEY = ключ ліцензії каси (my.checkbox.ua → Каси → каса → «Ключ ліцензії»)
 //   CHECKBOX_LOGIN / CHECKBOX_PASSWORD = логін і пароль касира  (або CHECKBOX_PIN = PIN-код касира)
+//   CB_GOOD_NAME / CB_GOOD_CODE ← товар у чеку, як у каталозі Checkbox (за замовчуванням «Автомобільна фара (вживана)»)
 //   CB_IBAN_LABEL       ← назва оплати для аванса (необов'язково), за замовчуванням «Переказ з поточного рахунку»
 //
 // Суми: аванс = Q рядка «Общей таблицы»; наложка = з ТТН (аркуш «Відправки НП»), якщо там є, інакше R.
@@ -71,6 +72,7 @@ function cbCreateForSelection() {
 
   const lines = [
     'Рядок ' + mainRow + ': ' + name,
+    'Товар у чеку: «' + cbGood_().name + '» (код ' + cbGood_().code + ')',
     'ТТН ' + ttn,
     '',
     'Аванс (IBAN, чек зараз): ' + cbMoney_(prepay),
@@ -98,6 +100,15 @@ function cbCreateForSelection() {
   ui.alert(note.indexOf('⚠') === 0 ? 'Checkbox ⚠' : 'Checkbox ✓', note, ui.ButtonSet.OK);
 }
 
+// Товар у чеку — як у вашому каталозі Checkbox (Властивості скрипта CB_GOOD_NAME / CB_GOOD_CODE)
+function cbGood_() {
+  const pr = PropertiesService.getScriptProperties();
+  return {
+    name: pr.getProperty('CB_GOOD_NAME') || 'Автомобільна фара (вживана)',
+    code: pr.getProperty('CB_GOOD_CODE') || 'HEADLIGHT-USED',
+  };
+}
+
 function cbMoney_(x) {
   return Number(x || 0).toLocaleString('uk-UA') + ' грн';
 }
@@ -107,7 +118,8 @@ function cbForShipment_(o) {
   if (!(o.cod > 0)) return 'без наложки — чек не створюю';
   const total = Math.round((o.prepay + o.cod) * 100);
   const pre = Math.round(o.prepay * 100), cod = Math.round(o.cod * 100);
-  const good = { good: { code: 'AB-' + o.row, name: o.name.slice(0, 250), price: total }, quantity: 1000, is_return: false };
+  const g = cbGood_();
+  const good = { good: { code: g.code, name: g.name, price: total }, quantity: 1000, is_return: false };
 
   const token = cbToken_();
   cbEnsureShift_(token);
